@@ -1,0 +1,11 @@
+
+
+import python ;
+
+project vgram
+  : requirements
+    <location>.
+    ;
+
+python-extension vgram : library.cpp ;
+
