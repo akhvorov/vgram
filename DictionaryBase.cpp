@@ -40,7 +40,7 @@ std::vector<int> DictionaryBase::parseEx(std::string const & seq, std::vector<in
 
 std::vector<int> DictionaryBase::parse(std::string const & seq) {
     std::vector<int> builder;
-    linearParse(seq, builder, null);
+    linearParse(seq, builder, nullptr);
     return builder;
 }
 
@@ -125,7 +125,7 @@ double DictionaryBase::exhaustiveParse(std::string const & seq, std::vector<int>
 
 double DictionaryBase::weightedParse(std::string const & seq, std::vector<int> const & freqs, double totalFreq,
                                      std::vector<int> const & builder) {
-    return weightedParse(seq, freqs, totalFreq, builder, null);
+    return weightedParse(seq, freqs, totalFreq, builder, nullptr);
 }
 
 double DictionaryBase::weightedParse(std::string const & seq, std::vector<int> const & freqs, double totalFreq,
@@ -219,5 +219,5 @@ void DictionaryBase::weightParseVariants(std::string const & seq, double multipl
 }
 
 int DictionaryBase::search(std::string seq) {
-    return search(seq, null);
+    return search(seq, nullptr);
 }
