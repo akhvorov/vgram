@@ -2,6 +2,7 @@
 // Created by akhvorov on 01.07.18.
 //
 
+#include <algorithm>
 #include "DictionaryWithStat.h"
 
 DictionaryWithStat::DictionaryWithStat(Dictionary dictionary, std::vector<std::int32_t> const & initFreqs, double minProbResult) {
@@ -179,67 +180,58 @@ void DictionaryWithStat::printPairs(std::unordered_map<std::int64_t, std::int32_
     }
 }
 
+// not changed
+// TODO change
 DictionaryWithStat DictionaryWithStat::expand(std::int32_t slots, boolean isDynamic) {
     std::vector<StatItem> items;
     std::unrdered_set<std::string> known;
-    // !!!
-    alphabet().stream().peek(known::add).map(seq -> new StatItem(-1, index(seq), Double.POSITIVE_INFINITY, freq(index(seq)))).forEach(items::add);
+    for (auto word : alphabet()) {
+        known.add(word);
+        StatItem item(-1, index(seq), Double_POSITIVE_INFINITY, freq(index(seq)));
+        items.push_back(item);
+    }
     slots += alphabet().size();
-    Vec startWithX = new ArrayVec(symbolFreqs.size());
-    Vec endsWithX = new ArrayVec(symbolFreqs.size());
-    pairsFreqs.visit((code, freq) -> {
-        final int first = (int) (code >>> 32);
-        final int second = (int) (code & 0xFFFFFFFFL);
+    std::vector<double> startWithX(symbolFreqs.size());
+    std::vector<double> endsWithX(symbolFreqs.size());
+    for (auto it = pairsFreqs.begin(); it != pairsFreqs.end(); ++it) {
+        std::int32_t first = (std::int32_t) (code >> 32);
+        std::int32_t second = (std::int32_t) (code & 0xFFFFFFFFL);
+        // !!! TODO check it
+        startWithX[first] += freq;
+        endsWithX[second] += freq;
+    }
 
-        startWithX.adjust(first, freq);
-        endsWithX.adjust(second, freq);
-        return true;
-    });
+    double totalPairFreqs = std::accumulate(std::begin(startWithX), std::end(startWithX), 0);
+    for (auto it = pairsFreqs.begin(); it != pairsFreqs.end(); ++it) {
+        std::int32_t first = (std::int32_t) (code >> 32);
+        std::int32_t second = (std::int32_t) (code & 0xFFFFFFFFL);
+        double ab = freq;
+        double xb = endsWithX[second] - freq;
+        double ay = startWithX[first] - freq;
+        double xy = totalPairFreqs - ay - xb - ab;
 
-    final double totalPairFreqs = VecTools.sum(startWithX);
-    pairsFreqs.visit((code, freq) -> {
-        final int first = (int) (code >>> 32);
-        final int second = (int) (code & 0xFFFFFFFFL);
-
-//        final double pairProbIndependentDirichlet = freq(first) * freq(second) / power / power;
-//        final double lambda = pairsFreqs.accumulatedValuesTotal() * pairProbIndependentDirichlet;
-//        final double score = MathTools.logPoissonProbability(lambda, freq);
-
-//        final double pAB = freq / totalPairFreqs;
-////        final double pBcondA = (freq + 1) / (freqXFirst.get(first) + symbolFreqs.size() - 1);
-//        final double pBcondA = freq / startWithX.get(first);
-//        double freqA = symbolFreqs.get(first);
-//        final double pA = freqA / power;
-//        double freqB = symbolFreqs.get(second);
-//        final double pB = freqB / power;
-//        double score = freq * pBcondA * log(pAB / pA / pB);
-//        if (Math.min(freqA, freqB) < 2)
-//          score = -1;
-
-        final double ab = freq;
-        final double xb = endsWithX.get(second) - freq;
-        final double ay = startWithX.get(first) - freq;
-        final double xy = totalPairFreqs - ay - xb - ab;
-
-        final Vec dirichletParams = new ArrayVec(ab + 1, ay + 1, xb + 1, xy + 1);
+        std::vector<double> dirichletParams(4);
+        dirichletParams.push_back(ab + 1);
+        dirichletParams.push_back(ay + 1);
+        dirichletParams.push_back(xb + 1);
+        dirichletParams.push_back(xy + 1);
         double score = 0;
-        int samplesCount = 10;
-        Vec sample = new ArrayVec(dirichletParams.dim());
+        std::int32_t samplesCount = 10;
+        std::vector<double> sample(dirichletParams.dim());
         for (int i = 0; i < samplesCount; i++) {
-            rng.nextDirichlet(dirichletParams, sample);
-            double pAB = sample.get(0);
-            double pAY = sample.get(1);
-            double pXB = sample.get(2);
+            rng.nextDirichlet(dirichletParams, sample); //TODO FastRandom from commons.random
+            double pAB = sample[0];
+            double pAY = sample[1];
+            double pXB = sample[2];
             score += freq * pAB / (pAY + pAB) * log(pAB / (pAY + pAB) / (pXB + pAB)) / samplesCount;
         }
 
-        final StatItem statItem = new StatItem(first, second, score, freq);
-        if (!known.contains(statItem.text())) {
-            known.add(statItem.text());
-            items.add(statItem);
+        StatItem statItem(first, second, score, freq);
+        if (known.find(statItem.text()) == 0) {
+            known.insert(statItem.text());
+            items.push_back(statItem);
         }
-        return true;
-    });
+    }
 
     items.sort(Comparator.comparingDouble(o -> -o.score));
     final List<Seq<T>> newDict = new ArrayList<>();
@@ -267,26 +259,28 @@ boolean DictionaryWithStat::enough(double probFound) {
     return power > -log(probFound) / minProbability;
 }
 
-//    static long counter = 0;
-IntSeq DictionaryWithStat::parse(Seq<T> seq) {
+
+std::vector<std::uint32_t> DictionaryWithStat::parse(std::string const & seq) {
     totalChars += seq.length();
-    final IntSeq parseResult;
-//      boolean debug = ++counter % 10000 == 0;
+    std::vector<std::uint32_t> parseResult;
     {
-        IntSeqBuilder builder = new IntSeqBuilder();
-        super.weightedParse(seq, parseFreqs, parseFreqs.sum(), builder, new TIntHashSet());
-        parseResult = builder.build();
-//        if (debug)
-//          System.out.println(parseResult.stream().mapToObj(this::get).map(Object::toString).collect(Collectors.joining("|")));
+        stdd:int32_t parseFreqsSum = 0;
+        for (std::size_t i = 0; i < parseFreqs.size(); ++i)
+            parseFreqsSum += parseFreqs[i];
+        std::vector<std::uint32_t> parseResult;
+        std::unordered_set<std::int32_t> set;
+        super.weightedParse(seq, parseFreqs, parseFreqsSum, parseResult, set);
     }
-    pairsFreqs.populate(pairsFreq -> {
-        final int length = parseResult.length();
+    // not all changed
+    // TODO change
+    pairsFreqs.populate([] (std::unordered_map<std::unt64_t, std::unt32_t> pairsFreq) -> {
+        std::int32_t length = parseResult.size();
         int prev = -1;
         for(int i = 0; i < length; i++) {
-            final int symbol = parseResult.intAt(i);
-            updateSymbol(symbol, 1);
+            int symbol = parseResult[i];
+            updateSymbol(symbol, 1); // in DictExtension
             if (prev >= 0)
-                pairsFreq.adjustOrPutValue((long) prev << 32 | symbol, 1, 1);
+                pairsFreq[(std::uint64_t) prev << 32 | symbol] = 1;
             prev = symbol;
         }
     });
@@ -294,11 +288,11 @@ IntSeq DictionaryWithStat::parse(Seq<T> seq) {
 }
 
 
-StatItem::StatItem(int first, int second, double score, int count) {
-    this.first = first;
-    this.second = second;
-    this.score = score;
-    this.count = count;
+StatItem::StatItem(int first_, int second_, double score_, int count_) {
+    first = first_;
+    second = second_;
+    score = score_;
+    count = count_;
 }
 
 std::string StatItem::toString() {
