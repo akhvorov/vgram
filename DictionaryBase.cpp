@@ -4,13 +4,17 @@
 
 #include "DictionaryBase.h"
 
-std::vector<int> DictionaryBase::parse(std::string const & seq, std::vector<int> const & freqs, double totalFreq) {
-    std::vector<int> result;
+DictionaryBase::DictionaryBase() {
+
+}
+
+std::vector<std::int32_t> DictionaryBase::parse(std::string const & seq, std::vector<std::int32_t> const & freqs, double totalFreq) {
+    std::vector<std::int32_t> result;
     double logProBab = weightedParse(seq, freqs, totalFreq, result);
     if (logProBab > 0 || debug) {
         std::cout << seq + " ->";
-        for (int i = 0; i < result.length(); i++) {
-            final int symbol = result.intAt(i);
+        for (std::size_t i = 0; i < result.length(); i++) {
+            std::int32_t symbol = result[i];
             if (symbol >= 0)
                 std::cout << " " + get(symbol);
             else
@@ -21,13 +25,13 @@ std::vector<int> DictionaryBase::parse(std::string const & seq, std::vector<int>
     return result;
 }
 
-std::vector<int> DictionaryBase::parseEx(std::string const & seq, std::vector<int> const & freqs, double totalFreq) {
-    std::vector<int> result;
-    double logProBab = exhaustiveParse(seq, freqs, totalFreq, result, 0, Double.NEGATIVE_INFINITY);
+std::vector<std::int32_t> DictionaryBase::parseEx(std::string const & seq, std::vector<std::int32_t> const & freqs, double totalFreq) {
+    std::vector<std::int32_t> result;
+    double logProBab = exhaustiveParse(seq, freqs, totalFreq, result, 0, Double_NEGATIVE_INFINITY);
     if (logProBab > 0 || debug) {
         std::cout << seq.toString() + " ->";
-        for (int i = 0; i < result.length(); i++) {
-            int symbol = result[i];
+        for (std::size_t i = 0; i < result.length(); i++) {
+            std::int32_t symbol = result[i];
             if (symbol >= 0)
                 std::cout << " " + get(symbol);
             else
@@ -38,26 +42,26 @@ std::vector<int> DictionaryBase::parseEx(std::string const & seq, std::vector<in
     return result;
 }
 
-std::vector<int> DictionaryBase::parse(std::string const & seq) {
-    std::vector<int> builder;
+std::vector<std::int32_t> DictionaryBase::parse(std::string const & seq) {
+    std::vector<std::int32_t> builder;
     linearParse(seq, builder, nullptr);
     return builder;
 }
 
-std::vector<int> DictionaryBase::parse(std::string const & seq, std::unordered_set<int> const & excludes) {
-    std::vector<int> builder;
+std::vector<std::int32_t> DictionaryBase::parse(std::string const & seq, std::unordered_set<std::int32_t> const & excludes) {
+    std::vector<std::int32_t> builder;
     linearParse(seq, builder, excludes);
     return builder;
 }
 
-int DictionaryBase::linearParse(std::string const & seq, std::vector<int> const & builder,
-                                std::unordered_set<int> const & excludes) {
+std::size_t DictionaryBase::linearParse(std::string const & seq, std::vector<std::int32_t> const & builder,
+                                std::unordered_set<std::int32_t> const & excludes) {
     std::string suffix = seq;
     while (suffix.length() > 0) {
-        int symbol;
+        std::int32_t symbol;
         try {
             symbol = search(suffix, excludes);
-            int symLen = get(symbol).length();
+            std::int32_t symLen = get(symbol).length();
             suffix = suffix.substr(symLen, suffix.length() - symLen);
         }
         catch (int e_code) {
@@ -69,26 +73,26 @@ int DictionaryBase::linearParse(std::string const & seq, std::vector<int> const 
         }
         builder.push_back(symbol);
     }
-    return builder.length();
+    return builder.size();
 }
 
 // my strange builder impl
-double DictionaryBase::exhaustiveParse(std::string const & seq, std::vector<int> const & freqs, double totalFreq,
-                                       std::vector<int> const & builder, double currentLogProbab, double bestLogProBab) {
+double DictionaryBase::exhaustiveParse(std::string const & seq, std::vector<std::int32_t> const & freqs, double totalFreq,
+                                       std::vector<std::int32_t> const & builder, double currentLogProbab, double bestLogProBab) {
     if (seq.length() == 0)
         return currentLogProbab;
     std::string suffix = seq;
-    int symbol;
+    std::int32_t symbol;
 
-    int builderLen = builder.size();
+    std::size_t builderLen = builder.size();
     try {
         double bestProbability = Double_NEGATIVE_INFINITY;
-        std::vector<int> bestSeq;
+        std::vector<std::int32_t> bestSeq;
         symbol = search(suffix);
 
         do {
             builder.push_back(symbol);
-            int symLen = get(symbol).length();
+            std::int32_t symLen = get(symbol).length();
             std::string variant = suffix.substr(symLen, suffix.length() - symLen);
             double logProbability = currentLogProbab - log(totalFreq + freqs.size() + 1);
             logProbability += freqs.size() > symbol ? log(freqs[symbol] + 1) : 0.;
@@ -123,24 +127,24 @@ double DictionaryBase::exhaustiveParse(std::string const & seq, std::vector<int>
     }
 }
 
-double DictionaryBase::weightedParse(std::string const & seq, std::vector<int> const & freqs, double totalFreq,
-                                     std::vector<int> const & builder) {
+double DictionaryBase::weightedParse(std::string const & seq, std::vector<std::int32_t> const & freqs, double totalFreq,
+                                     std::vector<std::int32_t> const & builder) {
     return weightedParse(seq, freqs, totalFreq, builder, nullptr);
 }
 
-double DictionaryBase::weightedParse(std::string const & seq, std::vector<int> const & freqs, double totalFreq,
-                                     std::vector<int> const & builder, std::unordered_set<int> const & excludes)
+double DictionaryBase::weightedParse(std::string const & seq, std::vector<std::int32_t> const & freqs, double totalFreq,
+                                     std::vector<std::int32_t> const & builder, std::unordered_set<std::int32_t> const & excludes)
 {
-    int len = seq.length();
+    std::size_t len = seq.length();
     std::vector<double> score(len + 1, Double_NEGATIVE_INFINITY);
     score[0] = 0;
-    std::vector<int> symbols(len + 1);
+    std::vector<std::int32_t> symbols(len + 1);
 
-    for (int pos = 0; pos < len; pos++) {
+    for (std::size_t pos = 0; pos < len; pos++) {
         std::string suffix = seq.substr(pos, len - pos);
-        int sym = search(suffix, excludes);
+        std::int32_t sym = search(suffix, excludes);
         do {
-            int symLen = get(sym).length();
+            std::int32_t symLen = get(sym).length();
             double symLogProb = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(totalFreq + size());
 
             if (score[symLen + pos] < score[pos] + symLogProb)
@@ -151,34 +155,34 @@ double DictionaryBase::weightedParse(std::string const & seq, std::vector<int> c
         }
         while ((sym = parent(sym)) >= 0); // !!!
     }
-    std::vector<int> solution(len + 1);
-    int pos = len;
-    int index = 0;
+    std::vector<std::int32_t> solution(len + 1);
+    std::size_t pos = len;
+    std::size_t index = 0;
     while (pos > 0) {
-        int sym = symbols[pos];
+        std::int32_t sym = symbols[pos];
         solution[len - (++index)] = sym;
         pos -= get(sym).length();
     }
-    for (int i = 0; i < index; i++) {
+    for (std::size_t i = 0; i < index; i++) {
         builder.push_back(solution[len - index + i]);
     }
     return score[len];
 }
 
-void DictionaryBase::weightParseVariants(std::string const & seq, double multiplier, std::vector<int> const & freqs,
-                                         double totalFreq, std::unordered_set<int> const & excludes,
-                                         std::unordered_map<int, double> const & result)
+void DictionaryBase::weightParseVariants(std::string const & seq, double multiplier, std::vector<std::int32_t> const & freqs,
+                                         double totalFreq, std::unordered_set<std::int32_t> const & excludes,
+                                         std::unordered_map<std::int32_t, double> const & result)
 {
-    int len = seq.length();
+    std::int32_t len = seq.length();
     std::vector<double> countForward(len + 1);
     {
         countForward[0] = 1;
-        for (int pos = 0; pos < len; pos++) {
+        for (std::size_t pos = 0; pos < len; pos++) {
             std::string suffix = seq.substr(pos, len - pos);
-            int sym = search(suffix, excludes);
+            std::int32_t sym = search(suffix, excludes);
             do {
-                int symLen = get(sym).length();
-                int freq = sym < freqs.size() ? freqs[sym] : 0;
+                std::int32_t symLen = get(sym).length();
+                std::int32_t freq = sym < freqs.size() ? freqs[sym] : 0;
                 countForward[pos + symLen] += freq * countForward[pos] / totalFreq;
             }
             while ((sym = parent(sym)) >= 0);
@@ -188,24 +192,24 @@ void DictionaryBase::weightParseVariants(std::string const & seq, double multipl
     std::vector<double> countBackward(len + 1);
     {
         countBackward[len] = 1;
-        for (int pos = len - 1; pos >= 0; pos--) {
+        for (std::size_t pos = len - 1; pos >= 0; pos--) {
             std::string suffix = seq.substr(pos, len - pos);
             int sym = search(suffix, excludes);
             do {
-                int symLen = get(sym).length();
-                int freq = sym < freqs.size() ? freqs[sym] : 0;
+                std::int32_t symLen = get(sym).length();
+                std::int32_t freq = sym < freqs.size() ? freqs[sym] : 0;
                 countBackward[pos] += freq * countBackward[pos + symLen] / totalFreq;
             }
             while ((sym = parent(sym)) >= 0);
         }
     }
 
-    for (int pos = 0; pos < len; pos++) {
+    for (std::size_t pos = 0; pos < len; pos++) {
         std::string suffix = seq.substr(pos, len - pos);
-        int sym = search(suffix, excludes);
+        std::int32_t sym = search(suffix, excludes);
         do {
-            int symLen = get(sym).length();
-            int freq = sym < freqs.size() ? freqs[sym] : 0;
+            std::int32_t symLen = get(sym).length();
+            std::int32_t freq = sym < freqs.size() ? freqs[sym] : 0;
             double freqIncrement = freq / totalFreq * countForward[pos] * countBackward[pos + symLen];
             double v = multiplier * freqIncrement / countForward[len];
             if (result.count(sym) == 0) {
@@ -218,6 +222,6 @@ void DictionaryBase::weightParseVariants(std::string const & seq, double multipl
     }
 }
 
-int DictionaryBase::search(std::string seq) {
+std::int32_t DictionaryBase::search(std::string seq) {
     return search(seq, nullptr);
 }

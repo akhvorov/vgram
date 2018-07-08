@@ -7,10 +7,10 @@
 
 DictionaryWithStat::DictionaryWithStat(Dictionary dictionary, std::vector<std::int32_t> const & initFreqs, double minProbResult) {
     dict = dictionary;
-    std::vector<std::int32_t> symbolFreqs(dict.size());
+    symbolFreqs = std::vector<std::int32_t>(dict.size());
     symbolFreqs.fill(symbolFreqs.size(), dict.size(), 0);  // !!!
     if (initFreqs == nullptr)
-        parseFreqs = std::vector<int>(dist.size(), 0);
+        parseFreqs = std::vector<std::int32_t>(dist.size(), 0);
     else {
         parseFreqs = initFreqs;
         for (std::size_t i = parseFreqs.size(); i < dist.size(); ++i)
@@ -23,8 +23,10 @@ DictionaryWithStat::DictionaryWithStat(Dictionary dictionary, std::vector<std::i
 void DictionaryWithStat::updateSymbol(std::int32_t index, std::int32_t freq) {
     if (index >= symbolFreqs.size()) {
         if (index >= symbolFreqs.size()) {
-            symbolFreqs.fill(symbolFreqs.size(), index + 1, 0);
-            parseFreqs.fill(parseFreqs.size(), index + 1, 0);
+            for (std::size_t i = symbolFreqs.size(); i < index + 1; ++i)
+                symbolFreqs.push_back(0);
+            for (std::size_t i = parseFreqs.size(); i < index + 1; ++i)
+                parseFreqs.push_back(0);
         }
     }
     symbolFreqs[index] += freq;
@@ -32,11 +34,11 @@ void DictionaryWithStat::updateSymbol(std::int32_t index, std::int32_t freq) {
     power += freq;
 }
 
-int DictionaryWithStat::search(std::string const & seq) {
+std::int32_t DictionaryWithStat::search(std::string const & seq) {
     return dict.search(seq);
 }
 
-int DictionaryWithStat::search(std::string const & seq, std::unordered_set<std::int32_t> const & excludes) {
+std::int32_t DictionaryWithStat::search(std::string const & seq, std::unordered_set<std::int32_t> const & excludes) {
     return dict.search(seq, excludes);
 }
 
@@ -44,7 +46,7 @@ std::string DictionaryWithStat::get(std::int32_t index) {
     return dict.get(index);
 }
 
-int DictionaryWithStat::size() {
+std::size_t DictionaryWithStat::size() {
     return dict.size();
 }
 
@@ -52,18 +54,18 @@ std::vector<std::string> DictionaryWithStat::alphabet() {
     return dict.alphabet();
 }
 
-int DictionaryWithStat::parent(std::int32_t second) {
+std::int32_t DictionaryWithStat::parent(std::int32_t second) {
     return dict.parent(second);
 }
 
-int DictionaryWithStat::freq(std::int32_t index) {
+std::int32_t DictionaryWithStat::freq(std::int32_t index) {
     return index < symbolFreqs.size() ? symbolFreqs[index] : 0;
 }
 
 double DictionaryWithStat::codeLengthPerChar() {
     double sum = 0;
-    for (int i = 0; i < size(); i++) {
-        int freq = freq(i);
+    for (std::size_t i = 0; i < size(); i++) {
+        std::int32_t freq = freq(i);
         if (freq > 0)
             sum -= freq * log(freq);
     }
@@ -73,14 +75,14 @@ double DictionaryWithStat::codeLengthPerChar() {
 DictionaryWithStat DictionaryWithStat::reduce(std::int32_t slots, boolean isDynamic) {
     std::vector<std::string> newDict(size());
     std::vector<StatItem> items = filterStatItems(slots);
-    std::vector<int> freqs(items.size());
+    std::vector<std::int32_t> freqs(items.size());
     double power = 0.0;
     for (auto const & item : items)
         power += item.count;
 
     double minProbResult = min(1. / size(), MAX_MIN_PROBABILITY);
     for (auto const & item : items) {
-        double p = (item.count + 1) / (power + size());
+        double p = (item.count + 1.0) / (power + size());
         if (parent(item.second) >= 0)
             minProbResult = min(p, minProbResult);
         std::string symbol = get(item.second);
@@ -89,17 +91,17 @@ DictionaryWithStat DictionaryWithStat::reduce(std::int32_t slots, boolean isDyna
     }
 
     //noinspection unchecked
-    return createDict(newDict, freqs, isDynamic, minProbResult);
+    return createDict(newDict, freqs, isDynamic, minProbResult); //TODO from DictExpansion // make one more constructor
 }
 
 std::vector<StatItem> DictionaryWithStat::filterStatItems(std::int32_t slots) {
-    for (int s = 0; s < symbolFreqs.size(); ++s)
+    for (std::size_t s = 0; s < symbolFreqs.size(); ++s)
         if (parent(s) < 0)
             slots += 1;
-    std::unordered_set<int> excludes;
-    for (int id = 0; id < size(); ++id)
+    std::unordered_set<std::int32_t> excludes;
+    for (std::size_t id = 0; id < size(); ++id)
         if (parent(id) >= 0 && freq(id) == 0)
-            excludes.add(id);
+            excludes.insert(id);
     std::vector<StatItem> items = statItems(excludes);
     while (items.size() > min(items.size(), slots))
         items.pop_back();
@@ -109,31 +111,29 @@ std::vector<StatItem> DictionaryWithStat::filterStatItems(std::int32_t slots) {
 std::vector<StatItem> DictionaryWithStat::statItems(std::unordered_set<std::int32_t> const & excludes) {
     std::vector<StatItem> items;
     double codeLength = codeLengthPerChar() * totalChars;
-    for (std::int32_t id = 0; id < symbolFreqs.size(); ++id) {
+    for (std::size_t id = 0; id < symbolFreqs.size(); ++id) {
         if (excludes.count(id) == 0) {
-            int count = freq(id);
+            std::int32_t count = freq(id);
             std::string seq = get(id);
             if (seq.length() > 1) {
                 std::vector<std::int32_t> parse;
-                excludes.add(id);
+                excludes.insert(id);
                 weightedParse(seq, symbolFreqs, power, parse, excludes);
                 excludes.remove(id);
                 double newPower = power + (parse.size() - 1) * count;
                 double codeLengthWOSymbol = codeLength + count * log(count) - power * log(power) + newPower * log(newPower);
-                for (int i = 0; i < parse.size(); i++) {
-                    int next = parse[i];
-                    int oldFreq = freq(next);
-                    int newFreq = oldFreq + count;
+                for (std::size_t i = 0; i < parse.size(); ++i) {
+                    std::int32_t next = parse[i];
+                    std::int32_t oldFreq = freq(next);
+                    std::int32_t newFreq = oldFreq + count;
                     codeLengthWOSymbol -= newFreq * log(newFreq) - (oldFreq > 0 ? oldFreq * log(oldFreq) : 0);
                 }
                 double score = codeLengthWOSymbol - codeLength;
                 if (score > 0) {
-                    StatItem item(-1, id, score, count);
-                    items.push_back(item);
+                    items.push_back(StatItem(-1, id, score, count));
                 }
             } else {
-                StatItem item(-1, id, Double_POSITIVE_INFINITY, count);
-                items.push_back(item);
+                items.push_back(StatItem item(-1, id, Double_POSITIVE_INFINITY, count));
             }
         }
     }
@@ -155,7 +155,6 @@ char DictionaryWithStat::indexOfTwoStr(std::string const & first, std::string co
 }
 
 
-
 boolean DictionaryWithStat::isSubstring(std::string const & s, std::string const & t) {
     // t is substr of s
     if (t.length() > s.length()) {
@@ -169,31 +168,34 @@ boolean DictionaryWithStat::isSubstring(std::string const & s, std::string const
     }
 }
 
-void DictionaryWithStat::printPairs(std::unordered_map<std::int64_t, std::int32_t> oldPairs, std::unordered_map<std::int64_t, std::int32_t> newPairs) {
+void DictionaryWithStat::printPairs(std::unordered_map<std::int64_t, std::int32_t> oldPairs,
+                                    std::unordered_map<std::int64_t, std::int32_t> newPairs) {
     for (std::size_t first = 0; first < size(); first++) {
         for (std::size_t second = 0; second < size(); second++) {
             std::int64_t code = (std::int64_t) first << 32 | second;
             if (oldPairs[code] != newPairs[code]) {
-                std::cout << "\t" + dict.get(first) + "|" + dict.get(second) + ": " + oldPairs[code] + " -> " + newPairs[code] << std::endl;
+                std::cout << "\t" + dict.get(first) + "|" + dict.get(second) + ": " + oldPairs[code] + " -> " +
+                             newPairs[code] << std::endl;
             }
         }
     }
 }
 
-// not changed
+// some changes
 // TODO change
 DictionaryWithStat DictionaryWithStat::expand(std::int32_t slots, boolean isDynamic) {
     std::vector<StatItem> items;
     std::unrdered_set<std::string> known;
     for (auto word : alphabet()) {
         known.add(word);
-        StatItem item(-1, index(seq), Double_POSITIVE_INFINITY, freq(index(seq)));
-        items.push_back(item);
+        items.push_back(StatItem(-1, index(seq), Double_POSITIVE_INFINITY, freq(index(seq))));
     }
     slots += alphabet().size();
     std::vector<double> startWithX(symbolFreqs.size());
     std::vector<double> endsWithX(symbolFreqs.size());
     for (auto it = pairsFreqs.begin(); it != pairsFreqs.end(); ++it) {
+        std::int32_t code = it->first;
+        std::int32_t freq = it->second;
         std::int32_t first = (std::int32_t) (code >> 32);
         std::int32_t second = (std::int32_t) (code & 0xFFFFFFFFL);
         // !!! TODO check it
@@ -201,8 +203,10 @@ DictionaryWithStat DictionaryWithStat::expand(std::int32_t slots, boolean isDyna
         endsWithX[second] += freq;
     }
 
-    double totalPairFreqs = std::accumulate(std::begin(startWithX), std::end(startWithX), 0);
+    double totalPairFreqs = std::accumulate(startWithX.begin(), startWithX.end(), 0);
     for (auto it = pairsFreqs.begin(); it != pairsFreqs.end(); ++it) {
+        std::int32_t code = it->first;
+        std::int32_t freq = it->second;
         std::int32_t first = (std::int32_t) (code >> 32);
         std::int32_t second = (std::int32_t) (code & 0xFFFFFFFFL);
         double ab = freq;
@@ -233,26 +237,23 @@ DictionaryWithStat DictionaryWithStat::expand(std::int32_t slots, boolean isDyna
         }
     }
 
-    items.sort(Comparator.comparingDouble(o -> -o.score));
-    final List<Seq<T>> newDict = new ArrayList<>();
-    final TIntArrayList freqs = new TIntArrayList();
+    std::sort(items.begin(), items.end(), [] (StatItem const & a, StatItem const & b) { return -a.score < -b.score; });
+    std::vector<std::string> newDict;
+    std::vector<std::int32_t> freqs;
     double minProbResult = minProbability;
 
-    for (final StatItem item : items) {
-//        if (item.score > log(0.05))
-//          break;
+    for (StatItem item : items) {
         if (item.score < 0)
             break;
         if (--slots < 0)
             break;
-
-        newDict.add(item.text());
-        freqs.add(item.count);
+        newDict.push_back(item.text());
+        freqs.push_back(item.count);
         if (item.first >= 0)
             minProbResult = min(minProbResult, item.count / (double)pairsFreqs.accumulatedValuesTotal());
     }
-    //noinspection unchecked
-    return createDict(newDict, freqs, isDynamic, minProbResult);
+    // TODO check this line, it's mistake
+    return createDict(newDict, freqs, isDynamic, minProbResult); //TODO add ctor
 }
 
 boolean DictionaryWithStat::enough(double probFound) {
@@ -262,25 +263,20 @@ boolean DictionaryWithStat::enough(double probFound) {
 
 std::vector<std::uint32_t> DictionaryWithStat::parse(std::string const & seq) {
     totalChars += seq.length();
-    std::vector<std::uint32_t> parseResult;
+    std::vector<std::int32_t> parseResult;
     {
-        stdd:int32_t parseFreqsSum = 0;
-        for (std::size_t i = 0; i < parseFreqs.size(); ++i)
-            parseFreqsSum += parseFreqs[i];
-        std::vector<std::uint32_t> parseResult;
         std::unordered_set<std::int32_t> set;
         super.weightedParse(seq, parseFreqs, parseFreqsSum, parseResult, set);
     }
-    // not all changed
-    // TODO change
-    pairsFreqs.populate([] (std::unordered_map<std::unt64_t, std::unt32_t> pairsFreq) -> {
+    // not all changed TODO impl populate
+    pairsFreqs.populate([] (std::unordered_map<std::int64_t, std::int32_t> pairsFreq) -> {
         std::int32_t length = parseResult.size();
-        int prev = -1;
-        for(int i = 0; i < length; i++) {
-            int symbol = parseResult[i];
-            updateSymbol(symbol, 1); // in DictExtension
+        std::int32_t prev = -1;
+        for (std::size_t i = 0; i < length; ++i) {
+            std::int32_t symbol = parseResult[i];
+            updateSymbol(symbol, 1); // TODO in DictExtension
             if (prev >= 0)
-                pairsFreq[(std::uint64_t) prev << 32 | symbol] = 1;
+                pairsFreq[(std::int64_t) prev << 32 | symbol] = 1; // TODO it's okay
             prev = symbol;
         }
     });
@@ -288,7 +284,7 @@ std::vector<std::uint32_t> DictionaryWithStat::parse(std::string const & seq) {
 }
 
 
-StatItem::StatItem(int first_, int second_, double score_, int count_) {
+StatItem::StatItem(std::int32_t first_, std::int32_t second_, double score_, std::int32_t count_) {
     first = first_;
     second = second_;
     score = score_;
@@ -307,44 +303,15 @@ std::string StatItem::toString() {
     return result;
 }
 
-boolean StatItem::equals(Object o) {
-    if (this == o)
-        return true;
-    if (o == null || getClass() != o.getClass())
-        return false;
-    //noinspection unchecked
-    StatItem statItem = (StatItem) o;
+boolean StatItem::equals(StatItem statItem) {
     return first == statItem.first && second == statItem.second;
 }
 
+// TODO change
 int StatItem::hashCode() {
     return Objects.hash(first, second);
 }
 
 std::string StatItem::text() {
     return first >= 0 ? get(first) + get(second) : get(second);
-}
-
-// not impl !!!
-double StatItem::kl(std::vector<int> const & freqs, std::unordered_map<long, int> const & pairFreqs) {
-    /*Vec freqXFirst = new ArrayVec(freqs.dim());
-    pairFreqs.forEachEntry((code, freq) -> {
-        freqXFirst.adjust((int) (code >>> 32), freq);
-        return true;
-    });
-    double totalPairFreqs = VecTools.sum(freqXFirst);
-    final double totalFreqs = VecTools.sum(freqs);
-
-    final double result[] = {0};
-    pairFreqs.forEachEntry((code, freq) -> {
-        final int first = (int) (code >>> 32);
-        final int second = (int) (code & 0xFFFFFFFFL);
-        final double pAB = freq / totalPairFreqs;
-        final double pBcondA = freq / freqXFirst.get(first);
-        final double pA = freqs.get(first) / totalFreqs;
-        final double pB = freqs.get(second) / totalFreqs;
-        result[0] += freq * pBcondA * log(pAB / pA / pB);
-        return true;
-    });
-    return result[0];*/
 }

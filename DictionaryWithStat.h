@@ -15,14 +15,15 @@
 //#define std::int64_t int64
 //#define std::vector<std::int32_t> int_vec
 
-const Double_POSITIVE_INFINITY = 2e123;
+const double Double_POSITIVE_INFINITY = 2e123;
+const double MAX_MIN_PROBABILITY = 0; //TODO change
 
 struct DictionaryWithStat : DictionaryBase
 {
 private:
     Dictionary<T> dict;
-    std::vector<int> symbolFreqs;
-    std::vector<int> parseFreqs;
+    std::vector<std::int32_t> symbolFreqs;
+    std::vector<std::int32_t> parseFreqs;
     double power = 0;
     //LongIntMappingAsyncBuilder pairsFreqs;
     std::unordered_map<std::int64, std::int64> pairsFreqs;
@@ -33,10 +34,10 @@ private:
 };
 
 class StatItem {
-    int first;
-    int second;
+    std::int32_t first;
+    std::int32_t second;
     double score;
-    int count;
+    std::int32_t count;
 
 };
 
