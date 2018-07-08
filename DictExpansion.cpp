@@ -5,25 +5,25 @@
 #include <exception>
 
 
-DictExpansion::DictExpansion(Collection<T> alphabet, final int size) {
+DictExpansion::DictExpansion(std::vector<char> const & alphabet, final int size) {
     this(alphabet, size, nullptr);
 }
 
-// TODO remove ?
-DictExpansion::DictExpansion(Collection<T> alphabet, std::size_t size, boolean trace) {
+// TODO
+DictExpansion::DictExpansion(std::vector<char> const & alphabet, std::size_t size, boolean trace) {
     this(new ListDictionary<>(ArrayTools.toArray(alphabet)), size, trace ? System.out : null);
 }
 
-// TODO remove ?
-DictExpansion::DictExpansion(Collection<T> alphabet, std::size_t size, PrintStream trace) {
+// TODO
+DictExpansion::DictExpansion(std::vector<char> const & alphabet, std::size_t size, PrintStream trace) {
     this(new ListDictionary<>(ArrayTools.toArray(alphabet)), size, trace);
 }
 
-DictExpansion::DictExpansion(IDictionary alphabet, std::size_t size) {
+DictExpansion::DictExpansion(IDictionary const & alphabet, std::size_t size) {
     this(alphabet, size, nullptr);
 }
 
-DictExpansion::DictExpansion(IDictionary alphabet, std::size_t size, PrintStream trace) {
+DictExpansion::DictExpansion(IDictionary const & alphabet, std::size_t size, PrintStream trace) {
     this.size = size;
     this.trace = trace;
     this.alphabetSize = alphabet.size();
@@ -36,16 +36,12 @@ DictExpansion::DictExpansion(std::int32_t slots) {
     this(IDictionary.EMPTY, slots, null); //TODO make EMPTY
 }
 
-DictExpansion::DictExpansion(int size, PrintStream trace) {
+DictExpansion::DictExpansion(int size, PrintStream const & trace) {
     this(Dictionary.EMPTY, size, trace); //TODO make EMPTY
 }
 
-DictionaryWithStat DictExpansion::createDict(std::vector<std::string> alphabet, std::vector<std::int32_t> initFreqs,
+DictionaryWithStat DictExpansion::createDict(std::vector<std::string> const & alphabet, std::vector<std::int32_t> const & initFreqs,
                                              boolean isDynamic, double minProbResult) {
-//    if (alphabet.contains(CharSeq.create("игры для девочек")))
-//      System.out.println("yes");
-//    else
-//      System.out.println("no");
     if (initFreqs != nullptr && initFreqs.size() != alphabet.size())
         throw std::invalid_argument();
     // TODO impl it
@@ -60,7 +56,7 @@ IDictionary DictExpansion::alpha() {
     return initial;
 }
 
-void DictExpansion::accept(std::string seq) {
+void DictExpansion::accept(std::string const & seq) {
     boolean enough;
     current.parse(seq);
     enough = (current.enough(probFound) || current.power > MAX_POWER);
@@ -114,7 +110,7 @@ std::vector<std::int32_t> DictExpansion::resultFreqs() {
     return result.symbolFreqs;
 }
 
-void DictExpansion::printPairs(std::ofstream ps) {
+void DictExpansion::printPairs(std::ofstream const & ps) {
         std::vector<std::string> alphabet = result.alphabet();
         std::vector<std::int32_t> indices = new TIntArrayList();
         std::vector<double> weights;
@@ -149,7 +145,7 @@ void DictExpansion::printPairs(std::ofstream ps) {
         ps << "}\n";
 }
 
-void DictExpansion::print(std::ofstream fileWriter) {
+void DictExpansion::print(std::ofstream const & fileWriter) {
     for (std::size_t i = 0; i < result.size(); ++i) {
         std::string seq = result.get(i);
         fileWriter << seq;

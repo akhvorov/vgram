@@ -22,26 +22,26 @@ public:
     const std::int32_t AGG_POWER = 100000;
 
 
-    DictExpansion(Collection<T> alphabet, final int size);
+    DictExpansion(Collection<T> const & alphabet, final int size);
 // TODO remove ?
-    DictExpansion(Collection<T> alphabet, std::size_t size, boolean trace);
+    DictExpansion(Collection<T> const & alphabet, std::size_t size, boolean trace);
 // TODO remove ?
-    DictExpansion(Collection<T> alphabet, std::size_t size, PrintStream trace);
-    DictExpansion(IDictionary alphabet, std::size_t size);
-    DictExpansion(IDictionary alphabet, std::size_t size, PrintStream trace);
+    DictExpansion(Collection<T> const & alphabet, std::size_t size, PrintStream const & trace);
+    DictExpansion(IDictionary const & alphabet, std::size_t size);
+    DictExpansion(IDictionary const & alphabet, std::size_t size, PrintStream const & trace);
     DictExpansion(std::int32_t slots);
     DictExpansion(int size, PrintStream trace);
 
-    DictionaryWithStat createDict(std::vector<std::string> alphabet, std::vector<std::int32_t> initFreqs,
+    DictionaryWithStat createDict(std::vector<std::string> const & alphabet, std::vector<std::int32_t> const & initFreqs,
                                                  boolean isDynamic, double minProbResult);
 
     IDictionary result();
     IDictionary alpha();
-    void accept(std::string seq);
+    void accept(std::string const & seq);
     void update();
     std::vector<std::int32_t> resultFreqs();
-    void printPairs(std::ofstream ps);
-    void print(std::ofstream fileWriter);
+    void printPairs(std::ofstream const & ps);
+    void print(std::ofstream const & fileWriter);
     double codeLength();
     double kl(std::vector<int> const & freqs, std::unordered_map<long, int> const & pairFreqs);
 
