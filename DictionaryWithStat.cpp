@@ -5,10 +5,9 @@
 #include <algorithm>
 #include "DictionaryWithStat.h"
 
-DictionaryWithStat::DictionaryWithStat(Dictionary dictionary, std::vector<std::int32_t> const & initFreqs, double minProbResult) {
+DictionaryWithStat::DictionaryWithStat(IDictionary dictionary, std::vector<std::int32_t> const & initFreqs, double minProbResult) {
     dict = dictionary;
     symbolFreqs = std::vector<std::int32_t>(dict.size());
-    symbolFreqs.fill(symbolFreqs.size(), dict.size(), 0);  // !!!
     if (initFreqs == nullptr)
         parseFreqs = std::vector<std::int32_t>(dist.size(), 0);
     else {
@@ -16,7 +15,7 @@ DictionaryWithStat::DictionaryWithStat(Dictionary dictionary, std::vector<std::i
         for (std::size_t i = parseFreqs.size(); i < dist.size(); ++i)
             parseFreqs.push_back(0);
     }
-    // pairsFreqs = new LongIntMappingAsyncBuilder(AGG_POWER); // !!!
+    // pairsFreqs = new LongIntMappingAsyncBuilder(AGG_POWER); // TODO !!!
     minProbability = minProbResult;
 }
 
@@ -260,6 +259,9 @@ boolean DictionaryWithStat::enough(double probFound) {
     return power > -log(probFound) / minProbability;
 }
 
+void visitAssociations(int start, TIntDoubleProcedure procedure) {
+    pairsFreqs.visitRange(((long) start) << 32, ((long) start + 1L) << 32, (a, b) -> procedure.execute((int)(a & 0x7FFFFFFFL), b));
+}
 
 std::vector<std::uint32_t> DictionaryWithStat::parse(std::string const & seq) {
     totalChars += seq.length();

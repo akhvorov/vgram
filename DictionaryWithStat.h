@@ -30,18 +30,6 @@ private:
     double totalChars = 0;
     //FastRandom rng = new FastRandom(0);
 
-    DictionaryWithStat(Dictionary dictionary, std::vector<std::int32_t> const & initFreqs, double minProbResult);
-
-    void updateSymbol(std::int32_t index, std::int32_t freq);
-    std::int32_t search(std::string const & seq);
-    std::int32_t search(std::string const & seq, std::unordered_set<std::int32_t> const & excludes);
-    std::string get(std::int32_t index);
-    std::size_t size();
-    std::vector<std::string> alphabet();
-    std::int32_t parent(std::int32_t second);
-    std::int32_t freq(std::int32_t index);
-    double codeLengthPerChar();
-
     DictionaryWithStat reduce(std::int32_t slots, boolean isDynamic);
     std::vector<StatItem> filterStatItems(std::int32_t slots);
     std::vector<StatItem> statItems(std::unordered_set<std::int32_t> const & excludes);
@@ -55,9 +43,23 @@ private:
 
 // TODO change
     DictionaryWithStat expand(std::int32_t slots, boolean isDynamic);
-    boolean enough(double probFound);
-    std::vector<std::uint32_t> parse(std::string const & seq);
 
+public:
+    DictionaryWithStat(IDictionary dictionary, std::vector<std::int32_t> const & initFreqs, double minProbResult);
+
+    void updateSymbol(std::int32_t index, std::int32_t freq);
+    std::int32_t search(std::string const & seq);
+    std::int32_t search(std::string const & seq, std::unordered_set<std::int32_t> const & excludes);
+    std::string get(std::int32_t index);
+    std::size_t size();
+    std::vector<std::string> alphabet();
+    std::int32_t parent(std::int32_t second);
+    std::int32_t freq(std::int32_t index);
+    double codeLengthPerChar();
+
+    boolean enough(double probFound);
+    //void visitAssociations(std::int32_t start, TIntDoubleProcedure procedure); //TODO do it
+    std::vector<std::uint32_t> parse(std::string const & seq);
 };
 
 class StatItem {
