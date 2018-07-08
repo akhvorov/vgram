@@ -15,7 +15,8 @@ ListDictionary::ListDictionary(std::vector<std::string> const & sexs) {
         std::string current = sex[i];
         parents[i] = -1;
         while (!parents.empty()) {
-            if (CharSeqTools.startsWith(current, parents_stack.back().first)) { //TODO startWith (in search too)
+            std::string prefix = parents_stack.back().first;
+            if (std::mismatch(prefix.begin(), prefix.end(), current.begin()).first == prefix.end()) {
                 parents[i] = parents_stack.back().second;
                 break;
             }
@@ -45,7 +46,8 @@ std::int32_t ListDictionary::search(std::string const & seq, std::unordered_set<
     }
     index = -(index + 2);
     while (index >= 0) {
-        if (CharSeqTools.startsWith(seq, sex[index]) && (excludes == nullptr || excludes.count(index) == 0)) // TODO change startWith
+        if (std::mismatch(sex[index].begin(), sex[index].end(), seq.begin()).first == sex[index].end() &&
+            (excludes == nullptr || excludes.count(index) == 0))
             return index;
         index = parents[index];
     }
