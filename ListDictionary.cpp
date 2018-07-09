@@ -2,6 +2,7 @@
 // Created by akhvorov on 08.07.18.
 //
 
+#include <iostream>
 #include "ListDictionary.h"
 
 
@@ -38,7 +39,7 @@ std::vector<std::string> ListDictionary::convertToSeqs(std::vector<char> const &
 }
 
 std::int32_t ListDictionary::search(std::string const & seq, std::unordered_set<std::int32_t> const & excludes) {
-    int index = Arrays.binarySearch(sex, seq, cmp); // TODO (from algorithm)
+    std::int32_t index = std::lower_bound(sex.begin(), sex.end(), seq) - sex.begin(); // TODO maybe it work in another way
     if (index >= 0) {
         if (excludes == nullptr || excludes.count(index) == 0)
             return index;
@@ -56,7 +57,7 @@ std::int32_t ListDictionary::search(std::string const & seq, std::unordered_set<
 
 
 std::string ListDictionary::get(std::int32_t index) {
-return sex[index];
+    return sex[index];
 }
 
 std::int32_t ListDictionary::size() {

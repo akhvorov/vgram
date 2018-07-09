@@ -2,6 +2,8 @@
 // Created by akhvorov on 01.07.18.
 //
 
+#include <iostream>
+#include <cmath>
 #include "DictionaryBase.h"
 
 DictionaryBase::DictionaryBase() {
@@ -13,14 +15,14 @@ std::vector<std::int32_t> DictionaryBase::parse(std::string const & seq, std::ve
     double logProBab = weightedParse(seq, freqs, totalFreq, result);
     if (logProBab > 0 || debug) {
         std::cout << seq + " ->";
-        for (std::size_t i = 0; i < result.length(); i++) {
+        for (std::size_t i = 0; i < result.size(); i++) {
             std::int32_t symbol = result[i];
             if (symbol >= 0)
-                std::cout << " " + get(symbol);
+                std::cout << " " << get(symbol);
             else
                 std::cout << "##unknown##";
         }
-        std::cout << " " + logProBab << std::endl;
+        std::cout << " " << logProBab << std::endl;
     }
     return result;
 }
@@ -29,11 +31,11 @@ std::vector<std::int32_t> DictionaryBase::parseEx(std::string const & seq, std::
     std::vector<std::int32_t> result;
     double logProBab = exhaustiveParse(seq, freqs, totalFreq, result, 0, Double_NEGATIVE_INFINITY);
     if (logProBab > 0 || debug) {
-        std::cout << seq.toString() + " ->";
-        for (std::size_t i = 0; i < result.length(); i++) {
+        std::cout << seq + " ->";
+        for (std::size_t i = 0; i < result.size(); i++) {
             std::int32_t symbol = result[i];
             if (symbol >= 0)
-                std::cout << " " + get(symbol);
+                std::cout << " " << get(symbol);
             else
                 std::cout << "##unknown##";
         }
@@ -54,8 +56,8 @@ std::vector<std::int32_t> DictionaryBase::parse(std::string const & seq, std::un
     return builder;
 }
 
-std::size_t DictionaryBase::linearParse(std::string const & seq, std::vector<std::int32_t> const & builder,
-                                std::unordered_set<std::int32_t> const & excludes) {
+std::size_t DictionaryBase::linearParse(std::string const & seq, std::vector<std::int32_t> & builder,
+                                        std::unordered_set<std::int32_t> const & excludes) {
     std::string suffix = seq;
     while (suffix.length() > 0) {
         std::int32_t symbol;
@@ -78,7 +80,7 @@ std::size_t DictionaryBase::linearParse(std::string const & seq, std::vector<std
 
 // my strange builder impl
 double DictionaryBase::exhaustiveParse(std::string const & seq, std::vector<std::int32_t> const & freqs, double totalFreq,
-                                       std::vector<std::int32_t> const & builder, double currentLogProbab, double bestLogProBab) {
+                                       std::vector<std::int32_t> & builder, double currentLogProbab, double bestLogProBab) {
     if (seq.length() == 0)
         return currentLogProbab;
     std::string suffix = seq;
@@ -120,7 +122,7 @@ double DictionaryBase::exhaustiveParse(std::string const & seq, std::vector<std:
     catch (int e_code) {
         if (DICTIONARY_INDEX_IS_CORRUPTED_CODE == e_code) {
             suffix = suffix.substr(1, suffix.length() - 1);
-            builder.append(-1);
+            builder.push_back(-1);
             return exhaustiveParse(suffix, freqs, totalFreq, builder, currentLogProbab - 1e-5, bestLogProBab);
         }
         else throw e_code;
@@ -128,12 +130,12 @@ double DictionaryBase::exhaustiveParse(std::string const & seq, std::vector<std:
 }
 
 double DictionaryBase::weightedParse(std::string const & seq, std::vector<std::int32_t> const & freqs, double totalFreq,
-                                     std::vector<std::int32_t> const & builder) {
+                                     std::vector<std::int32_t> & builder) {
     return weightedParse(seq, freqs, totalFreq, builder, nullptr);
 }
 
 double DictionaryBase::weightedParse(std::string const & seq, std::vector<std::int32_t> const & freqs, double totalFreq,
-                                     std::vector<std::int32_t> const & builder, std::unordered_set<std::int32_t> const & excludes)
+                                     std::vector<std::int32_t> & builder, std::unordered_set<std::int32_t> const & excludes)
 {
     std::size_t len = seq.length();
     std::vector<double> score(len + 1, Double_NEGATIVE_INFINITY);
@@ -171,7 +173,7 @@ double DictionaryBase::weightedParse(std::string const & seq, std::vector<std::i
 
 void DictionaryBase::weightParseVariants(std::string const & seq, double multiplier, std::vector<std::int32_t> const & freqs,
                                          double totalFreq, std::unordered_set<std::int32_t> const & excludes,
-                                         std::unordered_map<std::int32_t, double> const & result)
+                                         std::unordered_map<std::int32_t, double> & result)
 {
     std::int32_t len = seq.length();
     std::vector<double> countForward(len + 1);
@@ -222,6 +224,6 @@ void DictionaryBase::weightParseVariants(std::string const & seq, double multipl
     }
 }
 
-std::int32_t DictionaryBase::search(std::string seq) {
+std::int32_t DictionaryBase::search(std::string const & seq) {
     return search(seq, nullptr);
 }

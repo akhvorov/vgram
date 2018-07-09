@@ -2,6 +2,7 @@
 // Created by akhvorov on 09.07.18.
 //
 
+#include <iostream>
 #include "ListDictionaryTest.h"
 #include "ListDictionary.h"
 

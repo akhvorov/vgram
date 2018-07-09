@@ -2,6 +2,7 @@
 #include <boost/python/def.hpp>
 #include <boost/python.hpp>
 #include <vector>
+#include "ListDictionaryTest.h"
 //#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 
@@ -44,6 +45,19 @@ std::vector<std::string> foo2(boost::python::list& ns)
     return foo(list_to_vec<std::string>(ns));
 }
 
+void testListDictionary() {
+    testStringConstructor();
+    testCharConstructor();
+    testSizeEmpty();
+    testSizeNotEmpty();
+    testAlphabetEmpty();
+    testAlphabetNotEmpty();
+    testSearchEmpty();
+    testSearchNotEmpty();
+    testGetNotEmpty();
+    testParentNotEmpty();
+}
+
 BOOST_PYTHON_MODULE(vgram)
         {
                 using namespace boost::python;
@@ -52,7 +66,7 @@ BOOST_PYTHON_MODULE(vgram)
 
                 // https://stackoverflow.com/questions/5314319/how-to-export-stdvector
                 boost::python::to_python_converter<std::vector<std::string, std::allocator<std::string> >, VecToList<std::string> >();
-
+                def("testListDictionary", testListDictionary);
                 def("foo2", foo2);
 
         }

@@ -2,6 +2,7 @@
 // Created by akhvorov on 01.07.18.
 //
 
+#include <iostream>
 #include <algorithm>
 #include "DictionaryWithStat.h"
 

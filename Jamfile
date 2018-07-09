@@ -7,5 +7,5 @@ project vgram
     <location>.
     ;
 
-python-extension vgram : library.cpp ;
+python-extension vgram : library.cpp IDictionary.h DictionaryBase.h DictionaryBase.cpp ListDictionary.h ListDictionary.cpp ListDictionaryTest.h ListDictionaryTest.cpp ;
 
