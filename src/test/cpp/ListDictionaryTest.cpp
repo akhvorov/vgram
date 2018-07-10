@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include "ListDictionaryTest.h"
-#include "ListDictionary.h"
+#include "../../main/cpp/ListDictionary.h"
 
 void printResult(bool passed) {
     if (passed)
