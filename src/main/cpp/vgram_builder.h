@@ -7,9 +7,10 @@
 
 
 #include <vector>
-#include "list_dictionary.h"
+#include "list_dict.h"
+#include "int_vgram_builder.h"
 
-class VGramIntBuilder;
+//class VGramIntBuilder;
 
 template <typename T>
 class VGramBuilder {
@@ -18,13 +19,13 @@ public:
     
   }
   
-  ListDictionary<T>* build(std::vector<double>* freqs = nullptr) {
+  ListDict<T>* build(std::vector<double>* freqs = nullptr) {
     
   }
 
 private:
-  VGramIntBuilder* delegate;
-  ListDictionary<T> current;
+  IntVGramBuilder* delegate;
+  ListDict<T> current;
 };
 
 

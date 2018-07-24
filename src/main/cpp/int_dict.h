@@ -5,11 +5,13 @@
 #ifndef DICT_EXPANSION_DICT_P_H
 #define DICT_EXPANSION_DICT_P_H
 
-class IntDictionary {
+#import <vector>
+
+class IntDict {
 public:
   virtual int parse(const std::vector<int>& input, std::vector<int>* output, const std::vector<double>* freqs) = 0;
 
-  static IntDictionary* create();
+  static IntDict* create();
 };
 
 #endif //DICT_EXPANSION_DICT_P_H

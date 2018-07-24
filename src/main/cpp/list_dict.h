@@ -8,7 +8,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "int_dictionary.h"
+#include "int_dict.h"
 
 template <typename T>
 class Encoder {
@@ -29,7 +29,7 @@ private:
 };
 
 template <typename T>
-class ListDictionary {
+class ListDict {
 public:
   int parse(const std::vector<T>& input, std::vector<int>* output, const std::vector<double>* freqs = nullptr) {
     std::vector<T> temp(input.size());
@@ -37,12 +37,12 @@ public:
     return delegate->parse(temp, output, freqs);
   }
 
-  static void save(const ListDictionary& dict) {
+  static void save(const ListDict& dict) {
 
   }
 
 private:
-  IntDictionary* delegate = IntDictionary::create();
+  IntDict* delegate = IntDict::create();
   Encoder<T> encoder;
 };
 
