@@ -3,3 +3,7 @@
 //
 
 #include "int_dict_p.h"
+
+IntDict* IntDict::create() {
+
+}

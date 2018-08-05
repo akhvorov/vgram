@@ -30,7 +30,7 @@ public:
 
     int parent(int second);
 
-    ~IDictionary();
+    ~IntDictImpl();
 };
 
 

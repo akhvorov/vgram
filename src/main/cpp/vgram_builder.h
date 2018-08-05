@@ -8,9 +8,8 @@
 
 #include <vector>
 #include "list_dict.h"
-#include "int_vgram_builder.h"
 
-//class VGramIntBuilder;
+class IntVGramBuilder;
 
 template <typename T>
 class VGramBuilder {

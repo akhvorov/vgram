@@ -27,7 +27,7 @@ add_library(${project_name} SHARED
         src/main/cpp/int_vgram_builder.h
         src/main/cpp/int_vgram_builder_p.h
         src/main/cpp/int_vgram_builder.cpp
-        #src/main/cpp/list_dictionary.cc
+        #src/main/cpp/list_dict.cc
         #src/main/cpp/vgram_builder.cpp
         library.cpp # my
         )
