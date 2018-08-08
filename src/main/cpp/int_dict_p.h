@@ -10,25 +10,25 @@
 #include <unordered_set>
 
 class IntDictImpl : public IntDict {
-    int linearParse(std::vector<int> const & seq, std::vector<int> & builder,
-                            std::unordered_set<int> const & excludes);
+    int linearParse(const std::vector<int>& seq, std::vector<int>& builder,
+                    const std::unordered_set<int>& excludes = nullptr);
 
-    double weightedParse(std::vector<int> const & seq, std::vector<int> const & freqs, double totalFreq,
-                         std::vector<int> & builder, std::unordered_set<int> const & excludes);
+    double weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double totalFreq,
+                         std::vector<int>& builder, const std::unordered_set<int>& excludes = nullptr);
 
 public:
-    int search(std::vector<int> seq, std::vector<int> excludes = nullptr);
+    int search(const std::vector<int>& seq, const std::vector<int>& excludes = nullptr) const;
 
     std::vector<int> parse(std::vector<int> seq, std::vector<int> freqs, double totalFreq);
     std::vector<int> parse(std::vector<int> seq, std::unordered_set <int> excludes = nullptr);
 
-    std::vector<int> get(int index);
+    std::vector<int> get(int index) const;
 
-    int size();
+    int size() const;
 
-    std::vector<std::vector<int>> alphabet();
+    std::vector<std::vector<int>> alphabet() const;
 
-    int parent(int second);
+    int parent(int second) const;
 
     ~IntDictImpl();
 };
