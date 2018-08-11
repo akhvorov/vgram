@@ -4,8 +4,28 @@
 
 #include "int_dict_p.h"
 #include <limits>
+#include <numeric>
 
+IntDictImpl::IntDictImpl(const std::vector<std::vector<int>>& seqs) {
+    seqs_ = std::vector<std::vector<int>>(seqs);
+    parents_ = std::vector<int>(seqs.size());
+    std::vector<std::pair<std::vector<int>, int>> parents_stack;
+    std::sort(sex.begin(), sex.end());
 
+    for (int i = 0; i < sex.size(); ++i) {
+        std::vector<int> current = sex[i];
+        parents_[i] = -1;
+        while (!parents_.empty()) {
+            std::vector<int> prefix = parents_stack.back().first;
+            if (std::mismatch(prefix.begin(), prefix.end(), current.begin()).first == prefix.end()) {
+                parents_[i] = parents_stack.back().second;
+                break;
+            }
+            parents_stack.pop_back();
+        }
+        parents_stack.push_back(std::pair<std::vector<int>, int>(current, i));
+    }
+}
 
 int IntDictImpl::linearParse(const std::vector<int>& seq, std::vector<int>& builder,
                 std::unordered_set<int> const & excludes = nullptr) {
@@ -65,9 +85,9 @@ double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector
     return score[len];
 }
 
-void weightParseVariants(const std::vector<int>& seq, double multiplier, const std::vector<int>& freqs,
-                         double totalFreq, const std::unordered_set<int>& excludes,
-                         std::unordered_map<int, double>& result) {
+void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multiplier, const std::vector<int>& freqs,
+                         const std::unordered_set<int>& excludes, std::unordered_map<int, double>& result) {
+    double totalFreq = std::accumulate(freqs.begin(), freqs.end(), 0);
     int len = seq.size();
     std::vector<double> countForward(len + 1);
     {
@@ -117,16 +137,30 @@ void weightParseVariants(const std::vector<int>& seq, double multiplier, const s
 }
 
 int IntDictImpl::search(const std::vector<int>& seq, const std::vector<int>& excludes = nullptr) const {
-
+    int index = std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin(); // TODO maybe it work in another way
+    if (index >= 0) {
+        if (excludes == nullptr || excludes.count(index) == 0)
+            return index;
+        index = -(parents_[index] + 2);
+    }
+    index = -(index + 2);
+    while (index >= 0) {
+        if (std::mismatch(seqs_[index].begin(), seqs_[index].end(), seq.begin()).first == seqs_[index].end() &&
+            (excludes == nullptr || excludes.count(index) == 0))
+            return index;
+        index = parents_[index];
+    }
+    throw DICTIONARY_INDEX_IS_CORRUPTED_CODE; //TODO exceptions
 }
 
-std::vector<int> IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>& freqs, double totalFreq) {
+int IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>* output, const std::vector<int>& freqs) {
+    double totalFreq = std::accumulate(freqs.begin(), freqs.end(), 0);
     std::vector<int> result;
-    double logProBab = weightedParse(seq, freqs, totalFreq, result);
+    double logProBab = weightedParse(seq, freqs, totalFreq, output);
     if (logProBab > 0 || debug) {
         std::cout << seq + " ->";
-        for (int i = 0; i < result.size(); i++) {
-            int symbol = result[i];
+        for (int i = 0; i < output.size(); i++) {
+            int symbol = output[i];
             if (symbol >= 0)
                 std::cout << " " << get(symbol);
             else
@@ -134,29 +168,28 @@ std::vector<int> IntDictImpl::parse(const std::vector<int>& seq, std::vector<int
         }
         std::cout << " " << logProBab << std::endl;
     }
-    return result;
+    return output.size();
 }
 
-std::vector<int> IntDictImpl::parse(const std::vector<int>& seq, std::unordered_set<int>& excludes = nullptr) {
-    std::vector<int> builder;
-    linearParse(seq, builder, excludes);
-    return builder;
+int IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>* output, const std::unordered_set<int>& excludes = nullptr) {
+    linearParse(seq, output, excludes);
+    return builder.size();
 }
 
 std::vector<int> IntDictImpl::get(int index) const {
-
+    return seqs_[index];
 }
 
 int IntDictImpl::size() const {
-
+    return seqs_.size();
 }
 
 std::vector<std::vector<int>> IntDictImpl::alphabet() const {
-
+    return std::vector<std::vector<int>>(seqs_);
 }
 
 int IntDictImpl::parent(int second) const {
-
+    return parents_[second];
 }
 
 IntDictImpl::~IDictionary() {}
