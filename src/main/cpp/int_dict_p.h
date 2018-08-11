@@ -8,6 +8,7 @@
 #include "int_dict.h"
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 
 class IntDictImpl : public IntDict {
     int linearParse(const std::vector<int>& seq, std::vector<int>& builder,
@@ -29,6 +30,10 @@ public:
     std::vector<std::vector<int>> alphabet() const;
 
     int parent(int second) const;
+
+    void weightParseVariants(const std::vector<int>& seq, double multiplier, const std::vector<int>& freqs,
+                             double totalFreq, const std::unordered_set<int>& excludes,
+                             std::unordered_map<int, double>& result);
 
     ~IntDictImpl();
 };
