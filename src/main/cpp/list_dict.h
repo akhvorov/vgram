@@ -2,8 +2,8 @@
 // Created by Igor E. Kuralenok on 13.07.2018.
 //
 
-#ifndef VGRAM_DICT_EXPANSION_H
-#define VGRAM_DICT_EXPANSION_H
+#ifndef VGRAM_LIST_DICT_H
+#define VGRAM_LIST DICT_H
 
 #include <vector>
 #include <unordered_map>
@@ -49,4 +49,4 @@ private:
 };
 
 
-#endif //VGRAM_DICT_EXPANSION_H
+#endif //VGRAM_LIST_DICT_H

@@ -2,8 +2,8 @@
 // Created by Igor E. Kuralenok on 13.07.2018.
 //
 
-#ifndef DICT_EXPANSION_VBUILDER_H
-#define DICT_EXPANSION_VBUILDER_H
+#ifndef VGRAM_VGRAM_BUILDER_H
+#define VGRAM_VGRAM_BUILDER_H
 
 
 #include <vector>
@@ -28,4 +28,4 @@ private:
 };
 
 
-#endif //DICT_EXPANSION_VBUILDER_H
+#endif //VGRAM_VGRAM_BUILDER_H

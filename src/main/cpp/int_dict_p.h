@@ -2,8 +2,8 @@
 // Created by Igor E. Kuralenok on 13.07.2018.
 //
 
-#ifndef DICT_EXPANSION_INTDICTIMPL_H
-#define DICT_EXPANSION_INTDICTIMPL_H
+#ifndef VGRAM_INT_DICT_P_H
+#define VGRAM_INT_DICT_P_H
 
 #include "int_dict.h"
 #include <vector>
@@ -37,4 +37,4 @@ private:
 };
 
 
-#endif //DICT_EXPANSION_INTDICTIMPL_H
+#endif //VGRAM_INT_DICT_P_H

@@ -2,8 +2,8 @@
 // Created by Igor E. Kuralenok on 13.07.2018.
 //
 
-#ifndef DICT_EXPANSION_DICT_P_H
-#define DICT_EXPANSION_DICT_P_H
+#ifndef VGRAM_INT_DICT_H
+#define VGRAM_INT_DICT_H
 
 #import <vector>
 
@@ -20,4 +20,4 @@ public:
   static IntDict* create();
 };
 
-#endif //DICT_EXPANSION_DICT_P_H
+#endif //VGRAM_LIST_DICT_H
