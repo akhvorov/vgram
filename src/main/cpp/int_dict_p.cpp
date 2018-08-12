@@ -86,8 +86,8 @@ double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector
 }
 
 void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multiplier, const std::vector<int>& freqs,
-                         const std::unordered_set<int>& excludes, std::unordered_map<int, double>& result) {
-    double totalFreq = std::accumulate(freqs.begin(), freqs.end(), 0);
+                                      double totalFreq, const std::unordered_set<int>& excludes,
+                                      std::unordered_map<int, double>& result) {
     int len = seq.size();
     std::vector<double> countForward(len + 1);
     {
@@ -153,8 +153,7 @@ int IntDictImpl::search(const std::vector<int>& seq, const std::vector<int>& exc
     throw DICTIONARY_INDEX_IS_CORRUPTED_CODE; //TODO exceptions
 }
 
-int IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>* output, const std::vector<int>& freqs) {
-    double totalFreq = std::accumulate(freqs.begin(), freqs.end(), 0);
+int IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>* output, const std::vector<int>& freqs, double totalFreq) {
     std::vector<int> result;
     double logProBab = weightedParse(seq, freqs, totalFreq, output);
     if (logProBab > 0 || debug) {

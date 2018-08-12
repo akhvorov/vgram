@@ -9,7 +9,7 @@
 
 class IntDict {
 public:
-  virtual int parse(const std::vector<int>& input, std::vector<int>* output, const std::vector<int>& freqs) = 0;
+  virtual int parse(const std::vector<int>& input, std::vector<int>* output, const std::vector<int>& freqs, double totalFreq) = 0;
 
   virtual int search(const std::vector<int>& seq, const std::vector<int>& excludes = nullptr) const = 0;
   virtual std::vector<int>* get(int index) const = 0;
