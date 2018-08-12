@@ -31,10 +31,12 @@ private:
 template <typename T>
 class ListDict {
 public:
-  int parse(const std::vector<T>& input, std::vector<int>* output, const std::vector<double>* freqs = nullptr) {
+  int parse(const std::vector<T>& input, std::vector<int>* output, const std::vector<double>* freqs) {
+    //TODO two ways: freqs = nullptr and other
     std::vector<T> temp(input.size());
     encoder.encode(input, &temp);
-    return delegate->parse(temp, output, freqs);
+    double total_freq = std::accumulate(freqs.begin(), freqs.end(), 0);
+    return delegate->parse(temp, output, freqs, total_freq);
   }
 
   static void save(const ListDict& dict) {
