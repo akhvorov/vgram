@@ -23,8 +23,8 @@ public:
   }
 
 private:
-  IntVGramBuilder* delegate;
-  ListDict<T> current;
+  IntVGramBuilder* delegate_;
+  ListDict<T> current_;
 };
 
 
