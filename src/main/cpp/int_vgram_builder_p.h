@@ -29,7 +29,7 @@ public:
   double codeLength() const;
 
 private:
-  bool isDynamic_;
+  bool is_dynamic_;
   int size_;
   // ofstream trace_;
   IntDict* initial_;
