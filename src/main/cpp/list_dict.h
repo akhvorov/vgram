@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <numeric>
 
 #include "int_dict.h"
 
@@ -35,7 +36,7 @@ public:
     //TODO two ways: freqs = nullptr and other
     std::vector<T> temp(input.size());
     encoder.encode(input, &temp);
-    double total_freq = std::accumulate(freqs.begin(), freqs.end(), 0);
+    double total_freq = std::accumulate(freqs.begin(), freqs.end(), 0.0);
     return delegate->parse(temp, output, freqs, total_freq);
   }
 
