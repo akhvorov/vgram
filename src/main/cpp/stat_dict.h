@@ -1,0 +1,85 @@
+//
+// Created by akhvorov on 01.07.18.
+//
+
+#ifndef VGRAM_DICTIONARYWITHSTAT_H
+#define VGRAM_DICTIONARYWITHSTAT_H
+
+#include <cmath>
+#include <vector>
+#include <unordered_set>
+#include <unordered_map>
+#include "int_dict.h"
+#include "int_vgram_builder_p.h"
+
+
+const double Double_POSITIVE_INFINITY = 2e123;
+const double MAX_MIN_PROBABILITY = 0.002; //TODO change
+
+struct StatDict
+{
+public:
+    const double kMaxMinProbability = 0.002;
+    const int kAggPower = 100000;
+
+    StatDict(IntDict* dictionary, const std::vector<int>& init_freqs, double min_prob_result);
+
+    void update_symbol(int index, int freq);
+    std::int32_t search(std::string const & seq);
+    std::int32_t search(std::string const & seq, std::unordered_set<std::int32_t> const & excludes);
+    std::string get(std::int32_t index);
+    std::size_t size();
+    std::vector<std::string> alphabet();
+    std::int32_t parent(std::int32_t second);
+    std::int32_t freq(std::int32_t index);
+    double codeLengthPerChar();
+
+    boolean enough(double probFound);
+    //void visitAssociations(std::int32_t start, TIntDoubleProcedure procedure); //TODO do it
+    std::vector<std::uint32_t> parse(std::string const & seq);
+
+private:
+    IntDict dict_;
+    std::vector<int> symbol_freqs_;
+    std::vector<int> parse_freqs_;
+    double power_ = 0;
+    std::unordered_map<long long, int> pairs_freqs_;
+    double min_probability_;
+    double total_chars_ = 0;
+    //FastRandom rng = new FastRandom(0);
+
+    StatDict reduce(std::int32_t slots, boolean isDynamic);
+    std::vector<StatItem> filterStatItems(std::int32_t slots);
+    std::vector<StatItem> statItems(std::unordered_set<std::int32_t> const & excludes);
+
+    char indexOfTwoStr(std::string const & first, std::string const & second,
+                                           char betw, std::int32_t ind);
+    boolean isSubstring(std::string const & s, std::string const & t);
+
+    void printPairs(std::unordered_map<std::int64_t, std::int32_t> oldPairs,
+                                        std::unordered_map<std::int64_t, std::int32_t> newPairs);
+
+// TODO change
+    DictionaryWithStat expand(std::int32_t slots, boolean isDynamic);
+
+};
+
+class StatItem {
+
+private:
+    std::int32_t first;
+    std::int32_t second;
+    double score;
+    std::int32_t count;
+
+public:
+    StatItem::StatItem(std::int32_t first_, std::int32_t second_, double score_, std::int32_t count_);
+    std::string StatItem::toString();
+    boolean StatItem::equals(StatItem statItem);
+
+    // TODO change
+    int StatItem::hashCode();
+    std::string StatItem::text();
+};
+
+#endif //VGRAM_DICTIONARYWITHSTAT_H

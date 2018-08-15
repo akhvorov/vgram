@@ -16,8 +16,8 @@ class IntVGramBuilderImpl : public IntVGramBuilder {
 public:
   const double kExtensionFactor = 1.3;
   const double kMaxPower = 20000000;
-  const double kMaxMinProbability = 0.002;
-  const int kAggPower = 100000;
+  // const double kMaxMinProbability = 0.002;
+  // const int kAggPower = 100000;
 
   IntVGramBuilderImpl(const std::vector<std::vector<int>>& alphabet, int size);
   IntDict* result() const;
