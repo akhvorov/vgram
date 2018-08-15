@@ -23,11 +23,8 @@ IntDict* IntVGramBuilderImpl::alpha() const {
 }
 
 void IntVGramBuilderImpl::accept(const std::vector<int>& seq) {
-    bool enough;
-    current_.parse(seq); // where result?
-    enough = (current_.enough(prob_found_) || current_.power > kMaxPower);
-    // why enough not change? see original, this is wrong
-    if (enough)
+    current_.parse(seq);
+    if (current_.enough(prob_found_) || current_.power > kMaxPower)
         update();
 }
 
@@ -71,7 +68,7 @@ void IntVGramBuilderImpl::update() {
     populate_ = !populate_;
 }
 
-std::vector<int>* IntVGramBuilderImpl::result_freqs() const {
+std::vector<int>* IntVGramBuilderImpl::result_freqs() {
   //TODO rewrite for private field in dict with stats
   if (result_.size() > result_.symbol_freqs.size())
     for (int i = result_.symbol_freqs.size(); i < result_.size(); i++)
@@ -86,27 +83,26 @@ double IntVGramBuilderImpl::codeLength() const {
   return result_.code_length_per_char();
 }
 
-double IntVGramBuilderImpl::kl(const std::vector<int>& freqs, const std::unordered_map<long, int>& pair_freqs) {
-    std::vector<double> freq_X_first(freqs.size());
+double IntVGramBuilderImpl::kl(const std::vector<int>& freqs, const std::unordered_map<long long, int>& pair_freqs) const {
+    std::vector<double> freq_first(freqs.size());
     for (auto &e : pair_freqs) {
-        int code = e.first;
+        long long code = e.first;
         int freq = e.second;
-        // TODO check for int64
-        freq_X_first[(int)(code >> 32)] = freq;
+        freq_first[(int)(code >> 32)] = freq;
     }
 
-    double total_pair_freqs = std::accumulate(freq_X_first.begin(), freq_X_first.end(), 0);
+    double total_pair_freqs = std::accumulate(freq_first.begin(), freq_first.end(), 0);
     double total_freqs = std::accumulate(freqs.begin(), freqs.end(), 0);
 
     //why array?
     double result[] = {0};
-    for (auto &e : pairFreqs) {
-        int code = e.first;
-        int freq = e.second;
-        intt first = (int) (code >>> 32);
-        int second = (int) (code & 0xFFFFFFFFL);
+    for (auto &e : pair_freqs) {
+        long long code = e.first;
+        double freq = e.second;
+        double first = (int) (code >>> 32);
+        double second = (int) (code & 0xFFFFFFFFL);
         double pAB = freq / total_pair_freqs;
-        double pBcondA = freq / freq_X_first.at(first);
+        double pBcondA = freq / freq_first.at(first);
         double pA = freqs.at(first) / total_freqs;
         double pB = freqs.at(second) / total_freqs;
         result[0] += freq * pBcondA * log(pAB / pA / pB);

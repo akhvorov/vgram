@@ -23,7 +23,7 @@ public:
   IntDict* result() const;
   IntDict* alpha() const;
   void accept(const std::vector<int>& seq);
-  std::vector<int>* result_freqs() const;
+  std::vector<int>* result_freqs();
 //  void printPairs(const std::ofstream& ps) const;
 //  void print(const std::ofstream& file_writer) const;
   double codeLength() const;
@@ -43,7 +43,7 @@ private:
   int no_rate_increase_turns_ = 0;
 
   void update();
-  double kl(const std::vector<int>& freqs, const std::unordered_map<long, int>& pair_freqs);
+  double kl(const std::vector<int>& freqs, const std::unordered_map<long long, int>& pair_freqs) const;
 };
 
 
