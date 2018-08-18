@@ -27,8 +27,7 @@ IntDictImpl::IntDictImpl(const std::vector<std::vector<int>>& seqs) {
     }
 }
 
-int IntDictImpl::linearParse(const std::vector<int>& seq, const std::unordered_set<int>* excludes = nullptr,
-        std::vector<int>* builder) {
+int IntDictImpl::linearParse(const std::vector<int>& seq, std::vector<int>* builder, const std::unordered_set<int>* excludes = nullptr) {
     std::vector<int> suffix = seq;
     while (suffix.size() > 0) {
         int symbol;
@@ -50,7 +49,7 @@ int IntDictImpl::linearParse(const std::vector<int>& seq, const std::unordered_s
 }
 
 double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
-                                  const std::unordered_set<int>* excludes = nullptr, std::vector<int>* builder) {
+                                  std::vector<int>* builder, const std::unordered_set<int>* excludes = nullptr) {
     int len = seq.size();
     std::vector<double> score(len + 1, std::numeric_limits<double>::min());
     score[0] = 0;
@@ -86,8 +85,8 @@ double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector
 }
 
 void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multiplier, const std::vector<int>& freqs,
-                                      double total_freq, const std::unordered_set<int>* excludes = nullptr,
-                                      std::unordered_map<int, double>* result) {
+                                      double total_freq, std::unordered_map<int, double>* result,
+                                      const std::unordered_set<int>* excludes = nullptr) {
     int len = seq.size();
     std::vector<double> count_forward(len + 1);
     {
@@ -170,12 +169,12 @@ int IntDictImpl::parse(const std::vector<int>& seq, const std::vector<int>& freq
     return output.size();
 }
 
-int IntDictImpl::parse(const std::vector<int>& seq, const std::unordered_set<int>* excludes = nullptr, std::vector<int>* output) {
+int IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>* output, const std::unordered_set<int>* excludes = nullptr) {
     linearParse(seq, excludes, output);
     return builder.size();
 }
 
-std::vector<int> IntDictImpl::get(int index) const {
+std::vector<int>* IntDictImpl::get(int index) const {
     return seqs_[index];
 }
 
@@ -183,7 +182,7 @@ int IntDictImpl::size() const {
     return seqs_.size();
 }
 
-std::vector<std::vector<int>> IntDictImpl::alphabet() const {
+std::vector<std::vector<int>>* IntDictImpl::alphabet() const {
     return std::vector<std::vector<int>>(seqs_);
 }
 
