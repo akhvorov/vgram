@@ -22,14 +22,14 @@ public:
     // const double kMaxMinProbability = 0.002;
     const int kAggPower = 100000;
 
-    StatDict(IntDict* dictionary, const std::vector<int>& init_freqs, double min_prob_result);
+    StatDict(const IntDict& dictionary, const std::vector<int>& init_freqs, double min_prob_result);
 
     void update_symbol(int index, int freq);
     int search(const std::vector<int>& seq);
     int search(const std::vector<int>& seq, const std::unordered_set<std::int32_t>& excludes);
-    std::vector<int> get(int index);
+    std::vector<int>* get(int index);
     int size();
-    std::vector<std::vector<int>> alphabet();
+    std::vector<std::vector<int>>* alphabet();
     int parent(int second);
     int freq(int index);
     double code_length_per_char();
@@ -43,34 +43,26 @@ private:
     std::vector<int> symbol_freqs_;
     std::vector<int> parse_freqs_;
     double power_ = 0;
-    std::unordered_map<long long, int> pairs_freqs_;
+    std::unordered_map<std::int64_t, int> pairs_freqs_;
     double min_probability_;
     double total_chars_ = 0;
     //FastRandom rng = new FastRandom(0);
 
     StatDict* reduce(std::int32_t slots);
-    std::vector<StatItem> filterStatItems(int slots);
-    std::vector<StatItem> statItems(const std::unordered_set<int>& excludes);
+    std::vector<StatItem> filter_stat_items(int slots);
+    std::vector<StatItem> stat_items(const std::unordered_set<int>& excludes);
 
     int index_of_two_str(const std::vector<int>& first, const std::vector<int>& second, int betw, int ind);
     bool is_substring(const std::vector<int>& s, const std::vector<int>& t);
 
     void print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
-                              const std::unordered_map<std::int64_t, int>& new_pairs) const ;
+                     const std::unordered_map<std::int64_t, int>& new_pairs) const ;
 
-// TODO change
-    StatDict* expand(std::int32_t slots);
+    StatDict* expand(int slots);
 
 };
 
-class StatItem {
-
-private:
-    std::int32_t first;
-    std::int32_t second;
-    double score;
-    std::int32_t count;
-
+struct StatItem {
 public:
     StatItem::StatItem(std::int32_t first_, std::int32_t second_, double score_, std::int32_t count_);
     std::string StatItem::toString();
@@ -79,6 +71,12 @@ public:
     // TODO change
     int StatItem::hashCode();
     std::string StatItem::text();
+
+private:
+    int first;
+    int second;
+    double score;
+    int count;
 };
 
 #endif //VGRAM_DICTIONARYWITHSTAT_H

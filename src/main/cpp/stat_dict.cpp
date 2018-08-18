@@ -6,7 +6,7 @@
 #include <algorithm>
 #include "stat_dict.h"
 
-StatDict::StatDict(IntDict dictionary, const std::vector<int>& init_freqs, double min_prob_result) {
+StatDict::StatDict(const IntDict& dictionary, const std::vector<int>& init_freqs, double min_prob_result) {
     dict_ = dictionary;
     symbol_freqs_ = std::vector<int>(dictionary.size());
     if (init_freqs == nullptr) {
@@ -29,18 +29,18 @@ void StatDict::update_symbol(int index, int freq) {
     }
     symbol_freqs_[index] += freq;
     parse_freqs_[index] += freq;
-    power += freq;
+    power_ += freq;
 }
 
-int StatDict::search(std::string const & seq) {
+int StatDict::search(const std::vector<int>& seq) {
     return dict_.search(seq);
 }
 
-int StatDict::search(std::string const & seq, std::unordered_set<std::int32_t> const & excludes) {
+int StatDict::search(const std::vector<int>& seq, const std::unordered_set<int>& excludes) {
     return dict_.search(seq, excludes);
 }
 
-std::vector<int> StatDict::get(std::int32_t index) {
+std::vector<int>* StatDict::get(int index) {
     return dict_.get(index);
 }
 
@@ -48,7 +48,7 @@ int StatDict::size() {
     return dict_.size();
 }
 
-std::vector<std::vector<int>> StatDict::alphabet() {
+std::vector<std::vector<int>>* StatDict::alphabet() {
     return dict_.alphabet();
 }
 
@@ -70,6 +70,7 @@ double StatDict::code_length_per_char() {
     return (sum + power * log(power)) / total_chars_;
 }
 
+//TODO change types and args
 StatDict* StatDict::reduce(int slots) {
     std::vector<std::vector<int>> new_dict(size());
     std::vector<StatItem> items = filter_stat_items(slots);
@@ -131,7 +132,7 @@ std::vector<StatItem> StatDict::stat_items(const std::unordered_set<int>& exclud
                     items.push_back(StatItem(-1, id, score, count));
                 }
             } else {
-                items.push_back(StatItem item(-1, id, std::numeric_limits<double>::max(), count));
+                items.push_back(StatItem(-1, id, std::numeric_limits<double>::max(), count));
             }
         }
     }
@@ -139,7 +140,7 @@ std::vector<StatItem> StatDict::stat_items(const std::unordered_set<int>& exclud
     return items;
 }
 
-int StatDict::index_of_two_str(const std::vector<int> &first, const std::vector<int> &second, int betw, int ind) {
+int StatDict::index_of_two_str(const std::vector<int>& first, const std::vector<int>& second, int betw, int ind) {
     if (ind >= 0 && ind < first.size()) {
         return first[ind];
     } else if (ind == first.size()) {
@@ -150,7 +151,6 @@ int StatDict::index_of_two_str(const std::vector<int> &first, const std::vector<
         return -1;
     }
 }
-
 
 bool StatDict::is_substring(const std::vector<int>& s, const std::vector<int>& t) {
     return std::search(s.begin(), s.end(), t.begin(), t.end()) != t.end();
@@ -169,109 +169,106 @@ void StatDict::print_pairs(const std::unordered_map<std::int64_t, int>& old_pair
     }
 }
 
-// some changes
 // TODO change
-StatDict* StatDict::expand(std::int32_t slots, boolean isDynamic) {
+StatDict* StatDict::expand(int slots) {
     std::vector<StatItem> items;
-    std::unrdered_set<std::string> known;
-    for (auto word : alphabet()) {
-        known.add(word);
-        items.push_back(StatItem(-1, index(seq), Double_POSITIVE_INFINITY, freq(index(seq))));
+    std::unrdered_set<std::vector<int>> known;
+    for (const auto& seq : alphabet()) {
+        known.add(seq);
+        items.push_back(StatItem(-1, search(seq), std::numeric_limits<double>::max(), freq(search(seq))));
     }
     slots += alphabet().size();
-    std::vector<double> startWithX(symbolFreqs.size());
-    std::vector<double> endsWithX(symbolFreqs.size());
-    for (auto it = pairsFreqs.begin(); it != pairsFreqs.end(); ++it) {
-        std::int32_t code = it->first;
-        std::int32_t freq = it->second;
-        std::int32_t first = (std::int32_t) (code >> 32);
-        std::int32_t second = (std::int32_t) (code & 0xFFFFFFFFL);
+    std::vector<double> start_with(symbol_freqs_.size());
+    std::vector<double> ends_with(symbol_freqs_.size());
+    for (auto it = pairsFreqs.begin(); it != pairsFreqs.end(); it++) {
+        int code = it->first;
+        int freq = it->second;
+        int first = code >> 32;
+        int second = code & 0xFFFFFFFFL;
         // !!! TODO check it
-        startWithX[first] += freq;
-        endsWithX[second] += freq;
+        start_with[first] += freq;
+        ends_with[second] += freq;
     }
 
-    double totalPairFreqs = std::accumulate(startWithX.begin(), startWithX.end(), 0);
-    for (auto it = pairsFreqs.begin(); it != pairsFreqs.end(); ++it) {
-        std::int32_t code = it->first;
-        std::int32_t freq = it->second;
-        std::int32_t first = (std::int32_t) (code >> 32);
-        std::int32_t second = (std::int32_t) (code & 0xFFFFFFFFL);
+    double total_pair_freqs = std::accumulate(start_with.begin(), start_with.end(), 0);
+    for (auto it = pairs_freqs_.begin(); it != pairs_freqs_.end(); it++) {
+        int code = it->first;
+        int freq = it->second;
+        int first = code >> 32;
+        int second = code & 0xFFFFFFFFL;
         double ab = freq;
-        double xb = endsWithX[second] - freq;
-        double ay = startWithX[first] - freq;
-        double xy = totalPairFreqs - ay - xb - ab;
+        double xb = ends_with[second] - freq;
+        double ay = start_with[first] - freq;
+        double xy = total_pair_freqs - ay - xb - ab;
 
-        std::vector<double> dirichletParams(4);
-        dirichletParams.push_back(ab + 1);
-        dirichletParams.push_back(ay + 1);
-        dirichletParams.push_back(xb + 1);
-        dirichletParams.push_back(xy + 1);
+        std::vector<double> dirichlet_params(4);
+        dirichlet_params.push_back(ab + 1);
+        dirichlet_params.push_back(ay + 1);
+        dirichlet_params.push_back(xb + 1);
+        dirichlet_params.push_back(xy + 1);
         double score = 0;
-        std::int32_t samplesCount = 10;
-        std::vector<double> sample(dirichletParams.dim());
-        for (int i = 0; i < samplesCount; i++) {
-            rng.nextDirichlet(dirichletParams, sample); //TODO FastRandom from commons.random
+        int samples_count = 10;
+        std::vector<double> sample(dirichlet_params.size());
+        for (int i = 0; i < samples_count; i++) {
+            rng.nextDirichlet(dirichlet_params, sample); //TODO FastRandom from commons.random
             double pAB = sample[0];
             double pAY = sample[1];
             double pXB = sample[2];
-            score += freq * pAB / (pAY + pAB) * log(pAB / (pAY + pAB) / (pXB + pAB)) / samplesCount;
+            score += freq * pAB / (pAY + pAB) * log(pAB / (pAY + pAB) / (pXB + pAB)) / samples_count;
         }
 
-        StatItem statItem(first, second, score, freq);
-        if (known.find(statItem.text()) == 0) {
-            known.insert(statItem.text());
-            items.push_back(statItem);
+        StatItem item(first, second, score, freq);
+        if (known.find(item.text()) == 0) {
+            known.insert(item.text());
+            items.push_back(item);
         }
     }
 
-    std::sort(items.begin(), items.end(), [] (StatItem const & a, StatItem const & b) { return -a.score < -b.score; });
-    std::vector<std::string> newDict;
-    std::vector<std::int32_t> freqs;
-    double minProbResult = minProbability;
+    std::sort(items.begin(), items.end(), [] (const StatItem& a, const StatItem& b) { return -a.score < -b.score; });
+    std::vector<std::vector<int>> new_dict;
+    std::vector<int> freqs;
+    double min_prob_result = min_probability_;
 
-    for (StatItem item : items) {
+    for (const StatItem& item : items) {
         if (item.score < 0)
             break;
         if (--slots < 0)
             break;
-        newDict.push_back(item.text());
+        new_dict.push_back(item.text());
         freqs.push_back(item.count);
         if (item.first >= 0)
-            minProbResult = min(minProbResult, item.count / (double)pairsFreqs.accumulatedValuesTotal());
+            min_prob_result = min(min_prob_result, item.count / (double) pairs_freqs_.accumulatedValuesTotal()); //TODO change it
     }
     // TODO check this line, it's mistake
-    return createDict(newDict, freqs, isDynamic, minProbResult); //TODO add ctor
+    return StatDict(IntDict(new_dict), freqs, min_prob_result);
 }
 
-boolean StatDict::enough(double probFound) {
-    return power > -log(probFound) / minProbability;
+bool StatDict::enough(double prob_found) {
+    return power > -log(prob_found) / min_probability_;
 }
 
-void visitAssociations(int start, TIntDoubleProcedure procedure) {
-    pairsFreqs.visitRange(((long) start) << 32, ((long) start + 1L) << 32, (a, b) -> procedure.execute((int)(a & 0x7FFFFFFFL), b));
-}
+//void visitAssociations(int start, TIntDoubleProcedure procedure) {
+//    pairsFreqs.visitRange(((long) start) << 32, ((long) start + 1L) << 32, (a, b) -> procedure.execute((int)(a & 0x7FFFFFFFL), b));
+//}
 
-std::vector<std::uint32_t> StatDict::parse(std::string const & seq) {
-    totalChars += seq.length();
-    std::vector<std::int32_t> parseResult;
+int StatDict::parse(const std::vector<int>& seq, std::vector<int>* parse_result) {
+    total_chars_ += seq.size();
     {
-        std::unordered_set<std::int32_t> set;
-        super.weightedParse(seq, parseFreqs, parseFreqsSum, parseResult, set);
+        std::unordered_set<int> set;
+        //TODO !!! super is dict_ ?
+        super.weightedParse(seq, parse_freqs_, std::accumulate(parse_freqs_.begin(), parse_freqs_.end(), 0),
+                            parse_result, set);
     }
-    // not all changed TODO impl populate
-    pairsFreqs.populate([] (std::unordered_map<std::int64_t, std::int32_t> pairsFreq) -> {
-        std::int32_t length = parseResult.size();
-        std::int32_t prev = -1;
-        for (std::size_t i = 0; i < length; ++i) {
-            std::int32_t symbol = parseResult[i];
-            updateSymbol(symbol, 1); // TODO in DictExtension
-            if (prev >= 0)
-                pairsFreq[(std::int64_t) prev << 32 | symbol] = 1; // TODO it's okay
-            prev = symbol;
-        }
-    });
-    return parseResult;
+    int length = parse_result.size();
+    int prev = -1;
+    for (int i = 0; i < length; ++i) {
+        int symbol = parse_result[i];
+        updateSymbol(symbol, 1); // TODO in DictExtension
+        if (prev >= 0)
+            pairs_freqs_[(std::int64_t) prev << 32 | symbol] += 1;
+        prev = symbol;
+    }
+    return parse_result.size();
 }
 
 
