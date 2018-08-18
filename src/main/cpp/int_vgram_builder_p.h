@@ -7,6 +7,7 @@
 
 #include "int_vgram_builder.h"
 #include "int_dict.h"
+#include "stat_dict.h"
 #include <fstream>
 #include <unordered_map>
 
@@ -16,7 +17,7 @@ class IntVGramBuilderImpl : public IntVGramBuilder {
 public:
   const double kExtensionFactor = 1.3;
   const double kMaxPower = 20000000;
-  // const double kMaxMinProbability = 0.002;
+  const double kMaxMinProbability = 0.002;
   // const int kAggPower = 100000;
 
   IntVGramBuilderImpl(const std::vector<std::vector<int>>& alphabet, int size);
@@ -33,9 +34,9 @@ private:
   int size_;
   // ofstream trace_;
   IntDict* initial_;
-  DictionaryWithStat* current_;
+  StatDict* current_;
   bool populate_ = true;
-  DictionaryWithStat* result_;
+  StatDict* result_;
 
   int alphabet_size_;
   double prob_found_ = 0.1;

@@ -16,30 +16,30 @@
 const double Double_POSITIVE_INFINITY = 2e123;
 const double MAX_MIN_PROBABILITY = 0.002; //TODO change
 
-struct StatDict
+class StatDict
 {
 public:
-    const double kMaxMinProbability = 0.002;
+    // const double kMaxMinProbability = 0.002;
     const int kAggPower = 100000;
 
     StatDict(IntDict* dictionary, const std::vector<int>& init_freqs, double min_prob_result);
 
     void update_symbol(int index, int freq);
-    std::int32_t search(std::string const & seq);
-    std::int32_t search(std::string const & seq, std::unordered_set<std::int32_t> const & excludes);
-    std::string get(std::int32_t index);
-    std::size_t size();
-    std::vector<std::string> alphabet();
-    std::int32_t parent(std::int32_t second);
-    std::int32_t freq(std::int32_t index);
-    double codeLengthPerChar();
+    int search(const std::vector<int>& seq);
+    int search(const std::vector<int>& seq, const std::unordered_set<std::int32_t>& excludes);
+    std::vector<int> get(int index);
+    int size();
+    std::vector<std::vector<int>> alphabet();
+    int parent(int second);
+    int freq(int index);
+    double code_length_per_char();
 
-    boolean enough(double probFound);
+    bool enough(double probFound);
     //void visitAssociations(std::int32_t start, TIntDoubleProcedure procedure); //TODO do it
-    std::vector<std::uint32_t> parse(std::string const & seq);
+    int parse(const std::vector<int>& seq, std::vector<int>* output);
 
 private:
-    IntDict dict_;
+    IntDict* dict_;
     std::vector<int> symbol_freqs_;
     std::vector<int> parse_freqs_;
     double power_ = 0;
@@ -48,19 +48,18 @@ private:
     double total_chars_ = 0;
     //FastRandom rng = new FastRandom(0);
 
-    StatDict reduce(std::int32_t slots, boolean isDynamic);
-    std::vector<StatItem> filterStatItems(std::int32_t slots);
-    std::vector<StatItem> statItems(std::unordered_set<std::int32_t> const & excludes);
+    StatDict* reduce(std::int32_t slots);
+    std::vector<StatItem> filterStatItems(int slots);
+    std::vector<StatItem> statItems(const std::unordered_set<int>& excludes);
 
-    char indexOfTwoStr(std::string const & first, std::string const & second,
-                                           char betw, std::int32_t ind);
-    boolean isSubstring(std::string const & s, std::string const & t);
+    int index_of_two_str(const std::vector<int>& first, const std::vector<int>& second, int betw, int ind);
+    bool is_substring(const std::vector<int>& s, const std::vector<int>& t);
 
-    void printPairs(std::unordered_map<std::int64_t, std::int32_t> oldPairs,
-                                        std::unordered_map<std::int64_t, std::int32_t> newPairs);
+    void print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
+                              const std::unordered_map<std::int64_t, int>& new_pairs) const ;
 
 // TODO change
-    DictionaryWithStat expand(std::int32_t slots, boolean isDynamic);
+    StatDict* expand(std::int32_t slots);
 
 };
 

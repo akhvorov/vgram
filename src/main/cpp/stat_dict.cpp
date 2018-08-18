@@ -8,7 +8,7 @@
 
 StatDict::StatDict(IntDict dictionary, const std::vector<int>& init_freqs, double min_prob_result) {
     dict_ = dictionary;
-    symbol_freqs_ = std::vector<int>(dict.size());
+    symbol_freqs_ = std::vector<int>(dictionary.size());
     if (init_freqs == nullptr) {
         parse_freqs_ = std::vector<int>(dist.size(), 0);
     } else {
@@ -57,7 +57,7 @@ int StatDict::parent(int second) {
 }
 
 int StatDict::freq(int index) {
-    return index < symbol_freqs_.size() ? symbol_freqs_.at(index) : 0;
+    return index < symbol_freqs_.size() ? symbol_freqs_[index] : 0;
 }
 
 double StatDict::code_length_per_char() {
@@ -70,7 +70,7 @@ double StatDict::code_length_per_char() {
     return (sum + power * log(power)) / total_chars_;
 }
 
-StatDict StatDict::reduce(int slots, bool is_dynamic) {
+StatDict* StatDict::reduce(int slots) {
     std::vector<std::vector<int>> new_dict(size());
     std::vector<StatItem> items = filter_stat_items(slots);
     std::vector<int> freqs(items.size());
@@ -88,10 +88,10 @@ StatDict StatDict::reduce(int slots, bool is_dynamic) {
         freqs.push_back(item.count);
     }
 
-    //noinspection unchecked
-    return createDict(new_dict, freqs, is_dynamic, min_prob_result); //TODO from DictExpansion // make one more constructor
+    return new StatDict(new IntDict(new_dict), freqs, min_prob_result);
 }
 
+//TODO change return type to arg or something else
 std::vector<StatItem> StatDict::filter_stat_items(int slots) {
     for (int s = 0; s < symbol_freqs_.size(); s++)
         if (parent(s) < 0)
@@ -100,7 +100,7 @@ std::vector<StatItem> StatDict::filter_stat_items(int slots) {
     for (int id = 0; id < size(); id++)
         if (parent(id) >= 0 && freq(id) == 0)
             excludes.insert(id);
-    std::vector<StatItem> items = stat_items(excludes);
+    std::vector<StatItem> items = stat_items(excludes); //TODO check it!
     while (items.size() > min(items.size(), slots))
         items.pop_back();
     return items;
@@ -116,64 +116,54 @@ std::vector<StatItem> StatDict::stat_items(const std::unordered_set<int>& exclud
             if (seq.size() > 1) {
                 std::vector<int> parse;
                 excludes.insert(id);
-                weightedParse(seq, symbolFreqs, power, parse, excludes);
+                weightedParse(seq, symbolFreqs, power, parse, excludes); //TODO doesn't work, make base_dict
                 excludes.remove(id);
-                double newPower = power + (parse.size() - 1) * count;
-                double codeLengthWOSymbol = codeLength + count * log(count) - power * log(power) + newPower * log(newPower);
-                for (std::size_t i = 0; i < parse.size(); ++i) {
-                    std::int32_t next = parse[i];
-                    std::int32_t oldFreq = freq(next);
-                    std::int32_t newFreq = oldFreq + count;
-                    codeLengthWOSymbol -= newFreq * log(newFreq) - (oldFreq > 0 ? oldFreq * log(oldFreq) : 0);
+                double new_power = power + (parse.size() - 1) * count;
+                double code_length_without_symbol = codeL_length + count * log(count) - power * log(power) + new_power * log(new_power);
+                for (int i = 0; i < parse.size(); i++) {
+                    int next = parse[i];
+                    int old_freq = freq(next);
+                    int new_freq = old_freq + count;
+                    code_length_without_symbol -= new_freq * log(new_freq) - (old_freq > 0 ? old_freq * log(old_freq) : 0);
                 }
-                double score = codeLengthWOSymbol - codeLength;
+                double score = code_length_without_symbol - codeLength;
                 if (score > 0) {
                     items.push_back(StatItem(-1, id, score, count));
                 }
             } else {
-                items.push_back(StatItem item(-1, id, Double_POSITIVE_INFINITY, count));
+                items.push_back(StatItem item(-1, id, std::numeric_limits<double>::max(), count));
             }
         }
     }
-    std::sort(items.begin(), items.end(), [] (StatItem const & a, StatItem const & b) { return -a.score < -b.score; });
+    std::sort(items.begin(), items.end(), [] (const StatItem& a, const StatItem& b) { return -a.score < -b.score; });
     return items;
 }
 
-char DictionaryWithStat::indexOfTwoStr(std::string const & first, std::string const & second,
-                                                              char betw, std::int32_t ind) {
-    if (ind >= 0 && ind < first.length()) {
+int StatDict::index_of_two_str(const std::vector<int> &first, const std::vector<int> &second, int betw, int ind) {
+    if (ind >= 0 && ind < first.size()) {
         return first[ind];
-    } else if (ind == first.length()) {
+    } else if (ind == first.size()) {
         return betw;
-    } else if (ind > first.length() && ind < first.length() + 1 + second.length()) {
-        return second[ind - first.length() - 1];
+    } else if (ind > first.size() && ind < first.size() + 1 + second.size()) {
+        return second[ind - first.size() - 1];
     } else {
-        return null;
+        return -1;
     }
 }
 
 
-boolean DictionaryWithStat::isSubstring(std::string const & s, std::string const & t) {
-    // t is substr of s
-    if (t.length() > s.length()) {
-        return false;
-    }
-    std::size_t pos = s.find(t, 0);
-    if (pos == std::string::npos) {
-        return false;
-    } else {
-        return true;
-    }
+bool StatDict::is_substring(const std::vector<int>& s, const std::vector<int>& t) {
+    return std::search(s.begin(), s.end(), t.begin(), t.end()) != t.end();
 }
 
-void DictionaryWithStat::printPairs(std::unordered_map<std::int64_t, std::int32_t> oldPairs,
-                                    std::unordered_map<std::int64_t, std::int32_t> newPairs) {
-    for (std::size_t first = 0; first < size(); first++) {
-        for (std::size_t second = 0; second < size(); second++) {
+void StatDict::print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
+                          const std::unordered_map<std::int64_t, int>& new_pairs) const {
+    for (int first = 0; first < size(); first++) {
+        for (int second = 0; second < size(); second++) {
             std::int64_t code = (std::int64_t) first << 32 | second;
-            if (oldPairs[code] != newPairs[code]) {
-                std::cout << "\t" + dict.get(first) + "|" + dict.get(second) + ": " + oldPairs[code] + " -> " +
-                             newPairs[code] << std::endl;
+            if (old_pairs[code] != new_pairs[code]) {
+                std::cout << "\t" + dict_.get(first) + "|" + dict_.get(second) + ": " + old_pairs[code] + " -> " +
+                             new_pairs[code] << std::endl;
             }
         }
     }
@@ -181,7 +171,7 @@ void DictionaryWithStat::printPairs(std::unordered_map<std::int64_t, std::int32_
 
 // some changes
 // TODO change
-DictionaryWithStat DictionaryWithStat::expand(std::int32_t slots, boolean isDynamic) {
+StatDict* StatDict::expand(std::int32_t slots, boolean isDynamic) {
     std::vector<StatItem> items;
     std::unrdered_set<std::string> known;
     for (auto word : alphabet()) {
@@ -254,7 +244,7 @@ DictionaryWithStat DictionaryWithStat::expand(std::int32_t slots, boolean isDyna
     return createDict(newDict, freqs, isDynamic, minProbResult); //TODO add ctor
 }
 
-boolean DictionaryWithStat::enough(double probFound) {
+boolean StatDict::enough(double probFound) {
     return power > -log(probFound) / minProbability;
 }
 
@@ -262,7 +252,7 @@ void visitAssociations(int start, TIntDoubleProcedure procedure) {
     pairsFreqs.visitRange(((long) start) << 32, ((long) start + 1L) << 32, (a, b) -> procedure.execute((int)(a & 0x7FFFFFFFL), b));
 }
 
-std::vector<std::uint32_t> DictionaryWithStat::parse(std::string const & seq) {
+std::vector<std::uint32_t> StatDict::parse(std::string const & seq) {
     totalChars += seq.length();
     std::vector<std::int32_t> parseResult;
     {

@@ -9,8 +9,7 @@ IntVGramBuilderImpl::IntVGramBuilderImpl(const std::vector<std::vector<int>>& al
     //trace = trace;
     alphabet_size_ = alphabet.size();
     initial_ = alphabet;
-    //isDynamic = !(alphabet instanceof ListDictionary); //TODO !!!
-    current_ = createDict((List<Seq<T>>)alphabet.alphabet(), null, isDynamic, MAX_MIN_PROBABILITY);
+    current_ = new StatDict(new IntDict(alphabet.alphabet()), nullptr, kMaxMinProbability);
 }
 
 IntDict* IntVGramBuilderImpl::result() const {
@@ -48,7 +47,7 @@ void IntVGramBuilderImpl::update() {
         prob_found_ *= 0.8;
     }
 
-    DictionaryWithStat* result;
+    StatDict* result;
     if (populate) {
         result = current_;
 //        if (trace != null)
@@ -62,7 +61,7 @@ void IntVGramBuilderImpl::update() {
     }
     else {
         //TODO rewrite it
-        this.result = result = current_.reduce(size - alphabet_size_, is_dynamic_);
+        this.result = result = current_.reduce(size - alphabet_size_);
     }
     current_ = result;
     populate_ = !populate_;
@@ -102,9 +101,9 @@ double IntVGramBuilderImpl::kl(const std::vector<int>& freqs, const std::unorder
         double first = (int) (code >>> 32);
         double second = (int) (code & 0xFFFFFFFFL);
         double pAB = freq / total_pair_freqs;
-        double pBcondA = freq / freq_first.at(first);
-        double pA = freqs.at(first) / total_freqs;
-        double pB = freqs.at(second) / total_freqs;
+        double pBcondA = freq / freq_first[first];
+        double pA = freqs[first] / total_freqs;
+        double pB = freqs[second] / total_freqs;
         result[0] += freq * pBcondA * log(pAB / pA / pB);
     }
     return result[0];
