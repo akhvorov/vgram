@@ -291,15 +291,17 @@ std::string StatItem::toString() {
     return result;
 }
 
-boolean StatItem::equals(StatItem statItem) {
-    return first == statItem.first && second == statItem.second;
+bool StatItem::equals(const StatItem& stat_item) {
+    return first == stat_item.first && second == stat_item.second;
 }
 
-// TODO change
-int StatItem::hashCode() {
-    return Objects.hash(first, second);
-}
-
-std::string StatItem::text() {
-    return first >= 0 ? get(first) + get(second) : get(second);
+std::vector<int>* StatItem::text() {
+    if (first >= 0) {
+        std::vector<int> result(get(first));
+        std::vector<int> conc(get(second));
+        result.insert(result.end(), conc.begin(), conc.end());
+        return result;
+    } else {
+        return get(second);
+    }
 }

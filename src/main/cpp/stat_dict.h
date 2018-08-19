@@ -12,9 +12,19 @@
 #include "int_dict.h"
 #include "int_vgram_builder_p.h"
 
+struct StatItem {
+public:
+    StatItem(std::int32_t first_, std::int32_t second_, double score_, std::int32_t count_);
+    std::string to_string();
+    bool equals(const StatItem& statItem);
+    std::vector<int>* text();
 
-const double Double_POSITIVE_INFINITY = 2e123;
-const double MAX_MIN_PROBABILITY = 0.002; //TODO change
+private:
+    int first;
+    int second;
+    double score;
+    int count;
+};
 
 class StatDict
 {
@@ -60,23 +70,6 @@ private:
 
     StatDict* expand(int slots);
 
-};
-
-struct StatItem {
-public:
-    StatItem::StatItem(std::int32_t first_, std::int32_t second_, double score_, std::int32_t count_);
-    std::string StatItem::toString();
-    boolean StatItem::equals(StatItem statItem);
-
-    // TODO change
-    int StatItem::hashCode();
-    std::string StatItem::text();
-
-private:
-    int first;
-    int second;
-    double score;
-    int count;
 };
 
 #endif //VGRAM_DICTIONARYWITHSTAT_H
