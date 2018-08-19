@@ -22,11 +22,11 @@ add_library(${project_name} SHARED
         src/main/cpp/list_dict.h
         src/main/cpp/int_dict.h
         src/main/cpp/vgram_builder.h
-        src/main/cpp/int_dict.cpp
+        src/main/cpp/int_dict.cc
         src/main/cpp/int_dict_p.h
         src/main/cpp/int_vgram_builder.h
         src/main/cpp/int_vgram_builder_p.h
-        src/main/cpp/int_vgram_builder.cpp
+        src/main/cpp/int_vgram_builder.cc
         #src/main/cpp/list_dict.cc
         #src/main/cpp/vgram_builder.cpp
         library.cpp # my
