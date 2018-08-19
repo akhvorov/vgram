@@ -279,7 +279,7 @@ StatItem::StatItem(std::int32_t first_, std::int32_t second_, double score_, std
     count = count_;
 }
 
-std::string StatItem::toString() {
+std::string StatItem::to_string() {
     std::string result = "";
     if (first >= 0)
         result += get(first) + "|";
@@ -300,7 +300,7 @@ std::vector<int>* StatItem::text() {
         std::vector<int> result(get(first));
         std::vector<int> conc(get(second));
         result.insert(result.end(), conc.begin(), conc.end());
-        return result;
+        return *result;
     } else {
         return get(second);
     }

@@ -175,7 +175,7 @@ int IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>* output, co
 }
 
 std::vector<int>* IntDictImpl::get(int index) const {
-    return seqs_[index];
+    return *seqs_[index];
 }
 
 int IntDictImpl::size() const {
@@ -183,7 +183,7 @@ int IntDictImpl::size() const {
 }
 
 std::vector<std::vector<int>>* IntDictImpl::alphabet() const {
-    return std::vector<std::vector<int>>(seqs_);
+    return *seqs_;
 }
 
 int IntDictImpl::parent(int second) const {
