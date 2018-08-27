@@ -6,24 +6,22 @@
 #define VGRAM_INT_DICT_P_H
 
 #include "int_dict.h"
-#include <vector>
-#include <unordered_set>
 #include <unordered_map>
 
 class IntDictImpl : public IntDict {
 public:
-    explicit IntDictImpl(const std::vector<std::vector<int>>& seqs);
-    int search(const std::vector<int>& seq, const std::unordered_set<int>* excludes) const override;
+    explicit IntDictImpl(std::vector<std::vector<int>>* seqs);
+    int search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const override;
     std::vector<int>* get(int index) const override;
     int size() const override;
     std::vector<std::vector<int>>* alphabet() const override;
     int parent(int second) const override;
 
     int parse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq, std::vector<int>* output) override;
-    int parse(const std::vector<int>& seq, std::vector<int>* output, const std::unordered_set<int>* excludes);
+    int parse(const std::vector<int>& seq, std::vector<int>* output, std::unordered_set<int>* excludes);
     void weightParseVariants(const std::vector<int>& seq, double multiplier, const std::vector<int>& freqs,
                              double total_freq, std::unordered_map<int, double>* result,
-                             const std::unordered_set<int>* excludes);
+                             std::unordered_set<int>* excludes);
 
     ~IntDictImpl();
 
@@ -31,9 +29,9 @@ private:
     std::vector<std::vector<int>> seqs_;
     std::vector<int> parents_;
 
-    int linearParse(const std::vector<int>& seq, std::vector<int>* builder, const std::unordered_set<int>* excludes);
+    int linearParse(const std::vector<int>& seq, std::vector<int>* builder, std::unordered_set<int>* excludes);
     double weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
-            std::vector<int>* builder, const std::unordered_set<int>* excludes);
+            std::vector<int>* builder, std::unordered_set<int>* excludes);
 };
 
 
