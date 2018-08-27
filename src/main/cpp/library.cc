@@ -2,7 +2,7 @@
 #include <boost/python/def.hpp>
 #include <boost/python.hpp>
 #include <vector>
-#include "src/test/cpp/ListDictionaryTest.h"
+#include "../../test/cpp/ListDictionaryTest.h"
 //#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 
