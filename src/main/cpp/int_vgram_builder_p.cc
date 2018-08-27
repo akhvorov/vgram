@@ -4,12 +4,12 @@
 
 #import "int_vgram_builder_p.h"
 
-IntVGramBuilderImpl::IntVGramBuilderImpl(const std::vector<std::vector<int>>& alphabet, int size) {
+IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict& alphabet, int size) {
     size_ = size;
     //trace = trace;
     alphabet_size_ = alphabet.size();
-    initial_ = alphabet;
-    current_ = new StatDict(new IntDict(alphabet.alphabet()), nullptr, kMaxMinProbability);
+    initial_ = &alphabet;
+    current_ = new StatDict(new IntDictImpl(alphabet.alphabet()), nullptr, kMaxMinProbability);
 }
 
 IntDict* IntVGramBuilderImpl::result() const {

@@ -6,7 +6,7 @@
 #define VGRAM_INT_VGRAM_BUILDER_P_H
 
 #include "int_vgram_builder.h"
-#include "int_dict.h"
+#include "int_dict_p.h"
 #include "stat_dict.h"
 #include <fstream>
 #include <unordered_map>
@@ -20,7 +20,7 @@ public:
   const double kMaxMinProbability = 0.002;
   // const int kAggPower = 100000;
 
-  IntVGramBuilderImpl(const std::vector<std::vector<int>>& alphabet, int size);
+  IntVGramBuilderImpl(const IntDict& alphabet, int size);
   IntDict* result() const;
   IntDict* alpha() const;
   void accept(const std::vector<int>& seq);
@@ -33,7 +33,7 @@ private:
   bool is_dynamic_;
   int size_;
   // ofstream trace_;
-  IntDict* initial_;
+  const IntDict* initial_;
   StatDict* current_;
   bool populate_ = true;
   StatDict* result_;
