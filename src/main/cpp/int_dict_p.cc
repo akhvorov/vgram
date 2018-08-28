@@ -28,6 +28,11 @@ IntDictImpl::IntDictImpl(std::vector<std::vector<int>>* seqs) {
     }
 }
 
+IntDictImpl::IntDictImpl(const IntDictImpl& dict) {
+    seqs_ = dict.seqs_;
+    parents_ = dict.parents_;
+}
+
 int IntDictImpl::linearParse(const std::vector<int>& seq, std::vector<int>* builder, std::unordered_set<int>* excludes = nullptr) {
     std::vector<int> suffix = seq;
     while (!suffix.empty()) {

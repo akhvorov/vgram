@@ -10,7 +10,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include "int_dict.h"
-#include "int_vgram_builder_p.h"
+//#include "int_vgram_builder_p.h"
 
 struct StatItem {
 public:
@@ -36,7 +36,7 @@ public:
 
     void update_symbol(int index, int freq);
     int search(const std::vector<int>& seq);
-    int search(const std::vector<int>& seq, const std::unordered_set<std::int32_t>& excludes);
+    int search(const std::vector<int>& seq, const std::unordered_set<int>& excludes);
     std::vector<int>* get(int index);
     int size();
     std::vector<std::vector<int>>* alphabet();

@@ -11,6 +11,7 @@
 class IntDictImpl : public IntDict {
 public:
     explicit IntDictImpl(std::vector<std::vector<int>>* seqs);
+    IntDictImpl(const IntDictImpl& dict);
     int search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const override;
     std::vector<int>* get(int index) const override;
     int size() const override;
