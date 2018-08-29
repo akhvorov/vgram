@@ -18,38 +18,51 @@ public:
     std::string to_string();
     bool equals(const StatItem& statItem);
     std::vector<int>* text();
+    int first() const {
+        return first_;
+    }
+    int second() const {
+        return second_;
+    }
+    int score() const {
+        return score_;
+    }
+    int count() const {
+        return count_;
+    }
 
 private:
-    int first;
-    int second;
-    double score;
-    int count;
+    int first_;
+    int second_;
+    double score_;
+    int count_;
 };
 
 class StatDict
 {
 public:
-    // const double kMaxMinProbability = 0.002;
+    const double kMaxMinProbability = 0.002;
     const int kAggPower = 100000;
 
-    StatDict(const IntDict& dictionary, const std::vector<int>& init_freqs, double min_prob_result);
+    StatDict(const IntDict& dictionary, double min_prob_result, std::vector<int>* init_freqs);
 
     void update_symbol(int index, int freq);
-    int search(const std::vector<int>& seq);
-    int search(const std::vector<int>& seq, const std::unordered_set<int>& excludes);
-    std::vector<int>* get(int index);
-    int size();
-    std::vector<std::vector<int>>* alphabet();
-    int parent(int second);
-    int freq(int index);
-    double code_length_per_char();
+    int search(const std::vector<int>& seq) const ;
+    int search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const ;
+    std::vector<int>* get(int index) const ;
+    int size() const ;
+    std::vector<std::vector<int>>* alphabet() const ;
+    int parent(int second) const ;
+    int freq(int index) const ;
+    double code_length_per_char() const ;
 
     bool enough(double probFound);
     //void visitAssociations(std::int32_t start, TIntDoubleProcedure procedure); //TODO do it
     int parse(const std::vector<int>& seq, std::vector<int>* output);
 
 private:
-    IntDict* dict_;
+    std::shared_ptr<IntDict> dict_;
+    //IntDict* dict_;
     std::vector<int> symbol_freqs_;
     std::vector<int> parse_freqs_;
     double power_ = 0;
@@ -60,7 +73,7 @@ private:
 
     StatDict* reduce(std::int32_t slots);
     std::vector<StatItem> filter_stat_items(int slots);
-    std::vector<StatItem> stat_items(const std::unordered_set<int>& excludes);
+    std::vector<StatItem> stat_items(std::unordered_set<int>* excludes);
 
     int index_of_two_str(const std::vector<int>& first, const std::vector<int>& second, int betw, int ind);
     bool is_substring(const std::vector<int>& s, const std::vector<int>& t);
