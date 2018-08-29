@@ -17,19 +17,11 @@ public:
     StatItem(std::int32_t first_, std::int32_t second_, double score_, std::int32_t count_);
     std::string to_string();
     bool equals(const StatItem& statItem);
-    std::vector<int>* text();
-    int first() const {
-        return first_;
-    }
-    int second() const {
-        return second_;
-    }
-    int score() const {
-        return score_;
-    }
-    int count() const {
-        return count_;
-    }
+    std::vector<int>* text() const;
+    int first() const;
+    int second() const;
+    int score() const;
+    int count() const;
 
 private:
     int first_;

@@ -184,19 +184,19 @@ StatDict* StatDict::expand(int slots) {
     for (auto &pairs_freq : pairs_freqs_) {
         std::int64_t code = pairs_freq.first;
         int freq = pairs_freq.second;
-        int first = (int)(code >> 32);
-        int second = (int)(code & 0xFFFFFFFFL);
+        int first = code >> 32;
+        int second = code & 0xFFFFFFFFL;
         // !!! TODO check it
         start_with[first] += freq;
         ends_with[second] += freq;
     }
 
-    double total_pair_freqs = std::accumulate(start_with.begin(), start_with.end(), 0);
+    double total_pair_freqs = std::accumulate(start_with.begin(), start_with.end(), 0.0);
     for (auto &pairs_freq : pairs_freqs_) {
         std::int64_t code = pairs_freq.first;
         int freq = pairs_freq.second;
-        int first = (int)(code >> 32);
-        int second = (int)(code & 0xFFFFFFFFL);
+        int first = code >> 32;
+        int second = code & 0xFFFFFFFFL;
         double ab = freq;
         double xb = ends_with[second] - freq;
         double ay = start_with[first] - freq;
@@ -219,8 +219,9 @@ StatDict* StatDict::expand(int slots) {
         }
 
         StatItem item(first, second, score, freq);
-        if (known.find(item.text()) == 0) {
-            known.insert(item.text());
+        //TODO fix
+        if (known.count(*item.text()) == 0) {
+            known.insert(*item.text());
             items.push_back(item);
         }
     }
@@ -231,21 +232,21 @@ StatDict* StatDict::expand(int slots) {
     double min_prob_result = min_probability_;
 
     for (const StatItem& item : items) {
-        if (item.score < 0)
+        if (item.score() < 0)
             break;
         if (--slots < 0)
             break;
-        new_dict.push_back(item.text());
-        freqs.push_back(item.count);
-        if (item.first >= 0)
-            min_prob_result = min(min_prob_result, item.count / (double) pairs_freqs_.accumulatedValuesTotal()); //TODO change it
+        new_dict.push_back(*(item.text()));
+        freqs.push_back(item.count());
+        if (item.first() >= 0)
+            min_prob_result = std::min(min_prob_result, item.count / (double) pairs_freqs_.accumulatedValuesTotal()); //TODO change it
     }
     // TODO check this line, it's mistake
-    return StatDict(IntDict(new_dict), freqs, min_prob_result);
+    //return StatDict(IntDict(new_dict), freqs, min_prob_result);
 }
 
 bool StatDict::enough(double prob_found) {
-    return power > -log(prob_found) / min_probability_;
+    return power_ > -log(prob_found) / min_probability_;
 }
 
 //void visitAssociations(int start, TIntDoubleProcedure procedure) {
@@ -260,34 +261,34 @@ int StatDict::parse(const std::vector<int>& seq, std::vector<int>* parse_result)
         super.weightedParse(seq, parse_freqs_, std::accumulate(parse_freqs_.begin(), parse_freqs_.end(), 0),
                             parse_result, set);
     }
-    int length = parse_result.size();
+    int length = parse_result->size();
     int prev = -1;
     for (int i = 0; i < length; ++i) {
-        int symbol = parse_result[i];
+        int symbol = (*parse_result)[i];
         updateSymbol(symbol, 1); // TODO in DictExtension
         if (prev >= 0)
-            pairs_freqs_[(std::int64_t) prev << 32 | symbol] += 1;
+            pairs_freqs_[(((std::int64_t) prev) << 32) | symbol] += 1;
         prev = symbol;
     }
-    return parse_result.size();
+    return parse_result->size();
 }
 
 
-StatItem::StatItem(std::int32_t first_, std::int32_t second_, double score_, std::int32_t count_) {
-    first = first_;
-    second = second_;
-    score = score_;
-    count = count_;
+StatItem::StatItem(int first, int second, double score, int count) {
+    first_ = first;
+    second_ = second;
+    score_ = score;
+    count_ = count;
 }
 
 std::string StatItem::to_string() {
     std::string result = "";
-    if (first >= 0)
-        result += get(first) + "|";
-    result += get(second);
+    if (first_ >= 0)
+        result += get(first_) + "|";
+    result += get(second_);
     result += "->(";
-    result += count;
-    result += ", " + score;
+    result += count_;
+    result += ", " + score_;
     result += ")";
     return result;
 }
@@ -296,13 +297,26 @@ bool StatItem::equals(const StatItem& stat_item) {
     return first == stat_item.first && second == stat_item.second;
 }
 
-std::vector<int>* StatItem::text() {
-    if (first >= 0) {
+std::vector<int>* StatItem::text() const {
+    if (first_ >= 0) {
         std::vector<int> result(get(first));
         std::vector<int> conc(get(second));
         result.insert(result.end(), conc.begin(), conc.end());
-        return *result;
+        return &result;
     } else {
         return get(second);
     }
+}
+
+int StatItem::first() const {
+    return first_;
+}
+int StatItem::second() const {
+    return second_;
+}
+int StatItem::score() const {
+    return score_;
+}
+int StatItem::count() const {
+    return count_;
 }
