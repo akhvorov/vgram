@@ -36,24 +36,26 @@ include_directories(lib/googletest/googletest/include)
 #        #src/test/cpp/int_dict_p_test.cpp
 #        )
 
-add_library(${project_name} SHARED
+add_executable(${project_name}
         src/main/cpp/int_dict_p.h
         src/main/cpp/int_dict_p.cc
         src/test/cpp/int_dict_p_test.cc
 
         src/main/cpp/stat_dict.h
         src/main/cpp/stat_dict.cc
+
 #        src/main/cpp/int_vgram_builder_p.h
 #        src/main/cpp/int_vgram_builder_p.cc
-        src/main/cpp/main.cc)
+#        src/main/cpp/main.cc
+        )
 
 # add_library(vgram SHARED library.cpp) # my
-set_target_properties(${project_name} PROPERTIES PREFIX "")
+# set_target_properties(${project_name} PROPERTIES PREFIX "")
 
 
 #if (WITH_PYTHON)
 #    target_link_libraries(${project_name} ${Boost_LIBRARIES})
 #endif (WITH_PYTHON)
 
-target_link_libraries(${project_name} gtest main)
+target_link_libraries(${project_name} gtest gtest_main)
 

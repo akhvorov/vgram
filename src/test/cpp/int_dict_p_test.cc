@@ -7,3 +7,7 @@
 TEST(BasicTests, GetTest) {
     ASSERT_TRUE(true);
 }
+
+TEST(BasicTests, GetTest2) {
+    ASSERT_EQ(1, 1);
+}
