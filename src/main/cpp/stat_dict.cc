@@ -218,17 +218,21 @@ StatDict* StatDict::expand(int slots) {
         }
 
         StatItem item(first, second, score, freq);
-        //TODO fix
+        // !!!
         if (known.count(*item.text()) == 0) {
             known.insert(*item.text());
             items.push_back(item);
         }
     }
 
-    std::sort(items.begin(), items.end(), [] (const StatItem& a, const StatItem& b) { return -a.score < -b.score; });
+    std::sort(items.begin(), items.end(), [] (const StatItem& a, const StatItem& b) { return -a.score() < -b.score(); });
     std::vector<std::vector<int>> new_dict;
     std::vector<int> freqs;
     double min_prob_result = min_probability_;
+    double accumulated_freqs = 0.0;
+    for (const auto& pair : pairs_freqs_) {
+        accumulated_freqs += pair.second;
+    }
 
     for (const StatItem& item : items) {
         if (item.score() < 0)
@@ -238,7 +242,7 @@ StatDict* StatDict::expand(int slots) {
         new_dict.push_back(*(item.text()));
         freqs.push_back(item.count());
         if (item.first() >= 0)
-            min_prob_result = std::min(min_prob_result, item.count / (double) pairs_freqs_.accumulatedValuesTotal()); //TODO change it
+            min_prob_result = std::min(min_prob_result, item.count() / accumulated_freqs); // !!! maybe accumulated_freqs is wrong
     }
     // TODO check this line, it's mistake
     //return StatDict(IntDict(new_dict), freqs, min_prob_result);
@@ -257,14 +261,14 @@ int StatDict::parse(const std::vector<int>& seq, std::vector<int>* parse_result)
     {
         std::unordered_set<int> set;
         //TODO !!! super is dict_ ?
-        super.weightedParse(seq, parse_freqs_, std::accumulate(parse_freqs_.begin(), parse_freqs_.end(), 0),
+        weightedParse(seq, parse_freqs_, std::accumulate(parse_freqs_.begin(), parse_freqs_.end(), 0),
                             parse_result, set);
     }
     int length = parse_result->size();
     int prev = -1;
     for (int i = 0; i < length; ++i) {
         int symbol = (*parse_result)[i];
-        updateSymbol(symbol, 1); // TODO in DictExtension
+        update_symbol(symbol, 1);
         if (prev >= 0)
             pairs_freqs_[(((std::int64_t) prev) << 32) | symbol] += 1;
         prev = symbol;
@@ -283,8 +287,8 @@ StatItem::StatItem(int first, int second, double score, int count) {
 std::string StatItem::to_string() {
     std::string result = "";
     if (first_ >= 0)
-        result += get(first_) + "|";
-    result += get(second_);
+        result += stat_dict_.get(first_) + "|";
+    result += *stat_dict_.get(second_);
     result += "->(";
     result += count_;
     result += ", " + score_;
@@ -293,17 +297,17 @@ std::string StatItem::to_string() {
 }
 
 bool StatItem::equals(const StatItem& stat_item) {
-    return first == stat_item.first && second == stat_item.second;
+    return first_ == stat_item.first_ && second_ == stat_item.second_;
 }
 
 std::vector<int>* StatItem::text() const {
     if (first_ >= 0) {
-        std::vector<int> result(get(first));
-        std::vector<int> conc(get(second));
+        std::vector<int> result(*stat_dict_.get(first_));
+        std::vector<int> conc(*stat_dict_.get(second_));
         result.insert(result.end(), conc.begin(), conc.end());
         return &result;
     } else {
-        return get(second);
+        return stat_dict_.get(second_);
     }
 }
 

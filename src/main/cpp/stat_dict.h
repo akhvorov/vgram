@@ -11,25 +11,10 @@
 #include <unordered_map>
 #include <memory>
 #include "int_dict.h"
-//#include "int_vgram_builder_p.h"
+#include "int_vgram_builder_p.h" //!!!
 
-struct StatItem {
-public:
-    StatItem(std::int32_t first_, std::int32_t second_, double score_, std::int32_t count_);
-    std::string to_string();
-    bool equals(const StatItem& statItem);
-    std::vector<int>* text() const;
-    int first() const;
-    int second() const;
-    int score() const;
-    int count() const;
 
-private:
-    int first_;
-    int second_;
-    double score_;
-    int count_;
-};
+class StatItem;
 
 class StatDict
 {
@@ -76,6 +61,25 @@ private:
 
     StatDict* expand(int slots);
 
+};
+
+class StatItem {
+public:
+    StatItem(std::int32_t first_, std::int32_t second_, double score_, std::int32_t count_);
+    std::string to_string();
+    bool equals(const StatItem& statItem);
+    std::vector<int>* text() const;
+    int first() const;
+    int second() const;
+    int score() const;
+    int count() const;
+
+private:
+    StatDict* stat_dict_;
+    int first_;
+    int second_;
+    double score_;
+    int count_;
 };
 
 #endif //VGRAM_DICTIONARYWITHSTAT_H
