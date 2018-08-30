@@ -17,7 +17,7 @@ StatDict::StatDict(const IntDict& dictionary, double min_prob_result, std::vecto
         for (int i = parse_freqs_.size(); i < dict_->size(); i++)
             parse_freqs_.push_back(0);
     }
-    pairs_freqs_ = std::unordered_map<long long, int>(kAggPower);
+    pairs_freqs_ = std::unordered_map<std::int64_t , int>(kAggPower);
     min_probability_ = min_prob_result;
 }
 
@@ -122,18 +122,17 @@ std::vector<StatItem> StatDict::stat_items(std::unordered_set<int>* excludes) {
                 excludes->erase(id);
                 double new_power = power_ + (parse.size() - 1) * count;
                 double code_length_without_symbol = code_length + count * log(count) - power_ * log(power_) + new_power * log(new_power);
-                for (int i = 0; i < parse.size(); i++) {
-                    int next = parse[i];
+                for (int next : parse) {
                     int old_freq = freq(next);
                     int new_freq = old_freq + count;
                     code_length_without_symbol -= new_freq * log(new_freq) - (old_freq > 0 ? old_freq * log(old_freq) : 0);
                 }
                 double score = code_length_without_symbol - code_length;
                 if (score > 0) {
-                    items.push_back(StatItem(-1, id, score, count));
+                    items.emplace_back(StatItem(-1, id, score, count));
                 }
             } else {
-                items.push_back(StatItem(-1, id, std::numeric_limits<double>::max(), count));
+                items.emplace_back(StatItem(-1, id, std::numeric_limits<double>::max(), count));
             }
         }
     }
@@ -176,7 +175,7 @@ StatDict* StatDict::expand(int slots) {
     std::unordered_set<std::vector<int>> known;
     for (const auto& seq : *alphabet()) {
         known.insert(seq);
-        items.push_back(StatItem(-1, search(seq), std::numeric_limits<double>::max(), freq(search(seq))));
+        items.emplace_back(StatItem(-1, search(seq), std::numeric_limits<double>::max(), freq(search(seq))));
     }
     slots += alphabet()->size();
     std::vector<double> start_with(symbol_freqs_.size());
