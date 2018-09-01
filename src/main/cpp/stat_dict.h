@@ -25,14 +25,18 @@ public:
     StatDict(const IntDict& dictionary, double min_prob_result, std::vector<int>* init_freqs);
 
     void update_symbol(int index, int freq);
-    int search(const std::vector<int>& seq) const ;
-    int search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const ;
-    std::vector<int>* get(int index) const ;
-    int size() const ;
-    std::vector<std::vector<int>>* alphabet() const ;
-    int parent(int second) const ;
-    int freq(int index) const ;
-    double code_length_per_char() const ;
+    int search(const std::vector<int>& seq) const;
+    int search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const;
+    std::vector<int>* get(int index) const;
+    int size() const;
+    std::vector<std::vector<int>>* alphabet() const;
+    int parent(int second) const;
+    int freq(int index) const;
+    double code_length_per_char() const;
+
+    //TODO: remove, make base class
+    double weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
+                         std::vector<int>* builder, std::unordered_set<int>* excludes);
 
     bool enough(double probFound);
     //void visitAssociations(std::int32_t start, TIntDoubleProcedure procedure); //TODO do it
@@ -66,12 +70,12 @@ private:
 class StatItem {
 public:
     StatItem(std::int32_t first_, std::int32_t second_, double score_, std::int32_t count_);
-    std::string to_string();
+    //std::string to_string();
     bool equals(const StatItem& statItem);
-    std::vector<int>* text() const;
+    void text(std::vector<int>* output) const;
     int first() const;
     int second() const;
-    int score() const;
+    double score() const;
     int count() const;
 
 private:

@@ -14,7 +14,7 @@ StatDict::StatDict(const IntDict& dictionary, double min_prob_result, std::vecto
         parse_freqs_ = std::vector<int>(dict_->size(), 0);
     } else {
         parse_freqs_ = std::vector<int>(*init_freqs);
-        for (int i = parse_freqs_.size(); i < dict_->size(); i++)
+        for (auto i = parse_freqs_.size(); i < dict_->size(); i++)
             parse_freqs_.push_back(0);
     }
     pairs_freqs_ = std::unordered_map<std::int64_t , int>(kAggPower);
@@ -23,9 +23,9 @@ StatDict::StatDict(const IntDict& dictionary, double min_prob_result, std::vecto
 
 void StatDict::update_symbol(int index, int freq) {
     if (index >= symbol_freqs_.size()) {
-        for (int i = symbol_freqs_.size(); i < index + 1; i++)
+        for (auto i = symbol_freqs_.size(); i < index + 1; i++)
             symbol_freqs_.push_back(0);
-        for (int i = parse_freqs_.size(); i < index + 1; i++)
+        for (auto i = parse_freqs_.size(); i < index + 1; i++)
             parse_freqs_.push_back(0);
     }
     symbol_freqs_[index] += freq;
@@ -69,6 +69,42 @@ double StatDict::code_length_per_char() const {
             sum -= frequency * log(frequency);
     }
     return (sum + power_ * log(power_)) / total_chars_;
+}
+
+double StatDict::weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
+                                  std::vector<int>* builder, std::unordered_set<int>* excludes = nullptr) {
+    auto len = seq.size();
+    std::vector<double> score(len + 1, std::numeric_limits<double>::min());
+    score[0] = 0;
+    std::vector<int> symbols(len + 1);
+
+    for (int pos = 0; pos < len; pos++) {
+        std::vector<int> suffix(seq.begin() + pos, seq.end());
+        int sym = search(suffix, excludes);
+        do {
+            auto sym_len = get(sym)->size();
+            double symLogProb = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
+
+            if (score[sym_len + pos] < score[pos] + symLogProb)
+            {
+                score[sym_len + pos] = score[pos] + symLogProb;
+                symbols[sym_len + pos] = sym;
+            }
+        }
+        while ((sym = parent(sym)) >= 0);
+    }
+    std::vector<int> solution(len + 1);
+    int pos = len;
+    int index = 0;
+    while (pos > 0) {
+        int sym = symbols[pos];
+        solution[len - (++index)] = sym;
+        pos -= get(sym)->size();
+    }
+    for (int i = 0; i < index; i++) {
+        builder->push_back(solution[len - index + i]);
+    }
+    return score[len];
 }
 
 //TODO change types and args
@@ -118,7 +154,7 @@ std::vector<StatItem> StatDict::stat_items(std::unordered_set<int>* excludes) {
             if (seq->size() > 1) {
                 std::vector<int> parse;
                 excludes->insert(id);
-                weightedParse(seq, symbol_freqs_, power_, parse, excludes); //TODO doesn't work, make base_dict
+                weightedParse(*seq, symbol_freqs_, power_, &parse, excludes); //TODO doesn't work, make base_dict
                 excludes->erase(id);
                 double new_power = power_ + (parse.size() - 1) * count;
                 double code_length_without_symbol = code_length + count * log(count) - power_ * log(power_) + new_power * log(new_power);
@@ -219,8 +255,10 @@ StatDict* StatDict::expand(int slots) {
 
         StatItem item(first, second, score, freq);
         // !!!
-        if (known.count(*item.text()) == 0) {
-            known.insert(*item.text());
+        std::vector<int> item_text;
+        item.text(&item_text);
+        if (known.count(item_text) == 0) {
+            known.insert(item_text);
             items.push_back(item);
         }
     }
@@ -239,7 +277,9 @@ StatDict* StatDict::expand(int slots) {
             break;
         if (--slots < 0)
             break;
-        new_dict.push_back(*(item.text()));
+        std::vector<int> item_text;
+        item.text(&item_text);
+        new_dict.push_back(item_text);
         freqs.push_back(item.count());
         if (item.first() >= 0)
             min_prob_result = std::min(min_prob_result, item.count() / accumulated_freqs); // !!! maybe accumulated_freqs is wrong
@@ -259,12 +299,10 @@ bool StatDict::enough(double prob_found) {
 int StatDict::parse(const std::vector<int>& seq, std::vector<int>* parse_result) {
     total_chars_ += seq.size();
     {
-        std::unordered_set<int> set;
-        //TODO !!! super is dict_ ?
         weightedParse(seq, parse_freqs_, std::accumulate(parse_freqs_.begin(), parse_freqs_.end(), 0),
-                            parse_result, set);
+                            parse_result, nullptr);
     }
-    int length = parse_result->size();
+    auto length = parse_result->size();
     int prev = -1;
     for (int i = 0; i < length; ++i) {
         int symbol = (*parse_result)[i];
@@ -284,30 +322,28 @@ StatItem::StatItem(int first, int second, double score, int count) {
     count_ = count;
 }
 
-std::string StatItem::to_string() {
-    std::string result = "";
-    if (first_ >= 0)
-        result += stat_dict_.get(first_) + "|";
-    result += *stat_dict_.get(second_);
-    result += "->(";
-    result += count_;
-    result += ", " + score_;
-    result += ")";
-    return result;
-}
+//std::string StatItem::to_string() {
+//    std::string result = "";
+//    if (first_ >= 0)
+//        result += stat_dict_.get(first_) + "|";
+//    result += *stat_dict_.get(second_);
+//    result += "->(";
+//    result += count_;
+//    result += ", " + score_;
+//    result += ")";
+//    return result;
+//}
 
 bool StatItem::equals(const StatItem& stat_item) {
     return first_ == stat_item.first_ && second_ == stat_item.second_;
 }
 
-std::vector<int>* StatItem::text() const {
+void StatItem::text(std::vector<int>* output) const {
     if (first_ >= 0) {
-        std::vector<int> result(*stat_dict_.get(first_));
-        std::vector<int> conc(*stat_dict_.get(second_));
-        result.insert(result.end(), conc.begin(), conc.end());
-        return &result;
+        output->insert(output->end(), stat_dict_->get(first_)->begin(), stat_dict_->get(first_)->end());
+        output->insert(output->end(), stat_dict_->get(second_)->begin(), stat_dict_->get(second_)->end());
     } else {
-        return stat_dict_.get(second_);
+        output->insert(output->end(), stat_dict_->get(second_)->begin(), stat_dict_->get(second_)->end());
     }
 }
 
@@ -317,7 +353,7 @@ int StatItem::first() const {
 int StatItem::second() const {
     return second_;
 }
-int StatItem::score() const {
+double StatItem::score() const {
     return score_;
 }
 int StatItem::count() const {
