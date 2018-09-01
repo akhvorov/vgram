@@ -6,10 +6,7 @@
 #define VGRAM_DICTIONARYWITHSTAT_H
 
 #include <cmath>
-#include <vector>
-#include <unordered_set>
 #include <unordered_map>
-#include <memory>
 #include "int_dict.h"
 #include "int_vgram_builder_p.h" //!!!
 
@@ -22,7 +19,7 @@ public:
     const double kMaxMinProbability = 0.002;
     const int kAggPower = 100000;
 
-    StatDict(const IntDict& dictionary, double min_prob_result, std::vector<int>* init_freqs);
+    StatDict(const IntDictImpl& dictionary, double min_prob_result, std::vector<int>* init_freqs = nullptr);
 
     void update_symbol(int index, int freq);
     int search(const std::vector<int>& seq) const;
@@ -43,7 +40,7 @@ public:
     int parse(const std::vector<int>& seq, std::vector<int>* output);
 
 private:
-    std::shared_ptr<IntDict> dict_;
+    std::shared_ptr<IntDictImpl> dict_;
     //IntDict* dict_;
     std::vector<int> symbol_freqs_;
     std::vector<int> parse_freqs_;
@@ -53,7 +50,7 @@ private:
     double total_chars_ = 0;
     //FastRandom rng = new FastRandom(0);
 
-    StatDict* reduce(std::int32_t slots);
+    StatDict* reduce(int slots);
     std::vector<StatItem> filter_stat_items(int slots);
     std::vector<StatItem> stat_items(std::unordered_set<int>* excludes);
 
@@ -69,7 +66,7 @@ private:
 
 class StatItem {
 public:
-    StatItem(std::int32_t first_, std::int32_t second_, double score_, std::int32_t count_);
+    StatItem(int first_, int second_, double score_, int count_);
     //std::string to_string();
     bool equals(const StatItem& statItem);
     void text(std::vector<int>* output) const;

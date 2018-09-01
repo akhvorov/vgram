@@ -5,13 +5,12 @@
 #ifndef VGRAM_INT_VGRAM_BUILDER_P_H
 #define VGRAM_INT_VGRAM_BUILDER_P_H
 
-#include "int_vgram_builder.h"
-#include "int_dict_p.h"
-#include "stat_dict.h"
 #include <fstream>
 #include <unordered_map>
+#include "int_vgram_builder.h"
+#include "int_dict_p.h"
 
-class DictionaryWithStat; //TODO make it
+class StatDict;
 
 class IntVGramBuilderImpl : public IntVGramBuilder {
 public:

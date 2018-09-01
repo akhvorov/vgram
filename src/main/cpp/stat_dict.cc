@@ -5,13 +5,15 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
+#include <memory>
 #include "stat_dict.h"
+#include "vector_hash.h"
 
-StatDict::StatDict(const IntDict& dictionary, double min_prob_result, std::vector<int>* init_freqs) {
-    dict_ = std::make_shared<IntDict>(dictionary);
+StatDict::StatDict(const IntDictImpl& dictionary, double min_prob_result, std::vector<int>* init_freqs) {
+    dict_ = std::make_shared<IntDictImpl>(dictionary);
     symbol_freqs_ = std::vector<int>(dictionary.size());
     if (init_freqs == nullptr) {
-        parse_freqs_ = std::vector<int>(dict_->size(), 0);
+        parse_freqs_ = std::vector<int>(dict_->size());
     } else {
         parse_freqs_ = std::vector<int>(*init_freqs);
         for (auto i = parse_freqs_.size(); i < dict_->size(); i++)
@@ -208,7 +210,7 @@ void StatDict::print_pairs(const std::unordered_map<std::int64_t, int>& old_pair
 // TODO change
 StatDict* StatDict::expand(int slots) {
     std::vector<StatItem> items;
-    std::unordered_set<std::vector<int>> known;
+    std::unordered_set<std::vector<int>, VectorHash> known;
     for (const auto& seq : *alphabet()) {
         known.insert(seq);
         items.emplace_back(StatItem(-1, search(seq), std::numeric_limits<double>::max(), freq(search(seq))));
