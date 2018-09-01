@@ -5,20 +5,7 @@
 #include <gtest/gtest.h>
 #include <unordered_set>
 #include "../../main/cpp/int_dict_p.h"
-
-// some hasher for vectors, not my
-struct VectorHash {
-    size_t operator()(const std::vector<int>& v) const {
-        std::hash<int> hasher;
-        size_t seed = 0;
-        for (int i : v) {
-            seed ^= hasher(i) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-        }
-        return seed;
-    }
-};
-
-using SetOfVectors = std::unordered_set<std::vector<int>, VectorHash>;
+#include "../../main/cpp/vector_hash.h"
 
 std::vector<std::vector<int>> simple_seqs() {
     std::vector<std::vector<int>> seqs;
@@ -60,8 +47,8 @@ TEST(BasicTests, AlphabetTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
     IntDictImpl dict(seqs);
     const std::vector<std::vector<int>>* alphabet = dict.alphabet();
-    SetOfVectors set1(alphabet->begin(), alphabet->end());
-    SetOfVectors set2(seqs.begin(), seqs.end());
+    std::unordered_set<std::vector<int>, VectorHash> set1(alphabet->begin(), alphabet->end());
+    std::unordered_set<std::vector<int>, VectorHash> set2(seqs.begin(), seqs.end());
     ASSERT_EQ(set1, set2);
 }
 
