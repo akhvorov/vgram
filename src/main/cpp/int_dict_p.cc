@@ -24,7 +24,7 @@ IntDictImpl::IntDictImpl(std::vector<std::vector<int>>* seqs) {
             }
             parents_stack.pop_back();
         }
-        parents_stack.push_back(std::pair<std::vector<int>, int>(current, i));
+        parents_stack.emplace_back(std::pair<std::vector<int>, int>(current, i));
     }
 }
 
@@ -57,7 +57,7 @@ int IntDictImpl::linearParse(const std::vector<int>& seq, std::vector<int>* buil
 
 double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
                                   std::vector<int>* builder, std::unordered_set<int>* excludes = nullptr) {
-    int len = seq.size();
+    auto len = seq.size();
     std::vector<double> score(len + 1, std::numeric_limits<double>::min());
     score[0] = 0;
     std::vector<int> symbols(len + 1);
@@ -94,7 +94,7 @@ double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector
 void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multiplier, const std::vector<int>& freqs,
                                       double total_freq, std::unordered_map<int, double>* result,
                                       std::unordered_set<int>* excludes = nullptr) {
-    int len = seq.size();
+    auto len = seq.size();
     std::vector<double> count_forward(len + 1);
     {
         count_forward[0] = 1;
@@ -144,7 +144,7 @@ void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multip
 
 int IntDictImpl::search(const std::vector<int>& seq, std::unordered_set<int>* excludes = nullptr) const {
     // TODO maybe it work in another way
-    unsigned long index = std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin();
+    int index = std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin();
     if (seqs_[index] == seq) {
         if (excludes == nullptr || excludes->count(index) == 0)
             return index;
@@ -162,12 +162,11 @@ int IntDictImpl::parse(const std::vector<int>& seq, const std::vector<int>& freq
     std::vector<int> result;
     double logProBab = weightedParse(seq, freqs, total_freq, output, nullptr);
     if (logProBab > 0) {
-        for (int i = 0; i < seq.size(); i++) {
-            std::cout << seq[i] << " ";
+        for (int i : seq) {
+            std::cout << i << " ";
         }
         std::cout << "->";
-        for (int i = 0; i < output->size(); i++) {
-            int symbol = (*output)[i];
+        for (int symbol : *output) {
             if (symbol >= 0) {
                 std::cout << " ";
                 for (auto e : *get(symbol))
@@ -186,7 +185,7 @@ int IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>* output, st
     return output->size();
 }
 
-std::vector<int>* IntDictImpl::get(int index) const {
+const std::vector<int>* IntDictImpl::get(int index) const {
     return &(seqs_[index]);
 }
 
@@ -194,7 +193,7 @@ int IntDictImpl::size() const {
     return seqs_.size();
 }
 
-std::vector<std::vector<int>>* IntDictImpl::alphabet() const {
+const std::vector<std::vector<int>>* IntDictImpl::alphabet() const {
     return &seqs_;
 }
 

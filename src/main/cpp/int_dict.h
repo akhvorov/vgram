@@ -23,9 +23,9 @@ public:
   virtual int parse(const std::vector<int>& input, const std::vector<int>& freqs, double total_freq, std::vector<int>* output) = 0;
 
   virtual int search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const = 0;
-  virtual std::vector<int>* get(int index) const = 0;
+  virtual const std::vector<int>* get(int index) const = 0;
   virtual int size() const = 0;
-  virtual std::vector<std::vector<int>>* alphabet() const = 0;
+  virtual const std::vector<std::vector<int>>* alphabet() const = 0;
   virtual int parent(int second) const = 0;
 
   static IntDict* create();

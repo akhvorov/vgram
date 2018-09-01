@@ -13,9 +13,9 @@ public:
     explicit IntDictImpl(std::vector<std::vector<int>>* seqs);
     IntDictImpl(const IntDictImpl& dict);
     int search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const override;
-    std::vector<int>* get(int index) const override;
+    const std::vector<int>* get(int index) const override;
     int size() const override;
-    std::vector<std::vector<int>>* alphabet() const override;
+    const std::vector<std::vector<int>>* alphabet() const override;
     int parent(int second) const override;
 
     int parse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq, std::vector<int>* output) override;

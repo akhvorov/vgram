@@ -41,7 +41,7 @@ int StatDict::search(const std::vector<int>& seq, std::unordered_set<int>* exclu
     return dict_->search(seq, excludes);
 }
 
-std::vector<int>* StatDict::get(int index) const {
+const std::vector<int>* StatDict::get(int index) const {
     return dict_->get(index);
 }
 
@@ -49,7 +49,7 @@ int StatDict::size() const {
     return dict_->size();
 }
 
-std::vector<std::vector<int>>* StatDict::alphabet() const {
+const std::vector<std::vector<int>>* StatDict::alphabet() const {
     return dict_->alphabet();
 }
 
@@ -121,7 +121,7 @@ StatDict* StatDict::reduce(int slots) {
         double p = (item.count() + 1.0) / (power + size());
         if (parent(item.second()) >= 0)
             min_prob_result = std::min(p, min_prob_result);
-        std::vector<int>* symbol = get(item.second());
+        const std::vector<int>* symbol = get(item.second());
         new_dict.push_back(*symbol);
         freqs.push_back(item.count());
     }
@@ -150,7 +150,7 @@ std::vector<StatItem> StatDict::stat_items(std::unordered_set<int>* excludes) {
     for (int id = 0; id < symbol_freqs_.size(); id++) {
         if (excludes->count(id) == 0) {
             int count = freq(id);
-            std::vector<int>* seq = get(id);
+            const std::vector<int>* seq = get(id);
             if (seq->size() > 1) {
                 std::vector<int> parse;
                 excludes->insert(id);
@@ -196,7 +196,7 @@ void StatDict::print_pairs(const std::unordered_map<std::int64_t, int>& old_pair
                           const std::unordered_map<std::int64_t, int>& new_pairs) const {
     for (int first = 0; first < size(); first++) {
         for (int second = 0; second < size(); second++) {
-            std::int64_t code = (std::int64_t) first << 32 | second;
+            std::int64_t code = (((std::int64_t) first) << 32) | second;
             if (old_pairs.at(code) != new_pairs.at(code)) {
                 std::cout << "\t" << dict_->get(first) << "|" << dict_->get(second) << ": " << old_pairs.at(code) <<
                           " -> " << new_pairs.at(code) << std::endl;
