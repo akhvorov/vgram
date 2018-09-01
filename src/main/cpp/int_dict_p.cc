@@ -7,8 +7,8 @@
 #include <numeric>
 #include <iostream>
 
-IntDictImpl::IntDictImpl(std::vector<std::vector<int>>* seqs) {
-    seqs_ = std::vector<std::vector<int>>(*seqs);
+IntDictImpl::IntDictImpl(const std::vector<std::vector<int>>& seqs) {
+    seqs_ = std::vector<std::vector<int>>(seqs);
     parents_ = std::vector<int>(seqs_.size());
     std::vector<std::pair<std::vector<int>, int>> parents_stack;
     std::sort(seqs_.begin(), seqs_.end());
@@ -16,7 +16,7 @@ IntDictImpl::IntDictImpl(std::vector<std::vector<int>>* seqs) {
     for (int i = 0; i < seqs_.size(); ++i) {
         std::vector<int> current = seqs_[i];
         parents_[i] = -1;
-        while (!parents_.empty()) {
+        while (!parents_stack.empty()) {
             std::vector<int> prefix = parents_stack.back().first;
             if (std::mismatch(prefix.begin(), prefix.end(), current.begin()).first == prefix.end()) {
                 parents_[i] = parents_stack.back().second;
@@ -58,7 +58,7 @@ int IntDictImpl::linearParse(const std::vector<int>& seq, std::vector<int>* buil
 double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
                                   std::vector<int>* builder, std::unordered_set<int>* excludes = nullptr) {
     auto len = seq.size();
-    std::vector<double> score(len + 1, std::numeric_limits<double>::min());
+    std::vector<double> score(len + 1, std::numeric_limits<double>::lowest());
     score[0] = 0;
     std::vector<int> symbols(len + 1);
 
@@ -67,11 +67,11 @@ double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector
         int sym = search(suffix, excludes);
         do {
             auto sym_len = get(sym)->size();
-            double symLogProb = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
+            double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
 
-            if (score[sym_len + pos] < score[pos] + symLogProb)
+            if (score[sym_len + pos] < score[pos] + sym_log_prob)
             {
-                score[sym_len + pos] = score[pos] + symLogProb;
+                score[sym_len + pos] = score[pos] + sym_log_prob;
                 symbols[sym_len + pos] = sym;
             }
         }
@@ -142,14 +142,18 @@ void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multip
     }
 }
 
-int IntDictImpl::search(const std::vector<int>& seq, std::unordered_set<int>* excludes = nullptr) const {
-    // TODO maybe it work in another way
+int IntDictImpl::search(const std::vector<int>& seq) const {
+    return search(seq, nullptr);
+}
+
+int IntDictImpl::search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const {
     int index = std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin();
     if (seqs_[index] == seq) {
         if (excludes == nullptr || excludes->count(index) == 0)
             return index;
     }
-    while (seqs_[index] != seq) {
+    index--;
+    while (index >= 0) {
         if (std::mismatch(seqs_[index].begin(), seqs_[index].end(), seq.begin()).first == seqs_[index].end() &&
             (excludes == nullptr || excludes->count(index) == 0))
             return index;
@@ -160,8 +164,8 @@ int IntDictImpl::search(const std::vector<int>& seq, std::unordered_set<int>* ex
 
 int IntDictImpl::parse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq, std::vector<int>* output) {
     std::vector<int> result;
-    double logProBab = weightedParse(seq, freqs, total_freq, output, nullptr);
-    if (logProBab > 0) {
+    double log_probability = weightedParse(seq, freqs, total_freq, output, nullptr);
+    if (log_probability > 0) {
         for (int i : seq) {
             std::cout << i << " ";
         }
@@ -175,12 +179,12 @@ int IntDictImpl::parse(const std::vector<int>& seq, const std::vector<int>& freq
                 std::cout << "##unknown##";
             }
         }
-        std::cout << " " << logProBab << std::endl;
+        std::cout << " " << log_probability << std::endl;
     }
     return output->size();
 }
 
-int IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>* output, std::unordered_set<int>* excludes = nullptr) {
+int IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>* output, std::unordered_set<int>* excludes) {
     linearParse(seq, output, excludes);
     return output->size();
 }
@@ -201,4 +205,4 @@ int IntDictImpl::parent(int second) const {
     return parents_[second];
 }
 
-IntDictImpl::~IntDictImpl() {}
+IntDictImpl::~IntDictImpl() = default;

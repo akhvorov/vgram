@@ -10,8 +10,10 @@
 
 class IntDictImpl : public IntDict {
 public:
-    explicit IntDictImpl(std::vector<std::vector<int>>* seqs);
+    explicit IntDictImpl(const std::vector<std::vector<int>>& seqs);
     IntDictImpl(const IntDictImpl& dict);
+
+    int search(const std::vector<int>& seq) const override;
     int search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const override;
     const std::vector<int>* get(int index) const override;
     int size() const override;
@@ -19,7 +21,7 @@ public:
     int parent(int second) const override;
 
     int parse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq, std::vector<int>* output) override;
-    int parse(const std::vector<int>& seq, std::vector<int>* output, std::unordered_set<int>* excludes);
+    int parse(const std::vector<int>& seq, std::vector<int>* output, std::unordered_set<int>* excludes = nullptr);
     void weightParseVariants(const std::vector<int>& seq, double multiplier, const std::vector<int>& freqs,
                              double total_freq, std::unordered_map<int, double>* result,
                              std::unordered_set<int>* excludes);

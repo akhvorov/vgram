@@ -37,12 +37,13 @@ include_directories(lib/googletest/googletest/include)
 #        )
 
 add_executable(${project_name}
+        src/main/cpp/int_dict.h
         src/main/cpp/int_dict_p.h
         src/main/cpp/int_dict_p.cc
         src/test/cpp/int_dict_p_test.cc
 
-        src/main/cpp/stat_dict.h
-        src/main/cpp/stat_dict.cc
+#        src/main/cpp/stat_dict.h
+#        src/main/cpp/stat_dict.cc
 
 #        src/main/cpp/int_vgram_builder_p.h
 #        src/main/cpp/int_vgram_builder_p.cc
