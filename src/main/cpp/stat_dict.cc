@@ -9,9 +9,11 @@
 #include "stat_dict.h"
 #include "vector_hash.h"
 
-StatDict::StatDict(const IntDictImpl& dictionary, double min_prob_result, std::vector<int>* init_freqs) {
-    dict_ = std::make_shared<IntDictImpl>(dictionary);
-    symbol_freqs_ = std::vector<int>(dictionary.size());
+StatDict::StatDict(const std::vector<std::vector<int>>& seqs, double min_prob_result, std::vector<int>* init_freqs) {
+    IntDictImpl int_dict(seqs);
+    dict_ = std::make_shared<IntDictImpl>(int_dict);
+    dict_ = std::make_shared<IntDictImpl>(int_dict);
+    symbol_freqs_ = std::vector<int>(int_dict.size());
     if (init_freqs == nullptr) {
         parse_freqs_ = std::vector<int>(dict_->size());
     } else {
@@ -106,7 +108,7 @@ double StatDict::weightedParse(const std::vector<int>& seq, const std::vector<in
 }
 
 //TODO change types and args
-StatDict* StatDict::reduce(int slots) {
+StatDict StatDict::reduce(int slots) {
     std::vector<std::vector<int>> new_dict(size());
     std::vector<StatItem> items = filter_stat_items(slots);
     std::vector<int> freqs(items.size());
@@ -124,8 +126,8 @@ StatDict* StatDict::reduce(int slots) {
         freqs.push_back(item.count());
     }
     //TODO no new!
-    //return new StatDict(new IntDict(new_dict), freqs, min_prob_result);
-    return nullptr;
+    return StatDict(new_dict, min_prob_result, &freqs);
+    // return nullptr;
 }
 
 //TODO change return type to arg or something else
@@ -205,7 +207,7 @@ void StatDict::print_pairs(const std::unordered_map<std::int64_t, int>& old_pair
 }
 
 // TODO change
-StatDict* StatDict::expand(int slots) {
+StatDict StatDict::expand(int slots) {
     std::vector<StatItem> items;
     std::unordered_set<std::vector<int>, VectorHash> known;
     for (const auto& seq : *alphabet()) {
@@ -236,11 +238,8 @@ StatDict* StatDict::expand(int slots) {
         double ay = start_with[first] - freq;
         double xy = total_pair_freqs - ay - xb - ab;
 
-        std::vector<double> dirichlet_params(4);
-        dirichlet_params.push_back(ab + 1);
-        dirichlet_params.push_back(ay + 1);
-        dirichlet_params.push_back(xb + 1);
-        dirichlet_params.push_back(xy + 1);
+        double params[] = {ab + 1, ay + 1, xb + 1, xy + 1};
+        std::vector<double> dirichlet_params(std::begin(params), std::end(params));
         double score = 0;
         int samples_count = 10;
         std::vector<double> sample(dirichlet_params.size());
@@ -284,9 +283,8 @@ StatDict* StatDict::expand(int slots) {
             min_prob_result = std::min(min_prob_result, item.count() / accumulated_freqs); // !!! maybe accumulated_freqs is wrong
     }
     // TODO check this line, it's mistake
-    IntDictImpl int_dict(new_dict);
-    //return StatDict(int_dict, min_prob_result, &freqs);
-    return nullptr;
+    return StatDict(new_dict, min_prob_result, &freqs);
+    // return nullptr;
 }
 
 bool StatDict::enough(double prob_found) {
@@ -312,6 +310,8 @@ int StatDict::parse(const std::vector<int>& seq, std::vector<int>* parse_result)
     return parse_result->size();
 }
 
+
+//StatItem
 
 StatItem::StatItem(int first, int second, double score, int count) {
     first_ = first;

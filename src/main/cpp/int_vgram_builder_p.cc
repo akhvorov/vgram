@@ -9,7 +9,7 @@ IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict& alphabet, int size) {
     //trace = trace;
     alphabet_size_ = alphabet.size();
     initial_ = &alphabet;
-    current_ = new StatDict(new IntDictImpl(alphabet.alphabet()), nullptr, kMaxMinProbability);
+    current_ = std::make_shared<StatDict>(alphabet.alphabet(), kMaxMinProbability);
 }
 
 IntDict* IntVGramBuilderImpl::result() const {
@@ -98,7 +98,7 @@ double IntVGramBuilderImpl::kl(const std::vector<int>& freqs, const std::unorder
     for (auto &e : pair_freqs) {
         long long code = e.first;
         double freq = e.second;
-        double first = (int) (code >>> 32);
+        double first = (int) (code >> 32);
         double second = (int) (code & 0xFFFFFFFFL);
         double pAB = freq / total_pair_freqs;
         double pBcondA = freq / freq_first[first];

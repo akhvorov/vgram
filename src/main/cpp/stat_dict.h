@@ -19,7 +19,7 @@ public:
     const double kMaxMinProbability = 0.002;
     const int kAggPower = 100000;
 
-    StatDict(const IntDictImpl& dictionary, double min_prob_result, std::vector<int>* init_freqs = nullptr);
+    StatDict(const std::vector<std::vector<int>>& seqs, double min_prob_result, std::vector<int>* init_freqs = nullptr);
 
     void update_symbol(int index, int freq);
     int search(const std::vector<int>& seq, std::unordered_set<int>* excludes = nullptr) const;
@@ -45,7 +45,7 @@ private:
     double total_chars_ = 0;
     //FastRandom rng = new FastRandom(0);
 
-    StatDict* reduce(int slots);
+    StatDict reduce(int slots);
     std::vector<StatItem> filter_stat_items(int slots);
     std::vector<StatItem> stat_items(std::unordered_set<int>* excludes);
 
@@ -59,7 +59,7 @@ private:
     void print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
                      const std::unordered_map<std::int64_t, int>& new_pairs) const ;
 
-    StatDict* expand(int slots);
+    StatDict expand(int slots);
 
 };
 

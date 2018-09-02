@@ -14,51 +14,32 @@ TEST(StatDictTests, EmptyTest) {
 TEST(StatDictTests, ConstructorTest) {
     int arr1[] = {3, 2, 1, 4};
     std::vector<int> init_freqs(std::begin(arr1), std::end(arr1));
-    IntDictImpl int_dict(simple_seqs());
-    StatDict dict(int_dict, 0.002, &init_freqs);
+    StatDict dict(simple_seqs(), 0.002, &init_freqs);
     ASSERT_TRUE(true);
 }
 
 TEST(StatDictTests, FreqTest) {
     int arr1[] = {3, 2, 1, 4};
     std::vector<int> init_freqs(std::begin(arr1), std::end(arr1));
-    IntDictImpl int_dict(simple_seqs());
-    StatDict dict1(int_dict, 0.002, &init_freqs);
+    StatDict dict1(simple_seqs(), 0.002, &init_freqs);
     for (int i = 0; i < 4; i++) {
         ASSERT_EQ(0, dict1.freq(i));
     }
 
-    StatDict dict2(int_dict, 0.002);
-    for (int i = 0; i < 4; i++) {
-        ASSERT_EQ(0, dict2.freq(i));
-    }
-}
-
-TEST(StatDictTests, Test) {
-    int arr1[] = {3, 2, 1, 4};
-    std::vector<int> init_freqs(std::begin(arr1), std::end(arr1));
-    IntDictImpl int_dict(simple_seqs());
-    StatDict dict1(int_dict, 0.002, &init_freqs);
-    for (int i = 0; i < 4; i++) {
-        ASSERT_EQ(0, dict1.freq(i));
-    }
-
-    StatDict dict2(int_dict, 0.002);
+    StatDict dict2(simple_seqs(), 0.002);
     for (int i = 0; i < 4; i++) {
         ASSERT_EQ(0, dict2.freq(i));
     }
 }
 
 TEST(StatDictTests, SizeTest) {
-    IntDictImpl int_dict(simple_seqs());
-    StatDict dict(int_dict, 0.002);
+    StatDict dict(simple_seqs(), 0.002);
     ASSERT_EQ(dict.size(), 4);
 }
 
 TEST(StatDictTests, GetTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
-    IntDictImpl int_dict(simple_seqs());
-    StatDict dict(int_dict, 0.002);
+    StatDict dict(simple_seqs(), 0.002);
     ASSERT_EQ(seqs[1], *dict.get(0));
     ASSERT_EQ(seqs[0], *dict.get(1));
     ASSERT_EQ(seqs[3], *dict.get(2));
@@ -67,8 +48,7 @@ TEST(StatDictTests, GetTest) {
 
 TEST(StatDictTests, AlphabetTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
-    IntDictImpl int_dict(seqs);
-    StatDict dict(int_dict, 0.002);
+    StatDict dict(seqs, 0.002);
     const std::vector<std::vector<int>>* alphabet = dict.alphabet();
     std::unordered_set<std::vector<int>, VectorHash> set1(alphabet->begin(), alphabet->end());
     std::unordered_set<std::vector<int>, VectorHash> set2(seqs.begin(), seqs.end());
@@ -76,8 +56,7 @@ TEST(StatDictTests, AlphabetTest) {
 }
 
 TEST(StatDictTests, ParentTest) {
-    IntDictImpl int_dict(simple_seqs());
-    StatDict dict(int_dict, 0.002);
+    StatDict dict(simple_seqs(), 0.002);
     ASSERT_EQ(-1, dict.parent(0));
     ASSERT_EQ(0, dict.parent(1));
     ASSERT_EQ(1, dict.parent(2));
@@ -85,8 +64,7 @@ TEST(StatDictTests, ParentTest) {
 }
 
 TEST(StatDictTests, SearchTest) {
-    IntDictImpl int_dict(simple_seqs());
-    StatDict dict(int_dict, 0.002);
+    StatDict dict(simple_seqs(), 0.002);
     for (int i = 0; i < dict.size(); i++) {
         ASSERT_EQ(i, dict.search(*dict.get(i)));
     }
@@ -115,15 +93,13 @@ TEST(StatDictTests, ParseTest) {
     std::vector<int> expected(std::begin(arr2), std::end(arr2));
     std::vector<int> result;
 
-    IntDictImpl int_dict(simple_seqs());
-    StatDict dict(int_dict, 0.002);
+    StatDict dict(simple_seqs(), 0.002);
     dict.parse(seq, &result);
     ASSERT_EQ(result, expected);
 }
 
 TEST(StatDictTests, UpdateSymbolTest) {
-    IntDictImpl int_dict(simple_seqs());
-    StatDict dict(int_dict, 0.002);
+    StatDict dict(simple_seqs(), 0.002);
     for (int i = 0; i < 4; i++) {
         ASSERT_EQ(0, dict.freq(i));
     }
@@ -144,8 +120,7 @@ TEST(StatDictTests, CodeLengthPerCharTest) {
     int arr1[] = {0, 1, 0, 1, 1, 0, 1, 1, 1, 0};
     std::vector<int> seq(std::begin(arr1), std::end(arr1));
     std::vector<int> result;
-    IntDictImpl int_dict(simple_seqs());
-    StatDict dict(int_dict, 0.002);
+    StatDict dict(simple_seqs(), 0.002);
     dict.parse(seq, &result);
     //int arr2[] = {1, 2, 2, 3, 0};
     ASSERT_EQ(dict.code_length_per_char(), (5 * log(5) - 2 * log(2) - 3 * 1 * log(1)) / 10);
@@ -155,8 +130,7 @@ TEST(StatDictTests, EnoughTest) {
     int arr1[] = {0, 1, 0, 1, 1, 0, 1, 1, 1, 0};
     std::vector<int> seq(std::begin(arr1), std::end(arr1));
     std::vector<int> result;
-    IntDictImpl int_dict(simple_seqs());
-    StatDict dict(int_dict, 0.2);
+    StatDict dict(simple_seqs(), 0.2);
     dict.parse(seq, &result);
     ASSERT_FALSE(dict.enough(0.367));
     ASSERT_TRUE(dict.enough(0.368));
