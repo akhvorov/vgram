@@ -44,11 +44,14 @@ add_executable(${project_name}
 
         src/main/cpp/stat_dict.h
         src/main/cpp/stat_dict.cc
+        src/test/cpp/stat_dict_test.cc
+
+        src/main/cpp/vector_hash.h
 
 #        src/main/cpp/int_vgram_builder_p.h
 #        src/main/cpp/int_vgram_builder_p.cc
 #        src/main/cpp/main.cc
-        src/main/cpp/vector_hash.h)
+        src/test/cpp/common.h src/test/cpp/common.cc)
 
 # add_library(vgram SHARED library.cpp) # my
 # set_target_properties(${project_name} PROPERTIES PREFIX "")
