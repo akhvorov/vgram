@@ -3,38 +3,25 @@
 //
 
 #include <gtest/gtest.h>
-#include <unordered_set>
 #include "../../main/cpp/int_dict_p.h"
 #include "../../main/cpp/vector_hash.h"
+#include "common.h"
 
-std::vector<std::vector<int>> simple_seqs() {
-    std::vector<std::vector<int>> seqs;
-    int seq1[] = {0, 1}; // 1
-    int seq2[] = {0}; // 0
-    int seq3[] = {1}; // 3
-    int seq4[] = {0, 1, 1}; // 2
-    seqs.emplace_back(std::vector<int>(std::begin(seq1), std::end(seq1)));
-    seqs.emplace_back(std::vector<int>(std::begin(seq2), std::end(seq2)));
-    seqs.emplace_back(std::vector<int>(std::begin(seq3), std::end(seq3)));
-    seqs.emplace_back(std::vector<int>(std::begin(seq4), std::end(seq4)));
-    return seqs;
-}
-
-TEST(BasicTests, EmptyTest) {
+TEST(IntDictImplTests, EmptyTest) {
     ASSERT_TRUE(true);
 }
 
-TEST(BasicTests, ConstructorTest) {
+TEST(IntDictImplTests, ConstructorTest) {
     IntDictImpl dict(simple_seqs());
     ASSERT_TRUE(true);
 }
 
-TEST(BasicTests, SizeTest) {
+TEST(IntDictImplTests, SizeTest) {
     IntDictImpl dict(simple_seqs());
     ASSERT_EQ(dict.size(), 4);
 }
 
-TEST(BasicTests, GetTest) {
+TEST(IntDictImplTests, GetTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
     IntDictImpl dict(seqs);
     ASSERT_EQ(seqs[1], *dict.get(0));
@@ -43,7 +30,7 @@ TEST(BasicTests, GetTest) {
     ASSERT_EQ(seqs[2], *dict.get(3));
 }
 
-TEST(BasicTests, AlphabetTest) {
+TEST(IntDictImplTests, AlphabetTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
     IntDictImpl dict(seqs);
     const std::vector<std::vector<int>>* alphabet = dict.alphabet();
@@ -52,7 +39,7 @@ TEST(BasicTests, AlphabetTest) {
     ASSERT_EQ(set1, set2);
 }
 
-TEST(BasicTests, ParentTest) {
+TEST(IntDictImplTests, ParentTest) {
     IntDictImpl dict(simple_seqs());
     ASSERT_EQ(-1, dict.parent(0));
     ASSERT_EQ(0, dict.parent(1));
@@ -60,7 +47,7 @@ TEST(BasicTests, ParentTest) {
     ASSERT_EQ(-1, dict.parent(3));
 }
 
-TEST(BasicTests, SearchTest) {
+TEST(IntDictImplTests, SearchTest) {
     IntDictImpl dict(simple_seqs());
     for (int i = 0; i < dict.size(); i++) {
         ASSERT_EQ(i, dict.search(*dict.get(i)));
@@ -83,7 +70,7 @@ TEST(BasicTests, SearchTest) {
     ASSERT_EQ(1, dict.search(std::vector<int>(std::begin(arr3), std::end(arr3))));
 }
 
-TEST(BasicTests, LinearParseTest1) {
+TEST(IntDictImplTests, LinearParseTest1) {
     int arr1[] = {0, 1, 0, 1, 1, 0, 1, 1, 1, 0};
     int arr2[] = {1, 2, 2, 3, 0};
     std::vector<int> seq(std::begin(arr1), std::end(arr1));
@@ -95,7 +82,7 @@ TEST(BasicTests, LinearParseTest1) {
     ASSERT_EQ(result, expected);
 }
 
-TEST(BasicTests, LinearParseTest2) {
+TEST(IntDictImplTests, LinearParseTest2) {
     int arr1[] = {0, 1, 2, 0, 1, 1, 0, 1, 1, 1, 0};
     int arr2[] = {1, -1, 2, 2, 3, 0};
     std::vector<int> seq(std::begin(arr1), std::end(arr1));
@@ -107,7 +94,7 @@ TEST(BasicTests, LinearParseTest2) {
     ASSERT_EQ(result, expected);
 }
 
-TEST(BasicTests, WeightedParseTest1) {
+TEST(IntDictImplTests, WeightedParseTest) {
     int arr1[] = {0, 1, 0, 1, 1, 0, 1, 1, 1, 0};
     int arr2[] = {1, 2, 2, 3, 0};
     int arr3[] = {3, 2, 1, 4};

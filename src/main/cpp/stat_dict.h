@@ -7,7 +7,7 @@
 
 #include <cmath>
 #include <unordered_map>
-#include "int_dict.h"
+#include "int_dict_p.h"
 #include "int_vgram_builder_p.h" //!!!
 
 
@@ -22,18 +22,13 @@ public:
     StatDict(const IntDictImpl& dictionary, double min_prob_result, std::vector<int>* init_freqs = nullptr);
 
     void update_symbol(int index, int freq);
-    int search(const std::vector<int>& seq) const;
-    int search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const;
+    int search(const std::vector<int>& seq, std::unordered_set<int>* excludes = nullptr) const;
     const std::vector<int>* get(int index) const;
     int size() const;
     const std::vector<std::vector<int>>* alphabet() const;
     int parent(int second) const;
     int freq(int index) const;
     double code_length_per_char() const;
-
-    //TODO: remove, make base class
-    double weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
-                         std::vector<int>* builder, std::unordered_set<int>* excludes);
 
     bool enough(double probFound);
     //void visitAssociations(std::int32_t start, TIntDoubleProcedure procedure); //TODO do it
@@ -56,6 +51,10 @@ private:
 
     int index_of_two_str(const std::vector<int>& first, const std::vector<int>& second, int betw, int ind);
     bool is_substring(const std::vector<int>& s, const std::vector<int>& t);
+
+    //TODO: remove, make base class
+    double weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
+                         std::vector<int>* builder, std::unordered_set<int>* excludes = nullptr);
 
     void print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
                      const std::unordered_map<std::int64_t, int>& new_pairs) const ;

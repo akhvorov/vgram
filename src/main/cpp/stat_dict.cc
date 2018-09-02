@@ -35,10 +35,6 @@ void StatDict::update_symbol(int index, int freq) {
     power_ += freq;
 }
 
-int StatDict::search(const std::vector<int>& seq) const {
-    return dict_->search(seq, nullptr);
-}
-
 int StatDict::search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const {
     return dict_->search(seq, excludes);
 }
@@ -74,9 +70,9 @@ double StatDict::code_length_per_char() const {
 }
 
 double StatDict::weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
-                                  std::vector<int>* builder, std::unordered_set<int>* excludes = nullptr) {
+                                  std::vector<int>* builder, std::unordered_set<int>* excludes) {
     auto len = seq.size();
-    std::vector<double> score(len + 1, std::numeric_limits<double>::min());
+    std::vector<double> score(len + 1, std::numeric_limits<double>::lowest());
     score[0] = 0;
     std::vector<int> symbols(len + 1);
 
@@ -85,11 +81,11 @@ double StatDict::weightedParse(const std::vector<int>& seq, const std::vector<in
         int sym = search(suffix, excludes);
         do {
             auto sym_len = get(sym)->size();
-            double symLogProb = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
+            double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
 
-            if (score[sym_len + pos] < score[pos] + symLogProb)
+            if (score[sym_len + pos] < score[pos] + sym_log_prob)
             {
-                score[sym_len + pos] = score[pos] + symLogProb;
+                score[sym_len + pos] = score[pos] + sym_log_prob;
                 symbols[sym_len + pos] = sym;
             }
         }
@@ -129,6 +125,7 @@ StatDict* StatDict::reduce(int slots) {
     }
     //TODO no new!
     //return new StatDict(new IntDict(new_dict), freqs, min_prob_result);
+    return nullptr;
 }
 
 //TODO change return type to arg or something else
@@ -287,7 +284,9 @@ StatDict* StatDict::expand(int slots) {
             min_prob_result = std::min(min_prob_result, item.count() / accumulated_freqs); // !!! maybe accumulated_freqs is wrong
     }
     // TODO check this line, it's mistake
-    //return StatDict(IntDict(new_dict), freqs, min_prob_result);
+    IntDictImpl int_dict(new_dict);
+    //return StatDict(int_dict, min_prob_result, &freqs);
+    return nullptr;
 }
 
 bool StatDict::enough(double prob_found) {
@@ -300,10 +299,7 @@ bool StatDict::enough(double prob_found) {
 
 int StatDict::parse(const std::vector<int>& seq, std::vector<int>* parse_result) {
     total_chars_ += seq.size();
-    {
-        weightedParse(seq, parse_freqs_, std::accumulate(parse_freqs_.begin(), parse_freqs_.end(), 0),
-                            parse_result, nullptr);
-    }
+    weightedParse(seq, parse_freqs_, std::accumulate(parse_freqs_.begin(), parse_freqs_.end(), 0.0), parse_result);
     auto length = parse_result->size();
     int prev = -1;
     for (int i = 0; i < length; ++i) {
