@@ -40,6 +40,7 @@ private:
     std::vector<int> symbol_freqs_;
     std::vector<int> parse_freqs_;
     double power_ = 0;
+    double parse_freqs_init_power_ = 0;
     std::unordered_map<std::int64_t, int> pairs_freqs_;
     double min_probability_;
     double total_chars_ = 0;
@@ -47,7 +48,7 @@ private:
 
     StatDict reduce(int slots);
     std::vector<StatItem> filter_stat_items(int slots);
-    std::vector<StatItem> stat_items(std::unordered_set<int>* excludes);
+    int stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes);
 
     int index_of_two_str(const std::vector<int>& first, const std::vector<int>& second, int betw, int ind);
     bool is_substring(const std::vector<int>& s, const std::vector<int>& t);

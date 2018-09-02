@@ -18,6 +18,7 @@ StatDict::StatDict(const std::vector<std::vector<int>>& seqs, double min_prob_re
         parse_freqs_ = std::vector<int>(dict_->size());
     } else {
         parse_freqs_ = std::vector<int>(*init_freqs);
+        parse_freqs_init_power_ = std::accumulate(parse_freqs_.begin(), parse_freqs_.end(), 0.0);
         for (auto i = parse_freqs_.size(); i < dict_->size(); i++)
             parse_freqs_.push_back(0);
     }
@@ -139,14 +140,14 @@ std::vector<StatItem> StatDict::filter_stat_items(int slots) {
     for (int id = 0; id < size(); id++)
         if (parent(id) >= 0 && freq(id) == 0)
             excludes.insert(id);
-    std::vector<StatItem> items = stat_items(&excludes); //TODO check it!
+    std::vector<StatItem> items;
+    stat_items(&items, &excludes);
     while (items.size() > std::min((int)items.size(), slots))
         items.pop_back();
     return items;
 }
 
-std::vector<StatItem> StatDict::stat_items(std::unordered_set<int>* excludes) {
-    std::vector<StatItem> items;
+int StatDict::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes) {
     double code_length = code_length_per_char() * total_chars_;
     for (int id = 0; id < symbol_freqs_.size(); id++) {
         if (excludes->count(id) == 0) {
@@ -166,15 +167,15 @@ std::vector<StatItem> StatDict::stat_items(std::unordered_set<int>* excludes) {
                 }
                 double score = code_length_without_symbol - code_length;
                 if (score > 0) {
-                    items.emplace_back(StatItem(-1, id, score, count));
+                    items->emplace_back(StatItem(-1, id, score, count));
                 }
             } else {
-                items.emplace_back(StatItem(-1, id, std::numeric_limits<double>::max(), count));
+                items->emplace_back(StatItem(-1, id, std::numeric_limits<double>::max(), count));
             }
         }
     }
-    std::sort(items.begin(), items.end(), [] (const StatItem& a, const StatItem& b) { return -a.score() < -b.score(); });
-    return items;
+    std::sort(items->begin(), items->end(), [] (const StatItem& a, const StatItem& b) { return -a.score() < -b.score(); });
+    return items->size();
 }
 
 int StatDict::index_of_two_str(const std::vector<int>& first, const std::vector<int>& second, int betw, int ind) {
@@ -297,7 +298,7 @@ bool StatDict::enough(double prob_found) {
 
 int StatDict::parse(const std::vector<int>& seq, std::vector<int>* parse_result) {
     total_chars_ += seq.size();
-    weightedParse(seq, parse_freqs_, std::accumulate(parse_freqs_.begin(), parse_freqs_.end(), 0.0), parse_result);
+    weightedParse(seq, parse_freqs_, power_ + parse_freqs_init_power_, parse_result);
     auto length = parse_result->size();
     int prev = -1;
     for (int i = 0; i < length; ++i) {
