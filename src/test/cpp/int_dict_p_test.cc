@@ -12,7 +12,9 @@ TEST(IntDictImplTests, EmptyTest) {
 }
 
 TEST(IntDictImplTests, ConstructorTest) {
-    IntDictImpl dict(simple_seqs());
+    std::vector<std::vector<int>> seqs = simple_seqs();
+    IntDictImpl dict1(seqs);
+    IntDictImpl dict2(seqs[0]);
     ASSERT_TRUE(true);
 }
 

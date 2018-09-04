@@ -8,6 +8,18 @@
 #include <iostream>
 
 IntDictImpl::IntDictImpl(const std::vector<std::vector<int>>& seqs) {
+    init(seqs);
+}
+
+IntDictImpl::IntDictImpl(const std::vector<int>& seqs) {
+    std::vector<std::vector<int>> vec(seqs.size(), std::vector<int>(1));
+    for (int i = 0; i < seqs.size(); i++) {
+        vec[i][0] = seqs[i];
+    }
+    init(vec);
+}
+
+void IntDictImpl::init(const std::vector<std::vector<int>>& seqs) {
     seqs_ = std::vector<std::vector<int>>(seqs);
     parents_ = std::vector<int>(seqs_.size());
     std::vector<std::pair<std::vector<int>, int>> parents_stack;

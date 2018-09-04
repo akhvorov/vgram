@@ -8,13 +8,15 @@
 #include <cmath>
 #include <unordered_map>
 #include "int_dict_p.h"
-#include "int_vgram_builder_p.h" //!!!
+//#include "int_vgram_builder_p.h" //!!!
 
 
 class StatItem;
+//class IntVGramBuilderImpl;
 
 class StatDict
 {
+    friend class IntVGramBuilderImpl; //TODO it is ok?
 public:
     const double kMaxMinProbability = 0.002;
     const int kAggPower = 100000;
@@ -46,7 +48,7 @@ private:
     double total_chars_ = 0;
     //FastRandom rng = new FastRandom(0);
 
-    StatDict reduce(int slots);
+    StatDict* reduce(int slots);
     std::vector<StatItem> filter_stat_items(int slots);
     int stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes);
 
@@ -60,7 +62,7 @@ private:
     void print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
                      const std::unordered_map<std::int64_t, int>& new_pairs) const ;
 
-    StatDict expand(int slots);
+    StatDict* expand(int slots);
 
 };
 

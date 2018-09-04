@@ -11,6 +11,7 @@
 class IntDictImpl : public IntDict {
 public:
     explicit IntDictImpl(const std::vector<std::vector<int>>& seqs);
+    explicit IntDictImpl(const std::vector<int>& seqs);
     IntDictImpl(const IntDictImpl& dict);
 
     int search(const std::vector<int>& seq) const override;
@@ -32,6 +33,7 @@ private:
     std::vector<std::vector<int>> seqs_;
     std::vector<int> parents_;
 
+    void init(const std::vector<std::vector<int>>& seqs);
     int linearParse(const std::vector<int>& seq, std::vector<int>* builder, std::unordered_set<int>* excludes);
     double weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
             std::vector<int>* builder, std::unordered_set<int>* excludes);

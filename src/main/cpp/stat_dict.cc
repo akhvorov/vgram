@@ -109,7 +109,7 @@ double StatDict::weightedParse(const std::vector<int>& seq, const std::vector<in
 }
 
 //TODO change types and args
-StatDict StatDict::reduce(int slots) {
+StatDict* StatDict::reduce(int slots) {
     std::vector<std::vector<int>> new_dict(size());
     std::vector<StatItem> items = filter_stat_items(slots);
     std::vector<int> freqs(items.size());
@@ -127,7 +127,7 @@ StatDict StatDict::reduce(int slots) {
         freqs.push_back(item.count());
     }
     //TODO no new!
-    return StatDict(new_dict, min_prob_result, &freqs);
+    return new StatDict(new_dict, min_prob_result, &freqs);
     // return nullptr;
 }
 
@@ -208,7 +208,7 @@ void StatDict::print_pairs(const std::unordered_map<std::int64_t, int>& old_pair
 }
 
 // TODO change
-StatDict StatDict::expand(int slots) {
+StatDict* StatDict::expand(int slots) {
     std::vector<StatItem> items;
     std::unordered_set<std::vector<int>, VectorHash> known;
     for (const auto& seq : *alphabet()) {
@@ -284,7 +284,7 @@ StatDict StatDict::expand(int slots) {
             min_prob_result = std::min(min_prob_result, item.count() / accumulated_freqs); // !!! maybe accumulated_freqs is wrong
     }
     // TODO check this line, it's mistake
-    return StatDict(new_dict, min_prob_result, &freqs);
+    return new StatDict(new_dict, min_prob_result, &freqs);
     // return nullptr;
 }
 
