@@ -20,6 +20,7 @@ void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
     alphabet_size_ = alphabet.size();
     initial_ = &alphabet;
     current_ = new StatDict(*alphabet.alphabet(), kMaxMinProbability);
+    result_ = nullptr;
 }
 
 IntDict* IntVGramBuilderImpl::result() const {
@@ -73,7 +74,8 @@ void IntVGramBuilderImpl::update() {
     }
     else {
         //TODO rewrite it
-        result_ = result = current_->reduce(size_ - alphabet_size_);
+        result = current_->reduce(size_ - alphabet_size_);
+        result_ = result;
     }
     current_ = result;
     populate_ = !populate_;

@@ -68,7 +68,7 @@ private:
 
 class StatItem {
 public:
-    StatItem(int first_, int second_, double score_, int count_);
+    StatItem(const StatDict& dict, int first_, int second_, double score_, int count_);
     //std::string to_string();
     bool equals(const StatItem& statItem);
     void text(std::vector<int>* output) const;
@@ -78,7 +78,7 @@ public:
     int count() const;
 
 private:
-    StatDict* stat_dict_;
+    const StatDict* stat_dict_;
     int first_;
     int second_;
     double score_;
