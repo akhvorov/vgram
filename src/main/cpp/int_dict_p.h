@@ -8,14 +8,16 @@
 #include "int_dict.h"
 #include <unordered_map>
 
+typedef std::vector<int> IntSeq;
+
 class IntDictImpl : public IntDict {
 public:
-    explicit IntDictImpl(const std::vector<std::vector<int>>& seqs);
+    explicit IntDictImpl(const std::vector<IntSeq>& seqs);
     IntDictImpl(const IntDictImpl& dict);
 
     int search(const std::vector<int>& seq) const override;
     int search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const override;
-    const std::vector<int>* get(int index) const override;
+    const std::vector<int>& get(int index) const override;
     int size() const override;
     const std::vector<std::vector<int>>* alphabet() const override;
     int parent(int second) const override;
