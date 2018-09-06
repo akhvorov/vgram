@@ -51,7 +51,7 @@ int IntDictImpl::linearParse(const std::vector<int>& seq, std::vector<int>* buil
         int symbol;
         try {
             symbol = search(suffix, excludes);
-            auto sym_len = get(symbol)->size();
+            auto sym_len = get(symbol).size();
             suffix = std::vector<int>(suffix.begin() + sym_len, suffix.end());
         }
         catch (std::exception& e) {
@@ -69,7 +69,7 @@ int IntDictImpl::linearParse(const std::vector<int>& seq, std::vector<int>* buil
 
 double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
                                   std::vector<int>* builder, std::unordered_set<int>* excludes = nullptr) {
-    auto len = seq.size();
+    size_t len = seq.size();
     std::vector<double> score(len + 1, std::numeric_limits<double>::lowest());
     score[0] = 0;
     std::vector<int> symbols(len + 1);
@@ -78,11 +78,10 @@ double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector
         std::vector<int> suffix(seq.begin() + pos, seq.end());
         int sym = search(suffix, excludes);
         do {
-            auto sym_len = get(sym)->size();
+            auto sym_len = get(sym).size();
             double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
 
-            if (score[sym_len + pos] < score[pos] + sym_log_prob)
-            {
+            if (score[sym_len + pos] < score[pos] + sym_log_prob) {
                 score[sym_len + pos] = score[pos] + sym_log_prob;
                 symbols[sym_len + pos] = sym;
             }
@@ -90,12 +89,12 @@ double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector
         while ((sym = parent(sym)) >= 0);
     }
     std::vector<int> solution(len + 1);
-    int pos = len;
+    size_t pos = len;
     int index = 0;
     while (pos > 0) {
         int sym = symbols[pos];
         solution[len - (++index)] = sym;
-        pos -= get(sym)->size();
+        pos -= get(sym).size();
     }
     for (int i = 0; i < index; i++) {
         builder->push_back(solution[len - index + i]);
@@ -114,7 +113,7 @@ void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multip
             std::vector<int> suffix(seq.begin() + pos, seq.end());
             int sym = search(suffix, excludes);
             do {
-                auto sym_len = get(sym)->size();
+                auto sym_len = get(sym).size();
                 int freq = sym < freqs.size() ? freqs[sym] : 0;
                 count_forward[pos + sym_len] += freq * count_forward[pos] / total_freq;
             }
@@ -125,11 +124,11 @@ void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multip
     std::vector<double> count_backward(len + 1);
     {
         count_backward[len] = 1;
-        for (int pos = len - 1; pos >= 0; pos--) {
+        for (int pos = static_cast<int>(len - 1); pos >= 0; pos--) {
             std::vector<int> suffix(seq.begin() + pos, seq.end());
             int sym = search(suffix, excludes);
             do {
-                auto sym_len = get(sym)->size();
+                auto sym_len = get(sym).size();
                 int freq = sym < freqs.size() ? freqs[sym] : 0;
                 count_backward[pos] += freq * count_backward[pos + sym_len] / total_freq;
             }
@@ -141,7 +140,7 @@ void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multip
         std::vector<int> suffix(seq.begin() + pos, seq.end());
         int sym = search(suffix, excludes);
         do {
-            auto sym_len = get(sym)->size();
+            auto sym_len = get(sym).size();
             int freq = sym < freqs.size() ? freqs[sym] : 0;
             double freq_increment = freq / total_freq * count_forward[pos] * count_backward[pos + sym_len];
             double v = multiplier * freq_increment / count_forward[len];
@@ -159,7 +158,7 @@ int IntDictImpl::search(const std::vector<int>& seq) const {
 }
 
 int IntDictImpl::search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const {
-    int index = std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin();
+    int index = static_cast<int>(std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin());
     if (seqs_[index] == seq) {
         if (excludes == nullptr || excludes->count(index) == 0)
             return index;
@@ -185,7 +184,7 @@ int IntDictImpl::parse(const std::vector<int>& seq, const std::vector<int>& freq
         for (int symbol : *output) {
             if (symbol >= 0) {
                 std::cout << " ";
-                for (auto e : *get(symbol))
+                for (auto e : get(symbol))
                     std::cout << e;
             } else {
                 std::cout << "##unknown##";
@@ -193,20 +192,20 @@ int IntDictImpl::parse(const std::vector<int>& seq, const std::vector<int>& freq
         }
         std::cout << " " << log_probability << std::endl;
     }
-    return output->size();
+    return static_cast<int>(output->size());
 }
 
 int IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>* output, std::unordered_set<int>* excludes) {
     linearParse(seq, output, excludes);
-    return output->size();
+    return static_cast<int>(output->size());
 }
 
-const std::vector<int>* IntDictImpl::get(int index) const {
-    return &(seqs_[index]);
+const std::vector<int>& IntDictImpl::get(int index) const {
+    return seqs_[index];
 }
 
 int IntDictImpl::size() const {
-    return seqs_.size();
+    return static_cast<int>(seqs_.size());
 }
 
 const std::vector<std::vector<int>>* IntDictImpl::alphabet() const {

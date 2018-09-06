@@ -26,10 +26,10 @@ TEST(IntDictImplTests, SizeTest) {
 TEST(IntDictImplTests, GetTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
     IntDictImpl dict(seqs);
-    ASSERT_EQ(seqs[1], *dict.get(0));
-    ASSERT_EQ(seqs[0], *dict.get(1));
-    ASSERT_EQ(seqs[3], *dict.get(2));
-    ASSERT_EQ(seqs[2], *dict.get(3));
+    ASSERT_EQ(seqs[1], dict.get(0));
+    ASSERT_EQ(seqs[0], dict.get(1));
+    ASSERT_EQ(seqs[3], dict.get(2));
+    ASSERT_EQ(seqs[2], dict.get(3));
 }
 
 TEST(IntDictImplTests, AlphabetTest) {
@@ -52,16 +52,16 @@ TEST(IntDictImplTests, ParentTest) {
 TEST(IntDictImplTests, SearchTest) {
     IntDictImpl dict(simple_seqs());
     for (int i = 0; i < dict.size(); i++) {
-        ASSERT_EQ(i, dict.search(*dict.get(i)));
+        ASSERT_EQ(i, dict.search(dict.get(i)));
     }
 
     std::unordered_set<int> excludes;
     excludes.insert(1);
     excludes.insert(2);
-    ASSERT_EQ(0, dict.search(*dict.get(0), &excludes));
-    ASSERT_EQ(0, dict.search(*dict.get(1), &excludes));
-    ASSERT_EQ(0, dict.search(*dict.get(2), &excludes));
-    ASSERT_EQ(3, dict.search(*dict.get(3), &excludes));
+    ASSERT_EQ(0, dict.search(dict.get(0), &excludes));
+    ASSERT_EQ(0, dict.search(dict.get(1), &excludes));
+    ASSERT_EQ(0, dict.search(dict.get(2), &excludes));
+    ASSERT_EQ(3, dict.search(dict.get(3), &excludes));
 
     int arr1[] = {1, 0};
     int arr2[] = {0, 0, 0};

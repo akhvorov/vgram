@@ -25,7 +25,7 @@ public:
 
     void update_symbol(int index, int freq);
     int search(const std::vector<int>& seq, std::unordered_set<int>* excludes = nullptr) const;
-    const std::vector<int>* get(int index) const;
+    const std::vector<int>& get(int index) const;
     int size() const;
     const std::vector<std::vector<int>>* alphabet() const;
     int parent(int second) const;
