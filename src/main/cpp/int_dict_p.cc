@@ -7,36 +7,36 @@
 #include <numeric>
 #include <iostream>
 
-IntDictImpl::IntDictImpl(const std::vector<std::vector<int>>& seqs) {
+IntDictImpl::IntDictImpl(const std::vector<IntSeq>& seqs) {
     init(seqs);
 }
 
-IntDictImpl::IntDictImpl(const std::vector<int>& seqs) {
-    std::vector<std::vector<int>> vec(seqs.size(), std::vector<int>(1));
+IntDictImpl::IntDictImpl(const IntSeq& seqs) {
+    std::vector<IntSeq> vec(seqs.size(), IntSeq(1));
     for (int i = 0; i < seqs.size(); i++) {
         vec[i][0] = seqs[i];
     }
     init(vec);
 }
 
-void IntDictImpl::init(const std::vector<std::vector<int>>& seqs) {
-    seqs_ = std::vector<std::vector<int>>(seqs);
-    parents_ = std::vector<int>(seqs_.size());
-    std::vector<std::pair<std::vector<int>, int>> parents_stack;
+void IntDictImpl::init(const std::vector<IntSeq>& seqs) {
+    seqs_ = std::vector<IntSeq>(seqs);
+    parents_ = IntSeq(seqs_.size());
+    std::vector<std::pair<IntSeq, int>> parents_stack;
     std::sort(seqs_.begin(), seqs_.end());
 
     for (int i = 0; i < seqs_.size(); ++i) {
-        std::vector<int> current = seqs_[i];
+        IntSeq current = seqs_[i];
         parents_[i] = -1;
         while (!parents_stack.empty()) {
-            std::vector<int> prefix = parents_stack.back().first;
+            IntSeq prefix = parents_stack.back().first;
             if (std::mismatch(prefix.begin(), prefix.end(), current.begin()).first == prefix.end()) {
                 parents_[i] = parents_stack.back().second;
                 break;
             }
             parents_stack.pop_back();
         }
-        parents_stack.emplace_back(std::pair<std::vector<int>, int>(current, i));
+        parents_stack.emplace_back(std::pair<IntSeq, int>(current, i));
     }
 }
 
@@ -45,19 +45,19 @@ IntDictImpl::IntDictImpl(const IntDictImpl& dict) {
     parents_ = dict.parents_;
 }
 
-int IntDictImpl::linearParse(const std::vector<int>& seq, std::vector<int>* builder, std::unordered_set<int>* excludes = nullptr) {
-    std::vector<int> suffix = seq;
+int IntDictImpl::linearParse(const IntSeq& seq, IntSeq* builder, std::unordered_set<int>* excludes = nullptr) {
+    IntSeq suffix = seq;
     while (!suffix.empty()) {
         int symbol;
         try {
             symbol = search(suffix, excludes);
             auto sym_len = get(symbol).size();
-            suffix = std::vector<int>(suffix.begin() + sym_len, suffix.end());
+            suffix = IntSeq(suffix.begin() + sym_len, suffix.end());
         }
         catch (std::exception& e) {
-            if (e.what() == dictionary_index_is_corrupted_exception().what()) {
+            if (e.what() == DictionaryIndexIsCorruptedException().what()) {
                 symbol = -1;
-                suffix = std::vector<int>(suffix.begin() + 1, suffix.end());
+                suffix = IntSeq(suffix.begin() + 1, suffix.end());
             } else {
                 throw e;
             }
@@ -67,15 +67,15 @@ int IntDictImpl::linearParse(const std::vector<int>& seq, std::vector<int>* buil
     return static_cast<int>(builder->size());
 }
 
-double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq,
-                                  std::vector<int>* builder, std::unordered_set<int>* excludes = nullptr) {
+double IntDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
+                                  IntSeq* builder, std::unordered_set<int>* excludes = nullptr) {
     size_t len = seq.size();
     std::vector<double> score(len + 1, std::numeric_limits<double>::lowest());
     score[0] = 0;
-    std::vector<int> symbols(len + 1);
+    IntSeq symbols(len + 1);
 
     for (int pos = 0; pos < len; pos++) {
-        std::vector<int> suffix(seq.begin() + pos, seq.end());
+        IntSeq suffix(seq.begin() + pos, seq.end());
         int sym = search(suffix, excludes);
         do {
             auto sym_len = get(sym).size();
@@ -88,7 +88,7 @@ double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector
         }
         while ((sym = parent(sym)) >= 0);
     }
-    std::vector<int> solution(len + 1);
+    IntSeq solution(len + 1);
     size_t pos = len;
     int index = 0;
     while (pos > 0) {
@@ -102,7 +102,7 @@ double IntDictImpl::weightedParse(const std::vector<int>& seq, const std::vector
     return score[len];
 }
 
-void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multiplier, const std::vector<int>& freqs,
+void IntDictImpl::weightParseVariants(const IntSeq& seq, double multiplier, const IntSeq& freqs,
                                       double total_freq, std::unordered_map<int, double>* result,
                                       std::unordered_set<int>* excludes = nullptr) {
     auto len = seq.size();
@@ -110,7 +110,7 @@ void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multip
     {
         count_forward[0] = 1;
         for (int pos = 0; pos < len; pos++) {
-            std::vector<int> suffix(seq.begin() + pos, seq.end());
+            IntSeq suffix(seq.begin() + pos, seq.end());
             int sym = search(suffix, excludes);
             do {
                 auto sym_len = get(sym).size();
@@ -124,8 +124,8 @@ void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multip
     std::vector<double> count_backward(len + 1);
     {
         count_backward[len] = 1;
-        for (int pos = static_cast<int>(len - 1); pos >= 0; pos--) {
-            std::vector<int> suffix(seq.begin() + pos, seq.end());
+        for (auto pos = static_cast<int>(len - 1); pos >= 0; pos--) {
+            IntSeq suffix(seq.begin() + pos, seq.end());
             int sym = search(suffix, excludes);
             do {
                 auto sym_len = get(sym).size();
@@ -137,10 +137,10 @@ void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multip
     }
 
     for (int pos = 0; pos < len; pos++) {
-        std::vector<int> suffix(seq.begin() + pos, seq.end());
+        IntSeq suffix(seq.begin() + pos, seq.end());
         int sym = search(suffix, excludes);
         do {
-            auto sym_len = get(sym).size();
+            auto sym_len = static_cast<int>(get(sym).size());
             int freq = sym < freqs.size() ? freqs[sym] : 0;
             double freq_increment = freq / total_freq * count_forward[pos] * count_backward[pos + sym_len];
             double v = multiplier * freq_increment / count_forward[len];
@@ -153,11 +153,11 @@ void IntDictImpl::weightParseVariants(const std::vector<int>& seq, double multip
     }
 }
 
-int IntDictImpl::search(const std::vector<int>& seq) const {
+int IntDictImpl::search(const IntSeq& seq) const {
     return search(seq, nullptr);
 }
 
-int IntDictImpl::search(const std::vector<int>& seq, std::unordered_set<int>* excludes) const {
+int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) const {
     int index = static_cast<int>(std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin());
     if (seqs_[index] == seq) {
         if (excludes == nullptr || excludes->count(index) == 0)
@@ -170,11 +170,11 @@ int IntDictImpl::search(const std::vector<int>& seq, std::unordered_set<int>* ex
             return index;
         index = parents_[index];
     }
-    throw dictionary_index_is_corrupted_exception();
+    throw DictionaryIndexIsCorruptedException();
 }
 
-int IntDictImpl::parse(const std::vector<int>& seq, const std::vector<int>& freqs, double total_freq, std::vector<int>* output) {
-    std::vector<int> result;
+int IntDictImpl::parse(const IntSeq& seq, const IntSeq& freqs, double total_freq, IntSeq* output) {
+    IntSeq result;
     double log_probability = weightedParse(seq, freqs, total_freq, output, nullptr);
     if (log_probability > 0) {
         for (int i : seq) {
@@ -183,8 +183,9 @@ int IntDictImpl::parse(const std::vector<int>& seq, const std::vector<int>& freq
         std::cout << "->";
         for (int symbol : *output) {
             if (symbol >= 0) {
+                // TODO redefine << operator for IntSeq
                 std::cout << " ";
-                for (auto e : get(symbol))
+                for (int e : get(symbol))
                     std::cout << e;
             } else {
                 std::cout << "##unknown##";
@@ -195,12 +196,12 @@ int IntDictImpl::parse(const std::vector<int>& seq, const std::vector<int>& freq
     return static_cast<int>(output->size());
 }
 
-int IntDictImpl::parse(const std::vector<int>& seq, std::vector<int>* output, std::unordered_set<int>* excludes) {
+int IntDictImpl::parse(const IntSeq& seq, IntSeq* output, std::unordered_set<int>* excludes) {
     linearParse(seq, output, excludes);
     return static_cast<int>(output->size());
 }
 
-const std::vector<int>& IntDictImpl::get(int index) const {
+const IntSeq& IntDictImpl::get(int index) const {
     return seqs_[index];
 }
 
@@ -208,8 +209,8 @@ int IntDictImpl::size() const {
     return static_cast<int>(seqs_.size());
 }
 
-const std::vector<std::vector<int>>* IntDictImpl::alphabet() const {
-    return &seqs_;
+const std::vector<IntSeq>& IntDictImpl::alphabet() const {
+    return seqs_;
 }
 
 int IntDictImpl::parent(int second) const {

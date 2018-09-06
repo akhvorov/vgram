@@ -9,7 +9,7 @@ IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict& alphabet, int size) {
     init(alphabet, size);
 }
 
-IntVGramBuilderImpl::IntVGramBuilderImpl(const std::vector<int>& alphabet, int size) {
+IntVGramBuilderImpl::IntVGramBuilderImpl(const IntSeq& alphabet, int size) {
     IntDictImpl int_dict(alphabet);
     init(int_dict, size);
 }
@@ -19,7 +19,7 @@ void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
     //trace = trace;
     alphabet_size_ = alphabet.size();
     initial_ = &alphabet;
-    current_ = new StatDict(*alphabet.alphabet(), kMaxMinProbability);
+    current_ = new StatDict(alphabet.alphabet(), kMaxMinProbability);
     result_ = nullptr;
 }
 
@@ -33,8 +33,8 @@ const IntDict* IntVGramBuilderImpl::alpha() const {
     return initial_;
 }
 
-void IntVGramBuilderImpl::accept(const std::vector<int>& seq) {
-    std::vector<int> result;
+void IntVGramBuilderImpl::accept(const IntSeq& seq) {
+    IntSeq result;
     current_->parse(seq, &result);
     if (current_->enough(prob_found_) || current_->power_ > kMaxPower)
         update();
@@ -47,7 +47,7 @@ void IntVGramBuilderImpl::update() {
     double text_length = 0;
     for (int i = 0; i < current_->size(); i++) {
         int freq = current_->freq(i);
-        text_length += current_->get(i)->size() * freq;
+        text_length += current_->get(i).size() * freq;
         if (freq > 0)
             sum -= freq * log(freq) / log(2);
     }
@@ -81,7 +81,7 @@ void IntVGramBuilderImpl::update() {
     populate_ = !populate_;
 }
 
-std::vector<int>* IntVGramBuilderImpl::result_freqs() {
+IntSeq* IntVGramBuilderImpl::result_freqs() {
   //TODO rewrite for private field in dict with stats
   if (result_->size() > result_->symbol_freqs_.size())
     for (auto i = result_->symbol_freqs_.size(); i < result_->size(); i++)
@@ -96,10 +96,10 @@ double IntVGramBuilderImpl::codeLength() const {
   return result_->code_length_per_char();
 }
 
-double IntVGramBuilderImpl::kl(const std::vector<int>& freqs, const std::unordered_map<long long, int>& pair_freqs) const {
+double IntVGramBuilderImpl::kl(const IntSeq& freqs, const std::unordered_map<std::int64_t, int>& pair_freqs) const {
     std::vector<double> freq_first(freqs.size());
     for (auto &e : pair_freqs) {
-        long long code = e.first;
+        std::int64_t code = e.first;
         int freq = e.second;
         freq_first[(int)(code >> 32)] = freq;
     }
@@ -111,7 +111,7 @@ double IntVGramBuilderImpl::kl(const std::vector<int>& freqs, const std::unorder
     //why array?
     double result[] = {0};
     for (auto &e : pair_freqs) {
-        long long code = e.first;
+        std::int64_t code = e.first;
         double freq = e.second;
         double first = (int) (code >> 32);
         double second = (int) (code & 0xFFFFFFFFL);

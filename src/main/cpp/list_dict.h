@@ -14,7 +14,7 @@
 template <typename T>
 class Encoder {
 public:
-  virtual void encode(const std::vector<T>& input, std::vector<int>* output) {
+  virtual void encode(const std::vector<T>& input, IntSeq* output) {
     for (const T& next: input) {
       auto code_ptr = mapping.find(next);
       if (code_ptr == mapping.end()) {
@@ -32,7 +32,7 @@ private:
 template <typename T>
 class ListDict {
 public:
-  int parse(const std::vector<T>& input, std::vector<int>* output, const std::vector<double>* freqs) {
+  int parse(const std::vector<T>& input, IntSeq* output, const std::vector<double>* freqs) {
     //TODO two ways: freqs = nullptr and other
     std::vector<T> temp(input.size());
     encoder.encode(input, &temp);

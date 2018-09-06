@@ -20,11 +20,11 @@ public:
   // const int kAggPower = 100000;
 
   IntVGramBuilderImpl(const IntDict& alphabet, int size);
-  IntVGramBuilderImpl(const std::vector<int>& alphabet, int size);
+  IntVGramBuilderImpl(const IntSeq& alphabet, int size);
   IntDict* result() const;
   const IntDict* alpha() const;
-  void accept(const std::vector<int>& seq);
-  std::vector<int>* result_freqs();
+  void accept(const IntSeq& seq);
+  IntSeq* result_freqs();
 //  void printPairs(const std::ofstream& ps) const;
 //  void print(const std::ofstream& file_writer) const;
   double codeLength() const;
@@ -44,7 +44,7 @@ private:
 
   void init(const IntDict& alphabet, int size);
   void update();
-  double kl(const std::vector<int>& freqs, const std::unordered_map<long long, int>& pair_freqs) const;
+  double kl(const IntSeq& freqs, const std::unordered_map<long long, int>& pair_freqs) const;
 };
 
 
