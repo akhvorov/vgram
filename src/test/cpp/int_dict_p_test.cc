@@ -35,8 +35,8 @@ TEST(IntDictImplTests, GetTest) {
 TEST(IntDictImplTests, AlphabetTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
     IntDictImpl dict(seqs);
-    const std::vector<std::vector<int>>* alphabet = dict.alphabet();
-    std::unordered_set<std::vector<int>, VectorHash> set1(alphabet->begin(), alphabet->end());
+    const std::vector<std::vector<int>>& alphabet = dict.alphabet();
+    std::unordered_set<std::vector<int>, VectorHash> set1(alphabet.begin(), alphabet.end());
     std::unordered_set<std::vector<int>, VectorHash> set2(seqs.begin(), seqs.end());
     ASSERT_EQ(set1, set2);
 }

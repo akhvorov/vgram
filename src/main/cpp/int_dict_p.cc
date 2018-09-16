@@ -6,6 +6,8 @@
 #include <limits>
 #include <numeric>
 #include <iostream>
+#include <algorithm>
+#include <cmath>
 
 IntDictImpl::IntDictImpl(const std::vector<IntSeq>& seqs) {
     init(seqs);

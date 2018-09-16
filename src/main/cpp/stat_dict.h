@@ -8,6 +8,7 @@
 #include <cmath>
 #include <unordered_map>
 #include "int_dict_p.h"
+#include <memory>
 //#include "int_vgram_builder_p.h" //!!!
 
 

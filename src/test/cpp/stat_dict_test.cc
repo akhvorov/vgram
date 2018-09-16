@@ -49,8 +49,8 @@ TEST(StatDictTests, GetTest) {
 TEST(StatDictTests, AlphabetTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
     StatDict dict(seqs, 0.002);
-    const std::vector<std::vector<int>>* alphabet = dict.alphabet();
-    std::unordered_set<std::vector<int>, VectorHash> set1(alphabet->begin(), alphabet->end());
+    const std::vector<std::vector<int>>& alphabet = dict.alphabet();
+    std::unordered_set<std::vector<int>, VectorHash> set1(alphabet.begin(), alphabet.end());
     std::unordered_set<std::vector<int>, VectorHash> set2(seqs.begin(), seqs.end());
     ASSERT_EQ(set1, set2);
 }

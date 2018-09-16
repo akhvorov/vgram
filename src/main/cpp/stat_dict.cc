@@ -5,7 +5,6 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
-#include <memory>
 #include "stat_dict.h"
 #include "vector_hash.h"
 

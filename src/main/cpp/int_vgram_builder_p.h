@@ -44,7 +44,7 @@ private:
 
   void init(const IntDict& alphabet, int size);
   void update();
-  double kl(const IntSeq& freqs, const std::unordered_map<long long, int>& pair_freqs) const;
+  double kl(const IntSeq& freqs, const std::unordered_map<std::int64_t, int>& pair_freqs) const;
 };
 
 
