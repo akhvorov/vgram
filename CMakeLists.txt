@@ -7,6 +7,7 @@ project(${project_name})
 set(CMAKE_CXX_STANDARD 11)
 option(WITH_PYTHON "Build with python interface" ON)
 
+# boost.python
 #if (WITH_PYTHON)
 #    add_definitions(-DWITH_PYTHON)
 #
@@ -18,9 +19,20 @@ option(WITH_PYTHON "Build with python interface" ON)
 #    include_directories(PUBLIC ${PYTHON_INCLUDE _PATH} ${Boost_INCLUDE_DIRS})
 #endif (WITH_PYTHON)
 
-add_subdirectory(lib/googletest)
-include_directories(lib/googletest/googletest/include)
+# gtest
+include(googletest.cmake)
+fetch_googletest(
+        ${PROJECT_SOURCE_DIR}
+        ${PROJECT_BINARY_DIR}/googletest
+)
 
+enable_testing()
+#add_subdirectory(src/test)
+
+#add_subdirectory(lib/googletest)
+#include_directories(lib/googletest/googletest/include)
+
+# shared library
 #add_library(${project_name} SHARED
 #        src/main/cpp/list_dict.h
 #        src/main/cpp/int_dict.h
@@ -36,6 +48,7 @@ include_directories(lib/googletest/googletest/include)
 #        #src/test/cpp/int_dict_p_test.cpp
 #        )
 
+# for tests
 add_executable(${project_name}
         src/main/cpp/int_dict.h
         src/main/cpp/int_dict_p.h
@@ -62,7 +75,7 @@ add_executable(${project_name}
 # add_library(vgram SHARED library.cpp) # my
 # set_target_properties(${project_name} PROPERTIES PREFIX "")
 
-
+# boost.python
 #if (WITH_PYTHON)
 #    target_link_libraries(${project_name} ${Boost_LIBRARIES})
 #endif (WITH_PYTHON)
