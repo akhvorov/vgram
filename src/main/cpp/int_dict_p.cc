@@ -155,10 +155,6 @@ void IntDictImpl::weightParseVariants(const IntSeq& seq, double multiplier, cons
     }
 }
 
-int IntDictImpl::search(const IntSeq& seq) const {
-    return search(seq, nullptr);
-}
-
 int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) const {
     int index = static_cast<int>(std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin());
     if (seqs_[index] == seq) {

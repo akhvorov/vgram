@@ -14,7 +14,6 @@ public:
     explicit IntDictImpl(const IntSeq& seqs);
     IntDictImpl(const IntDictImpl& dict);
 
-    int search(const IntSeq& seq) const override;
     int search(const IntSeq& seq, std::unordered_set<int>* excludes) const override;
     const IntSeq& get(int index) const override;
     int size() const override;
@@ -22,7 +21,7 @@ public:
     int parent(int second) const override;
 
     int parse(const IntSeq& seq, const IntSeq& freqs, double total_freq, IntSeq* output) override;
-    int parse(const IntSeq& seq, IntSeq* output, std::unordered_set<int>* excludes = nullptr);
+    int parse(const IntSeq& seq, IntSeq* output, std::unordered_set<int>* excludes) override;
     void weightParseVariants(const IntSeq& seq, double multiplier, const IntSeq& freqs,
                              double total_freq, std::unordered_map<int, double>* result,
                              std::unordered_set<int>* excludes);

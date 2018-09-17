@@ -32,12 +32,19 @@ private:
 template <typename T>
 class ListDict {
 public:
-  int parse(const std::vector<T>& input, IntSeq* output, const std::vector<double>* freqs) {
+  ListDict(std::vector<std::vector<T>> seqs) {
+      delegate_ = new IntDictImpl(seqs);
+  }
+  ListDict(std::vector<T> seqs) {
+      delegate_ = new IntDictImpl(seqs);
+  }
+
+  int parse(const std::vector<T>& input, const std::vector<double>& freq, IntSeq* output) {
     //TODO two ways: freqs = nullptr and other
     std::vector<T> temp(input.size());
-    encoder.encode(input, &temp);
+    encoder_.encode(input, &temp);
     double total_freq = std::accumulate(freqs.begin(), freqs.end(), 0.0);
-    return delegate->parse(temp, output, freqs, total_freq);
+    return delegate_->parse(temp, freqs, total_freq, output);
   }
 
   static void save(const ListDict& dict) {
@@ -45,8 +52,8 @@ public:
   }
 
 private:
-  IntDict* delegate = IntDict::create();
-  Encoder<T> encoder;
+  IntDict* delegate_;
+  Encoder<T> encoder_;
 };
 
 

@@ -52,7 +52,7 @@ TEST(IntDictImplTests, ParentTest) {
 TEST(IntDictImplTests, SearchTest) {
     IntDictImpl dict(simple_seqs());
     for (int i = 0; i < dict.size(); i++) {
-        ASSERT_EQ(i, dict.search(dict.get(i)));
+        ASSERT_EQ(i, dict.search(dict.get(i), nullptr));
     }
 
     std::unordered_set<int> excludes;
@@ -69,7 +69,7 @@ TEST(IntDictImplTests, SearchTest) {
     ASSERT_EQ(3, dict.search(std::vector<int>(std::begin(arr1), std::end(arr1)), &excludes));
     ASSERT_EQ(0, dict.search(std::vector<int>(std::begin(arr2), std::end(arr2)), &excludes));
     ASSERT_EQ(0, dict.search(std::vector<int>(std::begin(arr3), std::end(arr3)), &excludes));
-    ASSERT_EQ(1, dict.search(std::vector<int>(std::begin(arr3), std::end(arr3))));
+    ASSERT_EQ(1, dict.search(std::vector<int>(std::begin(arr3), std::end(arr3)), nullptr));
 }
 
 TEST(IntDictImplTests, LinearParseTest1) {
@@ -79,8 +79,9 @@ TEST(IntDictImplTests, LinearParseTest1) {
     std::vector<int> expected(std::begin(arr2), std::end(arr2));
     std::vector<int> result;
 
-    IntDictImpl dict(simple_seqs());
-    dict.parse(seq, &result);
+    // TODO IntDict example
+    IntDict* dict = new IntDictImpl(simple_seqs());
+    dict->parse(seq, &result);
     ASSERT_EQ(result, expected);
 }
 
@@ -92,7 +93,7 @@ TEST(IntDictImplTests, LinearParseTest2) {
     std::vector<int> result;
 
     IntDictImpl dict(simple_seqs());
-    dict.parse(seq, &result);
+    dict.parse(seq, &result, nullptr);
     ASSERT_EQ(result, expected);
 }
 
