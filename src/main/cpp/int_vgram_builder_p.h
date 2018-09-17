@@ -14,20 +14,16 @@ class StatDict;
 
 class IntVGramBuilderImpl : public IntVGramBuilder {
 public:
-  const double kExtensionFactor = 1.3;
-  const double kMaxPower = 20000000;
-  const double kMaxMinProbability = 0.002;
-  // const int kAggPower = 100000;
 
   IntVGramBuilderImpl(const IntDict& alphabet, int size);
   IntVGramBuilderImpl(const IntSeq& alphabet, int size);
-  IntDict* result() const;
-  const IntDict* alpha() const;
-  void accept(const IntSeq& seq);
-  IntSeq* result_freqs();
+  IntDict* result() const override;
+  const IntDict* alpha() const override;
+  void accept(const IntSeq& seq) override;
+  IntSeq* result_freqs() override;
 //  void printPairs(const std::ofstream& ps) const;
 //  void print(const std::ofstream& file_writer) const;
-  double codeLength() const;
+  double codeLength() const override;
 
 private:
   int size_;

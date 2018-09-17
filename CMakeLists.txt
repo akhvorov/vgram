@@ -62,15 +62,15 @@ add_executable(${project_name}
         src/main/cpp/vector_hash.h
         src/test/cpp/common.h
         src/test/cpp/common.cc
-#        src/main/cpp/fast_random.h
-#        src/main/cpp/fast_random.cc
+        src/main/cpp/fast_random.h
+        src/main/cpp/fast_random.cc
 
         src/main/cpp/int_vgram_builder_p.h
         src/main/cpp/int_vgram_builder_p.cc
         src/test/cpp/int_vgram_builder_p_test.cpp
 
 #        src/main/cpp/main.cc
-        )
+        src/main/cpp/list_dict.cc)
 
 # add_library(vgram SHARED library.cpp) # my
 # set_target_properties(${project_name} PROPERTIES PREFIX "")

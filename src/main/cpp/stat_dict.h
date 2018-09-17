@@ -7,19 +7,16 @@
 
 #include <cmath>
 #include <unordered_map>
-#include "int_dict_p.h"
+#include "int_dict.h"
 #include <memory>
-//#include "int_vgram_builder_p.h" //!!!
-
 
 class StatItem;
-//class IntVGramBuilderImpl;
 
 class StatDict
 {
-    friend class IntVGramBuilderImpl; //TODO it is ok?
+    friend class IntVGramBuilderImpl;
 public:
-    const double kMaxMinProbability = 0.002;
+    static constexpr double kMaxMinProbability = 0.002;
     const size_t kAggPower = 100000;
 
     StatDict(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs = nullptr);
@@ -34,11 +31,10 @@ public:
     double code_length_per_char() const;
 
     bool enough(double probFound);
-    //void visitAssociations(std::int32_t start, TIntDoubleProcedure procedure); //TODO do it
     int parse(const IntSeq& seq, IntSeq* output);
 
 private:
-    std::shared_ptr<IntDictImpl> dict_;
+    std::shared_ptr<IntDict> dict_;
     //IntDict* dict_;
     IntSeq symbol_freqs_;
     IntSeq parse_freqs_;
@@ -49,8 +45,8 @@ private:
     double total_chars_ = 0;
     //FastRandom rng = new FastRandom(0);
 
-    StatDict* reduce(int slots);
-    std::vector<StatItem> filter_stat_items(int slots);
+    double reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs);
+    int filter_stat_items(int slots, std::vector<StatItem>* items);
     int stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes);
 
     int index_of_two_str(const IntSeq& first, const IntSeq& second, int betw, int ind);
@@ -58,12 +54,12 @@ private:
 
     //TODO: remove, make base class
     double weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
-                         IntSeq* builder, std::unordered_set<int>* excludes = nullptr);
+                         IntSeq* result, std::unordered_set<int>* excludes = nullptr);
 
     void print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
                      const std::unordered_map<std::int64_t, int>& new_pairs) const ;
 
-    StatDict* expand(int slots);
+    double expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs);
 
 };
 

@@ -20,8 +20,12 @@ public:
       if (code_ptr == mapping.end()) {
         mapping[next] = next_id++;
       }
-      else output->push_back(*code_ptr);
+      output->push_back(code_ptr->second);
     }
+  }
+
+  int size() const {
+      return next_id;
   }
   
 private:
@@ -32,14 +36,9 @@ private:
 template <typename T>
 class ListDict {
 public:
-  ListDict(std::vector<std::vector<T>> seqs) {
-      delegate_ = new IntDictImpl(seqs);
-  }
-  ListDict(std::vector<T> seqs) {
-      delegate_ = new IntDictImpl(seqs);
-  }
+  ListDict(int alphabet_size);
 
-  int parse(const std::vector<T>& input, const std::vector<double>& freq, IntSeq* output) {
+  int parse(const std::vector<T>& input, const std::vector<double>& freqs, IntSeq* output) {
     //TODO two ways: freqs = nullptr and other
     std::vector<T> temp(input.size());
     encoder_.encode(input, &temp);

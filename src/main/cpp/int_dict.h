@@ -39,7 +39,7 @@ public:
 //                             std::unordered_set<int>* excludes);
 
 
-  static IntDict* create(const std::vector<IntSeq>& seqs) {
+  static IntDict* create(int alphabet_size) {
       //return new IntDictImpl(seqs);
       return nullptr;
   }

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <numeric>
 #include "stat_dict.h"
+#include "int_dict_p.h"
 #include "fast_random.h"
 #include "vector_hash.h"
 
@@ -72,7 +73,7 @@ double StatDict::code_length_per_char() const {
 }
 
 double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
-                                  IntSeq* builder, std::unordered_set<int>* excludes) {
+                                  IntSeq* result, std::unordered_set<int>* excludes) {
     size_t len = seq.size();
     std::vector<double> score(len + 1, std::numeric_limits<double>::lowest());
     score[0] = 0;
@@ -102,16 +103,15 @@ double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double to
         pos -= get(sym).size();
     }
     for (int i = 0; i < index; i++) {
-        builder->push_back(solution[len - index + i]);
+        result->push_back(solution[len - index + i]);
     }
     return score[len];
 }
 
 //TODO change types and args
-StatDict* StatDict::reduce(int slots) {
-    std::vector<IntSeq> new_dict(static_cast<size_t>(size()));
-    std::vector<StatItem> items = filter_stat_items(slots);
-    IntSeq freqs(items.size());
+double StatDict::reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) {
+    std::vector<StatItem> items;
+    filter_stat_items(slots, &items);
     double power = 0.0;
     for (const auto& item : items)
         power += item.count();
@@ -121,16 +121,13 @@ StatDict* StatDict::reduce(int slots) {
         double p = (item.count() + 1.0) / (power + size());
         if (parent(item.second()) >= 0)
             min_prob_result = std::min(p, min_prob_result);
-        new_dict.push_back(get(item.second()));
-        freqs.push_back(item.count());
+        new_dict->push_back(get(item.second()));
+        freqs->push_back(item.count());
     }
-    //TODO no new! fix freqs!
-    return new StatDict(new_dict, min_prob_result, &freqs);
-    // return nullptr;
+    return min_prob_result;
 }
 
-//TODO change return type to arg or something else
-std::vector<StatItem> StatDict::filter_stat_items(int slots) {
+int StatDict::filter_stat_items(int slots, std::vector<StatItem>* items) {
     for (int s = 0; s < symbol_freqs_.size(); s++)
         if (parent(s) < 0)
             slots += 1;
@@ -138,11 +135,10 @@ std::vector<StatItem> StatDict::filter_stat_items(int slots) {
     for (int id = 0; id < size(); id++)
         if (parent(id) >= 0 && freq(id) == 0)
             excludes.insert(id);
-    std::vector<StatItem> items;
-    stat_items(&items, &excludes);
-    while (items.size() > std::min((int)items.size(), slots))
-        items.pop_back();
-    return items;
+    stat_items(items, &excludes);
+    while (items->size() > std::min((int)items->size(), slots))
+        items->pop_back();
+    return static_cast<int>(items->size());
 }
 
 int StatDict::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes) {
@@ -205,8 +201,7 @@ void StatDict::print_pairs(const std::unordered_map<std::int64_t, int>& old_pair
     }
 }
 
-// TODO change
-StatDict* StatDict::expand(int slots) {
+double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) {
     std::vector<StatItem> items;
     std::unordered_set<IntSeq, VectorHash> known;
     for (const IntSeq& seq : alphabet()) {
@@ -243,7 +238,7 @@ StatDict* StatDict::expand(int slots) {
         int samples_count = 10;
         std::vector<double> sample(dirichlet_params.size());
         for (int i = 0; i < samples_count; i++) {
-            //rng.nextDirichlet(dirichlet_params, sample); //TODO FastRandom from commons.random
+            //rng.nextDirichlet(dirichlet_params, sample);
             next_dirichlet(dirichlet_params, &sample);
             double pAB = sample[0];
             double pAY = sample[1];
@@ -262,8 +257,6 @@ StatDict* StatDict::expand(int slots) {
     }
 
     std::sort(items.begin(), items.end(), [] (const StatItem& a, const StatItem& b) { return -a.score() < -b.score(); });
-    std::vector<IntSeq> new_dict;
-    IntSeq freqs;
     double min_prob_result = min_probability_;
     double accumulated_freqs = 0.0;
     for (const auto& pair : pairs_freqs_) {
@@ -277,23 +270,17 @@ StatDict* StatDict::expand(int slots) {
             break;
         IntSeq item_text;
         item.text(&item_text);
-        new_dict.push_back(item_text);
-        freqs.push_back(item.count());
+        new_dict->push_back(item_text);
+        freqs->push_back(item.count());
         if (item.first() >= 0)
             min_prob_result = std::min(min_prob_result, item.count() / accumulated_freqs); // !!! maybe accumulated_freqs is wrong
     }
-    // TODO check this line, it's mistake! fix freqs!
-    return new StatDict(new_dict, min_prob_result, &freqs);
-    // return nullptr;
+    return min_prob_result;
 }
 
 bool StatDict::enough(double prob_found) {
     return power_ > -log(prob_found) / min_probability_;
 }
-
-//void visitAssociations(int start, TIntDoubleProcedure procedure) {
-//    pairsFreqs.visitRange(((long) start) << 32, ((long) start + 1L) << 32, (a, b) -> procedure.execute((int)(a & 0x7FFFFFFFL), b));
-//}
 
 int StatDict::parse(const IntSeq& seq, IntSeq* parse_result) {
     total_chars_ += seq.size();

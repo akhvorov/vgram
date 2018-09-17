@@ -4,6 +4,9 @@
 
 #include <numeric>
 #import "int_vgram_builder_p.h"
+#import "int_dict_p.h"
+
+constexpr double StatDict::kMaxMinProbability;
 
 IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict& alphabet, int size) {
     init(alphabet, size);
@@ -19,13 +22,11 @@ void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
     //trace = trace;
     alphabet_size_ = alphabet.size();
     initial_ = &alphabet;
-    current_ = new StatDict(alphabet.alphabet(), kMaxMinProbability);
+    current_ = new StatDict(alphabet.alphabet(), StatDict::kMaxMinProbability);
     result_ = nullptr;
 }
 
 IntDict* IntVGramBuilderImpl::result() const {
-    //TODO check it after dict with stats
-    //shared_ptr is okay?
     return result_ != nullptr ? result_->dict_.get() : nullptr;
 }
 
@@ -61,6 +62,8 @@ void IntVGramBuilderImpl::update() {
     }
 
     StatDict* result;
+    std::vector<IntSeq> new_dict(static_cast<size_t>(current_->size()));
+    IntSeq freqs;
     if (populate_) {
 //        result = current_;
 //        if (trace != null)
@@ -70,11 +73,12 @@ void IntVGramBuilderImpl::update() {
             slots = size_ - alphabet_size_;
         else
             slots = (std::int32_t)(current_->size() * kExtensionFactor);
-        result = current_->expand(slots);
+        double min_prob_result = current_->expand(slots, &new_dict, &freqs);
+        result = new StatDict(new_dict, min_prob_result, &freqs);
     }
     else {
-        //TODO rewrite it
-        result = current_->reduce(size_ - alphabet_size_);
+        double min_prob_result = current_->reduce(size_ - alphabet_size_, &new_dict, &freqs);
+        result = new StatDict(new_dict, min_prob_result, &freqs);
         result_ = result;
     }
     current_ = result;
@@ -82,7 +86,6 @@ void IntVGramBuilderImpl::update() {
 }
 
 IntSeq* IntVGramBuilderImpl::result_freqs() {
-  //TODO rewrite for private field in dict with stats
   if (result_->size() > result_->symbol_freqs_.size())
     for (auto i = result_->symbol_freqs_.size(); i < result_->size(); i++)
       result_->symbol_freqs_.push_back(0);
