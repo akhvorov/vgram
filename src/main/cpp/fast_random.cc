@@ -3,9 +3,25 @@
 //
 
 #include <cmath>
+#include <random>
 #include "fast_random.h"
 
-FastRandom::FastRandom() {
+void next_dirichlet(const std::vector<double>& params, std::vector<double>* out) {
+    double total = 0;
+    double gamma;
+    std::default_random_engine generator;
+    for (int i = 0; i < params.size(); ++i) {
+        gamma = std::gamma_distribution<double>(params[i], 1)(generator);
+        (*out)[i] = gamma;
+        total += gamma;
+    }
+    double invTotal = 1.0 / total;
+    for (int i = 0; i < params.size(); ++i) {
+        (*out)[i] = (*out)[i] * invTotal;
+    }
+}
+
+/*FastRandom::FastRandom() {
 
 }
 
@@ -30,7 +46,7 @@ double FastRandom::next_standard_exponential() {
     return -log(1.0 - next_double());
 }
 
-double FastRandom::next_standard_gamma(double shape) {
+double FastRandom::next_standard_gamma(const double shape) {
     double b, c;
     double U, V, X, Y;
 
@@ -81,8 +97,10 @@ double FastRandom::next_standard_gamma(double shape) {
 void FastRandom::next_dirichlet(const std::vector<double>& params, std::vector<double>* out) {
     double total = 0;
     double gamma;
+    std::default_random_engine generator;
     for (int i = 0; i < params.size(); ++i) {
-        gamma = next_standard_gamma(params[i]);
+        gamma = std::gamma_distribution<double>(params[i], 1)(generator);
+        //gamma = next_standard_gamma(params[i]);
         (*out)[i] = gamma;
         total += gamma;
     }
@@ -90,4 +108,4 @@ void FastRandom::next_dirichlet(const std::vector<double>& params, std::vector<d
     for (int i = 0; i < params.size(); ++i) {
         (*out)[i] = (*out)[i] * invTotal;
     }
-}
+}*/

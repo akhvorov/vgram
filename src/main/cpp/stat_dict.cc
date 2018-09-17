@@ -6,11 +6,11 @@
 #include <algorithm>
 #include <numeric>
 #include "stat_dict.h"
+#include "fast_random.h"
 #include "vector_hash.h"
 
 StatDict::StatDict(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs) {
     IntDictImpl int_dict(seqs);
-    dict_ = std::make_shared<IntDictImpl>(int_dict);
     dict_ = std::make_shared<IntDictImpl>(int_dict);
     symbol_freqs_ = IntSeq(static_cast<size_t>(int_dict.size()));
     if (init_freqs == nullptr) {
@@ -244,6 +244,7 @@ StatDict* StatDict::expand(int slots) {
         std::vector<double> sample(dirichlet_params.size());
         for (int i = 0; i < samples_count; i++) {
             //rng.nextDirichlet(dirichlet_params, sample); //TODO FastRandom from commons.random
+            next_dirichlet(dirichlet_params, &sample);
             double pAB = sample[0];
             double pAY = sample[1];
             double pXB = sample[2];
