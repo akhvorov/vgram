@@ -16,8 +16,6 @@ public:
     virtual const IntDict* alpha() const = 0;
     virtual void accept(const IntSeq& seq) = 0;
     virtual IntSeq* result_freqs() = 0;
-//  void printPairs(const std::ofstream& ps) const;
-//  void print(const std::ofstream& file_writer) const;
     virtual double codeLength() const = 0;
 };
 

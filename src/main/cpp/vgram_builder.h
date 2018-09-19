@@ -7,13 +7,14 @@
 
 
 #include <vector>
+#include "int_vgram_builder.h"
 #include "list_dict.h"
-
-class IntVGramBuilder;
 
 template <typename T>
 class VGramBuilder {
 public:
+  //explicit VGramBuilder(int size);
+
   void accept(const std::vector<T>& input) {
     
   }
