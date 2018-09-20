@@ -15,6 +15,7 @@ class StatDict;
 class IntVGramBuilderImpl : public IntVGramBuilder {
 public:
 
+  explicit IntVGramBuilderImpl(int size);
   IntVGramBuilderImpl(const IntDict& alphabet, int size);
   IntVGramBuilderImpl(const IntSeq& alphabet, int size);
   IntDict* result() const override;

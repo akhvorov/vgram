@@ -10,6 +10,14 @@
 #include "fast_random.h"
 #include "vector_hash.h"
 
+StatDict::StatDict(double min_prob_result) {
+    dict_ = std::make_shared<IntDictImpl>();
+    symbol_freqs_ = IntSeq();
+    parse_freqs_ = IntSeq();
+    pairs_freqs_ = std::unordered_map<std::int64_t , int>(kAggPower);
+    min_probability_ = min_prob_result;
+}
+
 StatDict::StatDict(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs) {
     IntDictImpl int_dict(seqs);
     dict_ = std::make_shared<IntDictImpl>(int_dict);
@@ -73,7 +81,7 @@ double StatDict::code_length_per_char() const {
 }
 
 double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
-                                  IntSeq* result, std::unordered_set<int>* excludes) {
+                               IntSeq* result, std::unordered_set<int>* excludes) {
     size_t len = seq.size();
     std::vector<double> score(len + 1, std::numeric_limits<double>::lowest());
     score[0] = 0;
@@ -108,7 +116,6 @@ double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double to
     return score[len];
 }
 
-//TODO change types and args
 double StatDict::reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) {
     std::vector<StatItem> items;
     filter_stat_items(slots, &items);
@@ -284,7 +291,7 @@ bool StatDict::enough(double prob_found) {
 
 int StatDict::parse(const IntSeq& seq, IntSeq* parse_result) {
     total_chars_ += seq.size();
-    weightedParse(seq, parse_freqs_, power_ + parse_freqs_init_power_, parse_result);
+    dict_->parse(seq, parse_freqs_, power_ + parse_freqs_init_power_, parse_result);
     auto length = parse_result->size();
     int prev = -1;
     for (int i = 0; i < length; ++i) {

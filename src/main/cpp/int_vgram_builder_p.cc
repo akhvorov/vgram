@@ -8,6 +8,14 @@
 
 constexpr double StatDict::kMaxMinProbability;
 
+IntVGramBuilderImpl::IntVGramBuilderImpl(int size) {
+    size_ = size;
+    alphabet_size_ = 0;
+    initial_ = nullptr;
+    current_ = new StatDict(StatDict::kMaxMinProbability);
+    result_ = nullptr;
+}
+
 IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict& alphabet, int size) {
     init(alphabet, size);
 }
@@ -31,7 +39,8 @@ IntDict* IntVGramBuilderImpl::result() const {
 }
 
 const IntDict* IntVGramBuilderImpl::alpha() const {
-    return initial_;
+    //return initial_;
+    return new IntDictImpl(current_->alphabet());
 }
 
 void IntVGramBuilderImpl::accept(const IntSeq& seq) {

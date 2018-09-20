@@ -19,6 +19,7 @@ public:
     static constexpr double kMaxMinProbability = 0.002;
     const size_t kAggPower = 100000;
 
+    explicit StatDict(double min_prob_result);
     StatDict(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs = nullptr);
 
     void update_symbol(int index, int freq);

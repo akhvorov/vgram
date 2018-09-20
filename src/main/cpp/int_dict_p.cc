@@ -9,6 +9,11 @@
 #include <algorithm>
 #include <cmath>
 
+IntDictImpl::IntDictImpl() {
+    seqs_ = std::vector<IntSeq>();
+    parents_ = IntSeq();
+}
+
 IntDictImpl::IntDictImpl(const std::vector<IntSeq>& seqs) {
     init(seqs);
 }
@@ -19,6 +24,11 @@ IntDictImpl::IntDictImpl(const IntSeq& seqs) {
         vec[i][0] = seqs[i];
     }
     init(vec);
+}
+
+IntDictImpl::IntDictImpl(const IntDictImpl& dict) {
+    seqs_ = dict.seqs_;
+    parents_ = dict.parents_;
 }
 
 void IntDictImpl::init(const std::vector<IntSeq>& seqs) {
@@ -42,28 +52,12 @@ void IntDictImpl::init(const std::vector<IntSeq>& seqs) {
     }
 }
 
-IntDictImpl::IntDictImpl(const IntDictImpl& dict) {
-    seqs_ = dict.seqs_;
-    parents_ = dict.parents_;
-}
-
 int IntDictImpl::linearParse(const IntSeq& seq, IntSeq* builder, std::unordered_set<int>* excludes = nullptr) {
     IntSeq suffix = seq;
     while (!suffix.empty()) {
-        int symbol;
-        try {
-            symbol = search(suffix, excludes);
-            auto sym_len = get(symbol).size();
-            suffix = IntSeq(suffix.begin() + sym_len, suffix.end());
-        }
-        catch (std::exception& e) {
-            if (e.what() == DictionaryIndexIsCorruptedException().what()) {
-                symbol = -1;
-                suffix = IntSeq(suffix.begin() + 1, suffix.end());
-            } else {
-                throw e;
-            }
-        }
+        int symbol = search_with_addition(suffix, excludes);
+        auto sym_len = get(symbol).size();
+        suffix = IntSeq(suffix.begin() + sym_len, suffix.end());
         builder->push_back(symbol);
     }
     return static_cast<int>(builder->size());
@@ -78,7 +72,7 @@ double IntDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double
 
     for (int pos = 0; pos < len; pos++) {
         IntSeq suffix(seq.begin() + pos, seq.end());
-        int sym = search(suffix, excludes);
+        int sym = search_with_addition(suffix, excludes);
         do {
             auto sym_len = get(sym).size();
             double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
@@ -155,9 +149,50 @@ void IntDictImpl::weightParseVariants(const IntSeq& seq, double multiplier, cons
     }
 }
 
-int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) const {
+int IntDictImpl::search_with_addition(const IntSeq& seq, std::unordered_set<int>* excludes) {
+    try {
+        return search(seq, excludes);
+    }
+    catch (std::exception& e) {
+        if (e.what() == DictionaryIndexIsCorruptedException().what()) {
+            if (add_new_symbol(IntSeq(1, seq[0]))) {
+                try {
+                    return search(seq, excludes);
+                } catch (std::exception& e) {
+                    if (e.what() == DictionaryIndexIsCorruptedException().what()) {
+                        return -1;
+                    } else {
+                        throw e;
+                    }
+                }
+            } else {
+                return -1;
+            }
+        } else {
+            throw e;
+        }
+    }
+}
+
+bool IntDictImpl::add_new_symbol(const IntSeq& symbol) {
+    try {
+        search(symbol, nullptr);
+    }
+    catch (std::exception &e) {
+        if (e.what() == DictionaryIndexIsCorruptedException().what() || size() == 0) {
+            seqs_.emplace_back(IntSeq(1, symbol[0]));
+            parents_.push_back(-1);
+            return true;
+        } else {
+            throw e;
+        }
+    }
+    return false;
+}
+
+int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) {
     int index = static_cast<int>(std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin());
-    if (seqs_[index] == seq) {
+    if (index >= 0 && index < size() && seqs_[index] == seq) {
         if (excludes == nullptr || excludes->count(index) == 0)
             return index;
     }
@@ -168,6 +203,10 @@ int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) co
             return index;
         index = parents_[index];
     }
+//    int ind = size();
+//    seqs_.push_back(IntSeq(1, seq[0]));
+//    parents_[ind] = -1;
+//    return ind;
     throw DictionaryIndexIsCorruptedException();
 }
 

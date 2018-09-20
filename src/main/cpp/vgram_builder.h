@@ -13,7 +13,7 @@
 template <typename T>
 class VGramBuilder {
 public:
-  //explicit VGramBuilder(int size);
+  explicit VGramBuilder(int size);
 
   void accept(const std::vector<T>& input) {
     
