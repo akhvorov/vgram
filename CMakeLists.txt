@@ -32,6 +32,10 @@ enable_testing()
 #add_subdirectory(lib/googletest)
 #include_directories(lib/googletest/googletest/include)
 
+# Google Sanitizer
+# http://www.jetbrains.com/help/clion/google-sanitizers.html
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -g -O1")
+
 # shared library
 #add_library(${project_name} SHARED
 #        src/main/cpp/list_dict.h
