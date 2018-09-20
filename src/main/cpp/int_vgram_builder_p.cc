@@ -12,7 +12,7 @@ IntVGramBuilderImpl::IntVGramBuilderImpl(int size) {
     size_ = size;
     alphabet_size_ = 0;
     initial_ = nullptr;
-    current_ = new StatDict(StatDict::kMaxMinProbability);
+    current_ = new StatDict(StatDict::kMaxMinProbability); // Sanitizer: indirect leak
     result_ = nullptr;
 }
 
@@ -30,7 +30,7 @@ void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
     //trace = trace;
     alphabet_size_ = alphabet.size();
     initial_ = &alphabet;
-    current_ = new StatDict(alphabet.alphabet(), StatDict::kMaxMinProbability);
+    current_ = new StatDict(alphabet.alphabet(), StatDict::kMaxMinProbability); // Sanitizer: indirect leak
     result_ = nullptr;
 }
 

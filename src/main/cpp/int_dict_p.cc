@@ -27,13 +27,14 @@ IntDictImpl::IntDictImpl(const IntSeq& seqs) {
 }
 
 IntDictImpl::IntDictImpl(const IntDictImpl& dict) {
-    seqs_ = dict.seqs_;
-    parents_ = dict.parents_;
+    seqs_ = dict.seqs_; // Sanitizer: indirect leak
+    parents_ = dict.parents_; // Sanitizer: indirect leak
 }
 
 void IntDictImpl::init(const std::vector<IntSeq>& seqs) {
-    seqs_ = std::vector<IntSeq>(seqs);
-    parents_ = IntSeq(seqs_.size());
+    seqs_ = std::vector<IntSeq>(seqs); // Sanitizer: indirect leak
+    //seqs_ = seqs;
+    parents_ = IntSeq(seqs_.size()); // Sanitizer: indirect leak
     std::vector<std::pair<IntSeq, int>> parents_stack;
     std::sort(seqs_.begin(), seqs_.end());
 
@@ -180,8 +181,8 @@ bool IntDictImpl::add_new_symbol(const IntSeq& symbol) {
     }
     catch (std::exception &e) {
         if (e.what() == DictionaryIndexIsCorruptedException().what() || size() == 0) {
-            seqs_.emplace_back(IntSeq(1, symbol[0]));
-            parents_.push_back(-1);
+            seqs_.emplace_back(IntSeq(1, symbol[0])); // Sanitizer: indirect leak
+            parents_.push_back(-1); // Sanitizer: indirect leak
             return true;
         } else {
             throw e;
@@ -255,3 +256,9 @@ int IntDictImpl::parent(int second) const {
 }
 
 IntDictImpl::~IntDictImpl() = default;
+//{
+//    for (auto seq : seqs_) {
+//        delete &seq;
+//    }
+//    delete &seqs_;
+//}

@@ -11,35 +11,35 @@
 #include "vector_hash.h"
 
 StatDict::StatDict(double min_prob_result) {
-    dict_ = std::make_shared<IntDictImpl>();
+    dict_ = std::make_shared<IntDictImpl>(); // Sanitizer: indirect leak
     symbol_freqs_ = IntSeq();
     parse_freqs_ = IntSeq();
-    pairs_freqs_ = std::unordered_map<std::int64_t , int>(kAggPower);
+    pairs_freqs_ = std::unordered_map<std::int64_t , int>(kAggPower); // Sanitizer: indirect leak
     min_probability_ = min_prob_result;
 }
 
 StatDict::StatDict(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs) {
     IntDictImpl int_dict(seqs);
-    dict_ = std::make_shared<IntDictImpl>(int_dict);
+    dict_ = std::make_shared<IntDictImpl>(int_dict); // Sanitizer: indirect leak
     symbol_freqs_ = IntSeq(static_cast<size_t>(int_dict.size()));
     if (init_freqs == nullptr) {
-        parse_freqs_ = IntSeq(static_cast<size_t>(dict_->size()));
+        parse_freqs_ = IntSeq(static_cast<size_t>(dict_->size())); // Sanitizer: indirect leak
     } else {
         parse_freqs_ = IntSeq(*init_freqs);
         parse_freqs_init_power_ = std::accumulate(parse_freqs_.begin(), parse_freqs_.end(), 0.0);
         for (auto i = parse_freqs_.size(); i < dict_->size(); i++)
             parse_freqs_.push_back(0);
     }
-    pairs_freqs_ = std::unordered_map<std::int64_t , int>(kAggPower);
+    pairs_freqs_ = std::unordered_map<std::int64_t , int>(kAggPower); // Sanitizer: indirect leak
     min_probability_ = min_prob_result;
 }
 
 void StatDict::update_symbol(int index, int freq) {
     if (index >= symbol_freqs_.size()) {
         for (auto i = symbol_freqs_.size(); i < index + 1; i++)
-            symbol_freqs_.push_back(0);
+            symbol_freqs_.push_back(0); // Sanitizer: indirect leak
         for (auto i = parse_freqs_.size(); i < index + 1; i++)
-            parse_freqs_.push_back(0);
+            parse_freqs_.push_back(0); // Sanitizer: indirect leak
     }
     symbol_freqs_[index] += freq;
     parse_freqs_[index] += freq;
@@ -298,7 +298,7 @@ int StatDict::parse(const IntSeq& seq, IntSeq* parse_result) {
         int symbol = (*parse_result)[i];
         update_symbol(symbol, 1);
         if (prev >= 0)
-            pairs_freqs_[(((std::int64_t) prev) << 32) | symbol] += 1;
+            pairs_freqs_[(((std::int64_t) prev) << 32) | symbol] += 1; // Sanitizer: indirect leak
         prev = symbol;
     }
     return static_cast<int>(parse_result->size());
