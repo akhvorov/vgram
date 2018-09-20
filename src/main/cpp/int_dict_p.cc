@@ -190,7 +190,7 @@ bool IntDictImpl::add_new_symbol(const IntSeq& symbol) {
     return false;
 }
 
-int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) {
+int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) const {
     int index = static_cast<int>(std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin());
     if (index >= 0 && index < size() && seqs_[index] == seq) {
         if (excludes == nullptr || excludes->count(index) == 0)

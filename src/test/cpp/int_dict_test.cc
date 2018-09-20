@@ -13,6 +13,7 @@ TEST(IntDictTests, EmptyTest) {
 
 TEST(IntDictTests, ConstructorTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
+    IntDict* dict0 = new IntDictImpl();
     IntDict* dict1 = new IntDictImpl(seqs);
     IntDict* dict2 = new IntDictImpl(seqs[0]);
     ASSERT_TRUE(true);
@@ -72,7 +73,7 @@ TEST(IntDictTests, SearchTest) {
     ASSERT_EQ(1, dict->search(std::vector<int>(std::begin(arr3), std::end(arr3)), nullptr));
 }
 
-TEST(IntDictTests, LinearParseTest1) {
+TEST(IntDictTests, LinearParseTestOrdinary) {
     int arr1[] = {0, 1, 0, 1, 1, 0, 1, 1, 1, 0};
     int arr2[] = {1, 2, 2, 3, 0};
     std::vector<int> seq(std::begin(arr1), std::end(arr1));
@@ -84,9 +85,9 @@ TEST(IntDictTests, LinearParseTest1) {
     ASSERT_EQ(result, expected);
 }
 
-TEST(IntDictTests, LinearParseTest2) {
+TEST(IntDictTests, LinearParseTestNewSymbol) {
     int arr1[] = {0, 1, 2, 0, 1, 1, 0, 1, 1, 1, 0};
-    int arr2[] = {1, -1, 2, 2, 3, 0};
+    int arr2[] = {1, 4, 2, 2, 3, 0};
     std::vector<int> seq(std::begin(arr1), std::end(arr1));
     std::vector<int> expected(std::begin(arr2), std::end(arr2));
     std::vector<int> result;
@@ -94,6 +95,16 @@ TEST(IntDictTests, LinearParseTest2) {
     IntDict* dict = new IntDictImpl(simple_seqs());
     dict->parse(seq, &result, nullptr);
     ASSERT_EQ(result, expected);
+}
+
+TEST(IntDictTests, NewSymbolInEmptyAlphabetTest) {
+    IntSeq result;
+    IntDict* dict = new IntDictImpl();
+    std::vector<std::vector<int>> seqs = simple_seqs();
+    for (const IntSeq& seq : seqs) {
+        dict->parse(seq, &result);
+    }
+    ASSERT_EQ(dict->size(), 2);
 }
 
 TEST(IntDictTests, WeightedParseTest) {
