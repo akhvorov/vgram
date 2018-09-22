@@ -34,7 +34,8 @@ enable_testing()
 
 # Google Sanitizer
 # http://www.jetbrains.com/help/clion/google-sanitizers.html
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -g -O1")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -g -O1")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined -fno-omit-frame-pointer -g -O1")
 
 # shared library
 #add_library(${project_name} SHARED
@@ -71,7 +72,7 @@ add_executable(${project_name}
 
         src/main/cpp/int_vgram_builder_p.h
         src/main/cpp/int_vgram_builder_p.cc
-        src/test/cpp/int_vgram_builder_p_test.cpp
+        src/test/cpp/int_vgram_builder_test.cpp
 
 #        src/main/cpp/main.cc
         src/main/cpp/list_dict.cc src/main/cpp/vgram_builder.cc)

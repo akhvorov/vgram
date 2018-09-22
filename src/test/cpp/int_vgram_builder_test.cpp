@@ -27,14 +27,14 @@ TEST(IntVgramBuilderTests, IndependenceTest) {
     std::vector<int> alpha;
     for (char a = 'a'; a <= 'z'; a++)
         alpha.push_back(a);
-    IntVGramBuilder* de = new IntVGramBuilderImpl(alpha, (int)alpha.size() + 100);
+    IntVGramBuilder* vgb = new IntVGramBuilderImpl(alpha, (int)alpha.size() + 100);
     for (int i = 0; i < 1000; i++) {
         int len = rand_len(generator);
         std::vector<int> builder;
         builder.reserve(len);
         for (int c = 0; c < len; c++)
             builder.push_back((char)('a' + rand_char(generator)));
-        de->accept(builder);
+        vgb->accept(builder);
     }
-    ASSERT_TRUE('z' - 'a' + 5 > de->result()->size());
+    ASSERT_TRUE('z' - 'a' + 5 > vgb->result()->size());
 }
