@@ -71,7 +71,7 @@ void IntVGramBuilderImpl::update() {
     }
 
     StatDict* result;
-    std::vector<IntSeq> new_dict(static_cast<size_t>(current_->size()));
+    std::vector<IntSeq> new_dict;
     IntSeq freqs;
     if (populate_) {
 //        result = current_;

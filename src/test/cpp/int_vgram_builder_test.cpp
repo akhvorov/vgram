@@ -28,7 +28,7 @@ TEST(IntVgramBuilderTests, IndependenceTest) {
     for (char a = 'a'; a <= 'z'; a++)
         alpha.push_back(a);
     IntVGramBuilder* vgb = new IntVGramBuilderImpl(alpha, (int)alpha.size() + 100);
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 5000; i++) {
         int len = rand_len(generator);
         std::vector<int> builder;
         builder.reserve(len);

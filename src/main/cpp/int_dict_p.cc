@@ -150,47 +150,6 @@ void IntDictImpl::weightParseVariants(const IntSeq& seq, double multiplier, cons
     }
 }
 
-//int IntDictImpl::search_with_addition(const IntSeq& seq, std::unordered_set<int>* excludes) {
-//    try {
-//        return search(seq, excludes);
-//    }
-//    catch (std::exception& e) {
-//        if (e.what() == DictionaryIndexIsCorruptedException().what()) {
-//            if (add_new_symbol(IntSeq(1, seq[0]))) {
-//                try {
-//                    return search(seq, excludes);
-//                } catch (std::exception& e) {
-//                    if (e.what() == DictionaryIndexIsCorruptedException().what()) {
-//                        return -1;
-//                    } else {
-//                        throw e;
-//                    }
-//                }
-//            } else {
-//                return -1;
-//            }
-//        } else {
-//            throw e;
-//        }
-//    }
-//}
-//
-//bool IntDictImpl::add_new_symbol(const IntSeq& symbol) {
-//    try {
-//        search(symbol, nullptr);
-//    }
-//    catch (std::exception &e) {
-//        if (e.what() == DictionaryIndexIsCorruptedException().what() || size() == 0) {
-//            seqs_.push_back(IntSeq(1, symbol[0])); // Sanitizer: indirect leak
-//            parents_.push_back(-1); // Sanitizer: indirect leak
-//            return true;
-//        } else {
-//            throw e;
-//        }
-//    }
-//    return false;
-//}
-
 int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) {
     int index = static_cast<int>(std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin());
     if (index >= 0 && index < size() && seqs_[index] == seq) {
