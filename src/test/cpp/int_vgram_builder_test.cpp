@@ -22,13 +22,13 @@ TEST(IntVgramBuilderTests, ConstructorTest) {
 TEST(IntVgramBuilderTests, IndependenceTest) {
     std::default_random_engine generator;
     std::uniform_int_distribution<int> rand_len(1, 300);
-    std::uniform_int_distribution<int> rand_char(1, 'z' - 'a' + 1);
+    std::uniform_int_distribution<int> rand_char(0, 'z' - 'a');
 
     std::vector<int> alpha;
     for (char a = 'a'; a <= 'z'; a++)
         alpha.push_back(a);
     IntVGramBuilder* vgb = new IntVGramBuilderImpl(alpha, (int)alpha.size() + 100);
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100; i++) {
         int len = rand_len(generator);
         std::vector<int> builder;
         builder.reserve(len);

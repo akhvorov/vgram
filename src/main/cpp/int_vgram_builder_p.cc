@@ -81,7 +81,7 @@ void IntVGramBuilderImpl::update() {
         if (current_->size() * kExtensionFactor < 10)
             slots = size_ - alphabet_size_;
         else
-            slots = (std::int32_t)(current_->size() * kExtensionFactor);
+            slots = static_cast<int>(current_->size() * kExtensionFactor);
         double min_prob_result = current_->expand(slots, &new_dict, &freqs);
         result = new StatDict(new_dict, min_prob_result, &freqs);
     }

@@ -26,7 +26,7 @@ public:
 //    explicit IntDict(const std::vector<IntSeq>& seqs);
 //    explicit IntDict(const IntSeq& seqs);
 
-    virtual int search(const IntSeq& seq, std::unordered_set<int>* excludes = nullptr) const = 0;
+    virtual int search(const IntSeq& seq, std::unordered_set<int>* excludes = nullptr) = 0;
     virtual const IntSeq& get(int index) const = 0;
     virtual int size() const = 0;
     virtual const std::vector<IntSeq>& alphabet() const = 0;

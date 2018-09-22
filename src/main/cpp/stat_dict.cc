@@ -168,10 +168,10 @@ int StatDict::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* 
                 }
                 double score = code_length_without_symbol - code_length;
                 if (score > 0) {
-                    items->emplace_back(StatItem(*this, -1, id, score, count));
+                    items->push_back(StatItem(*this, -1, id, score, count));
                 }
             } else {
-                items->emplace_back(StatItem(*this, -1, id, std::numeric_limits<double>::max(), count));
+                items->push_back(StatItem(*this, -1, id, std::numeric_limits<double>::max(), count));
             }
         }
     }
@@ -213,7 +213,8 @@ double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs)
     std::unordered_set<IntSeq, VectorHash> known;
     for (const IntSeq& seq : alphabet()) {
         known.insert(seq);
-        items.emplace_back(StatItem(*this, -1, search(seq), std::numeric_limits<double>::max(), freq(search(seq))));
+        int symbol = search(seq);
+        items.push_back(StatItem(*this, -1, symbol, std::numeric_limits<double>::max(), freq(symbol)));
     }
     slots += alphabet().size();
     std::vector<double> start_with(symbol_freqs_.size());

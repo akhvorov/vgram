@@ -15,7 +15,7 @@ public:
     explicit IntDictImpl(const IntSeq& seqs);
     IntDictImpl(const IntDictImpl& dict);
 
-    int search(const IntSeq& seq, std::unordered_set<int>* excludes) const override;
+    int search(const IntSeq& seq, std::unordered_set<int>* excludes) override;
     const IntSeq& get(int index) const override;
     int size() const override;
     const std::vector<IntSeq>& alphabet() const override;
@@ -34,8 +34,8 @@ private:
     IntSeq parents_;
 
     void init(const std::vector<IntSeq>& seqs);
-    bool add_new_symbol(const IntSeq& symbol);
-    int search_with_addition(const IntSeq& seq, std::unordered_set<int>* excludes);
+//    bool add_new_symbol(const IntSeq& symbol);
+//    int search_with_addition(const IntSeq& seq, std::unordered_set<int>* excludes);
     int linearParse(const IntSeq& seq, IntSeq* builder, std::unordered_set<int>* excludes);
     double weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
                          IntSeq* builder, std::unordered_set<int>* excludes);

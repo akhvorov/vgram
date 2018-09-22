@@ -34,29 +34,29 @@ IntDictImpl::IntDictImpl(const IntDictImpl& dict) {
 void IntDictImpl::init(const std::vector<IntSeq>& seqs) {
     seqs_ = std::vector<IntSeq>(seqs); // Sanitizer: indirect leak
     //seqs_ = seqs;
-    parents_ = IntSeq(seqs_.size()); // Sanitizer: indirect leak
+    parents_ = IntSeq(seqs_.size(), -1); // Sanitizer: indirect leak
     std::vector<std::pair<IntSeq, int>> parents_stack;
     std::sort(seqs_.begin(), seqs_.end());
 
     for (int i = 0; i < seqs_.size(); ++i) {
         IntSeq current = seqs_[i];
-        parents_[i] = -1;
         while (!parents_stack.empty()) {
             IntSeq prefix = parents_stack.back().first;
-            if (std::mismatch(prefix.begin(), prefix.end(), current.begin()).first == prefix.end()) {
+            //if (std::mismatch(prefix.begin(), prefix.end(), current.begin()).first == prefix.end()) {
+            if (std::memcmp(prefix.begin().base(), current.begin().base(), prefix.size()) == 0) {
                 parents_[i] = parents_stack.back().second;
                 break;
             }
             parents_stack.pop_back();
         }
-        parents_stack.emplace_back(std::pair<IntSeq, int>(current, i));
+        parents_stack.push_back(std::pair<IntSeq, int>(current, i));
     }
 }
 
 int IntDictImpl::linearParse(const IntSeq& seq, IntSeq* builder, std::unordered_set<int>* excludes = nullptr) {
     IntSeq suffix = seq;
     while (!suffix.empty()) {
-        int symbol = search_with_addition(suffix, excludes);
+        int symbol = search(suffix, excludes);
         auto sym_len = get(symbol).size();
         suffix = IntSeq(suffix.begin() + sym_len, suffix.end());
         builder->push_back(symbol);
@@ -73,7 +73,7 @@ double IntDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double
 
     for (int pos = 0; pos < len; pos++) {
         IntSeq suffix(seq.begin() + pos, seq.end());
-        int sym = search_with_addition(suffix, excludes);
+        int sym = search(suffix, excludes);
         do {
             auto sym_len = get(sym).size();
             double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
@@ -150,48 +150,48 @@ void IntDictImpl::weightParseVariants(const IntSeq& seq, double multiplier, cons
     }
 }
 
-int IntDictImpl::search_with_addition(const IntSeq& seq, std::unordered_set<int>* excludes) {
-    try {
-        return search(seq, excludes);
-    }
-    catch (std::exception& e) {
-        if (e.what() == DictionaryIndexIsCorruptedException().what()) {
-            if (add_new_symbol(IntSeq(1, seq[0]))) {
-                try {
-                    return search(seq, excludes);
-                } catch (std::exception& e) {
-                    if (e.what() == DictionaryIndexIsCorruptedException().what()) {
-                        return -1;
-                    } else {
-                        throw e;
-                    }
-                }
-            } else {
-                return -1;
-            }
-        } else {
-            throw e;
-        }
-    }
-}
+//int IntDictImpl::search_with_addition(const IntSeq& seq, std::unordered_set<int>* excludes) {
+//    try {
+//        return search(seq, excludes);
+//    }
+//    catch (std::exception& e) {
+//        if (e.what() == DictionaryIndexIsCorruptedException().what()) {
+//            if (add_new_symbol(IntSeq(1, seq[0]))) {
+//                try {
+//                    return search(seq, excludes);
+//                } catch (std::exception& e) {
+//                    if (e.what() == DictionaryIndexIsCorruptedException().what()) {
+//                        return -1;
+//                    } else {
+//                        throw e;
+//                    }
+//                }
+//            } else {
+//                return -1;
+//            }
+//        } else {
+//            throw e;
+//        }
+//    }
+//}
+//
+//bool IntDictImpl::add_new_symbol(const IntSeq& symbol) {
+//    try {
+//        search(symbol, nullptr);
+//    }
+//    catch (std::exception &e) {
+//        if (e.what() == DictionaryIndexIsCorruptedException().what() || size() == 0) {
+//            seqs_.push_back(IntSeq(1, symbol[0])); // Sanitizer: indirect leak
+//            parents_.push_back(-1); // Sanitizer: indirect leak
+//            return true;
+//        } else {
+//            throw e;
+//        }
+//    }
+//    return false;
+//}
 
-bool IntDictImpl::add_new_symbol(const IntSeq& symbol) {
-    try {
-        search(symbol, nullptr);
-    }
-    catch (std::exception &e) {
-        if (e.what() == DictionaryIndexIsCorruptedException().what() || size() == 0) {
-            seqs_.emplace_back(IntSeq(1, symbol[0])); // Sanitizer: indirect leak
-            parents_.push_back(-1); // Sanitizer: indirect leak
-            return true;
-        } else {
-            throw e;
-        }
-    }
-    return false;
-}
-
-int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) const {
+int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) {
     int index = static_cast<int>(std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin());
     if (index >= 0 && index < size() && seqs_[index] == seq) {
         if (excludes == nullptr || excludes->count(index) == 0)
@@ -204,11 +204,10 @@ int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) co
             return index;
         index = parents_[index];
     }
-//    int ind = size();
-//    seqs_.push_back(IntSeq(1, seq[0]));
-//    parents_[ind] = -1;
-//    return ind;
-    throw DictionaryIndexIsCorruptedException();
+    int ind = size();
+    seqs_.push_back(IntSeq(1, seq[0]));
+    parents_.push_back(-1);
+    return ind;
 }
 
 int IntDictImpl::parse(const IntSeq& seq, const IntSeq& freqs, double total_freq, IntSeq* output) {
