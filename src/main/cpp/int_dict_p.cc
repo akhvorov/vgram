@@ -42,8 +42,8 @@ void IntDictImpl::init(const std::vector<IntSeq>& seqs) {
         IntSeq current = seqs_[i];
         while (!parents_stack.empty()) {
             IntSeq prefix = parents_stack.back().first;
-            //if (std::mismatch(prefix.begin(), prefix.end(), current.begin()).first == prefix.end()) {
-            if (std::memcmp(prefix.begin().base(), current.begin().base(), prefix.size()) == 0) {
+            if (std::mismatch(prefix.begin(), prefix.end(), current.begin()).first == prefix.end()) {
+            //if (std::memcmp(prefix.begin().base(), current.begin().base(), prefix.size()) == 0) {
                 parents_[i] = parents_stack.back().second;
                 break;
             }
@@ -93,9 +93,7 @@ double IntDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double
         solution[len - (++index)] = sym;
         pos -= get(sym).size();
     }
-    for (int i = 0; i < index; i++) {
-        builder->push_back(solution[len - index + i]);
-    }
+    builder->insert(builder->end(), solution.begin() + len - index, solution.end());
     return score[len];
 }
 

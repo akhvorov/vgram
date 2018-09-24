@@ -20,6 +20,8 @@ public:
 
 typedef std::vector<int> IntSeq;
 
+std::ostream& operator<< (std::ostream &out, const IntSeq& seq);
+
 class IntDict {
 public:
     IntDict() = default;
