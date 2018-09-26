@@ -27,10 +27,14 @@ fetch_googletest(
 )
 
 enable_testing()
-#add_subdirectory(src/test)
 
-#add_subdirectory(lib/googletest)
-#include_directories(lib/googletest/googletest/include)
+# pybind11
+include(pybind11.cmake)
+fetch_pybind11(
+        ${PROJECT_SOURCE_DIR}
+        ${PROJECT_BINARY_DIR}/pybind11
+)
+#find_package(pybind11 REQUIRED)
 
 # Google Sanitizer
 # http://www.jetbrains.com/help/clion/google-sanitizers.html
@@ -76,7 +80,30 @@ add_executable(${project_name}
         src/test/cpp/int_vgram_builder_test.cpp
 
 #        src/main/cpp/main.cc
-        src/main/cpp/list_dict.cc src/main/cpp/vgram_builder.cc)
+        src/main/cpp/list_dict.cc
+        src/main/cpp/vgram_builder.cc)
+
+pybind11_add_module(vgram #${project_name}
+        src/main/cpp/int_dict.h
+        src/main/cpp/int_dict.cc
+        src/main/cpp/int_dict_p.h
+        src/main/cpp/int_dict_p.cc
+
+        src/main/cpp/stat_dict.h
+        src/main/cpp/stat_dict.cc
+
+        src/main/cpp/vector_hash.h
+        src/test/cpp/common.h
+        src/test/cpp/common.cc
+        src/main/cpp/fast_random.h
+        src/main/cpp/fast_random.cc
+
+        src/main/cpp/int_vgram_builder_p.h
+        src/main/cpp/int_vgram_builder_p.cc
+
+        src/main/cpp/list_dict.cc
+        src/main/cpp/vgram_builder.cc
+        src/main/cpp/main.cc)
 
 # add_library(vgram SHARED library.cpp) # my
 # set_target_properties(${project_name} PROPERTIES PREFIX "")
