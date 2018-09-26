@@ -11,7 +11,7 @@ constexpr double StatDict::kMaxMinProbability;
 IntVGramBuilderImpl::IntVGramBuilderImpl(int size) {
     size_ = size;
     symb_alphabet_ = std::vector<IntSeq>();
-    current_ = new StatDict(StatDict::kMaxMinProbability); // Sanitizer: indirect leak
+    current_ = std::shared_ptr<StatDict>(new StatDict(StatDict::kMaxMinProbability)); // Sanitizer: indirect leak
     result_ = nullptr;
 }
 
@@ -28,7 +28,7 @@ void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
     size_ = size;
     //trace = trace;
     symb_alphabet_ = alphabet.alphabet();
-    current_ = new StatDict(alphabet.alphabet(), StatDict::kMaxMinProbability); // Sanitizer: indirect leak
+    current_ = std::shared_ptr<StatDict>(new StatDict(alphabet.alphabet(), StatDict::kMaxMinProbability)); // Sanitizer: indirect leak
     result_ = nullptr;
 }
 
@@ -67,7 +67,7 @@ void IntVGramBuilderImpl::update() {
         prob_found_ *= 0.8;
     }
 
-    StatDict* result;
+    std::shared_ptr<StatDict> result;
     std::vector<IntSeq> new_dict;
     IntSeq freqs;
     int alphabet_size = static_cast<int>(symb_alphabet_.size());
@@ -78,12 +78,12 @@ void IntVGramBuilderImpl::update() {
         else
             slots = static_cast<int>(current_->size() * kExtensionFactor);
         double min_prob_result = current_->expand(slots, &new_dict, &freqs);
-        result = new StatDict(new_dict, min_prob_result, &freqs);
+        result = std::shared_ptr<StatDict>(new StatDict(new_dict, min_prob_result, &freqs));
     }
     else {
         double min_prob_result = current_->reduce(size_ - alphabet_size, &new_dict, &freqs);
-        result = new StatDict(new_dict, min_prob_result, &freqs);
-        delete result_;
+        result = std::shared_ptr<StatDict>(new StatDict(new_dict, min_prob_result, &freqs));
+        // delete result_;
         result_ = result;
     }
     //delete current_;
@@ -97,9 +97,6 @@ void IntVGramBuilderImpl::update() {
             alpha_accum_num++;
         }
     }
-//    for (const IntSeq& seq : current_->alphabet())
-//        if (seq.size() == 1)
-//            symb_alphabet_.push_back(seq);
     populate_ = !populate_;
 }
 

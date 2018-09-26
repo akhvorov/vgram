@@ -13,20 +13,20 @@ TEST(IntDictTests, EmptyTest) {
 
 TEST(IntDictTests, ConstructorTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
-    IntDict* dict0 = new IntDictImpl();
-    IntDict* dict1 = new IntDictImpl(seqs);
-    IntDict* dict2 = new IntDictImpl(seqs[0]);
+    std::shared_ptr<IntDict> dict0(new IntDictImpl());
+    std::shared_ptr<IntDict> dict1(new IntDictImpl(seqs));
+    std::shared_ptr<IntDict> dict2(new IntDictImpl(seqs[0]));
     ASSERT_TRUE(true);
 }
 
 TEST(IntDictTests, SizeTest) {
-    IntDict* dict = new IntDictImpl(simple_seqs());
+    std::shared_ptr<IntDict> dict(new IntDictImpl(simple_seqs()));
     ASSERT_EQ(dict->size(), 4);
 }
 
 TEST(IntDictTests, GetTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
-    IntDict* dict = new IntDictImpl(seqs);
+    std::shared_ptr<IntDict> dict(new IntDictImpl(seqs));
     ASSERT_EQ(seqs[1], dict->get(0));
     ASSERT_EQ(seqs[0], dict->get(1));
     ASSERT_EQ(seqs[3], dict->get(2));
@@ -35,7 +35,7 @@ TEST(IntDictTests, GetTest) {
 
 TEST(IntDictTests, AlphabetTest) {
     std::vector<std::vector<int>> seqs = simple_seqs();
-    IntDict* dict = new IntDictImpl(seqs);
+    std::shared_ptr<IntDict> dict(new IntDictImpl(seqs));
     const std::vector<std::vector<int>>& alphabet = dict->alphabet();
     std::unordered_set<std::vector<int>, VectorHash> set1(alphabet.begin(), alphabet.end());
     std::unordered_set<std::vector<int>, VectorHash> set2(seqs.begin(), seqs.end());
@@ -43,7 +43,7 @@ TEST(IntDictTests, AlphabetTest) {
 }
 
 TEST(IntDictTests, ParentTest) {
-    IntDict* dict = new IntDictImpl(simple_seqs());
+    std::shared_ptr<IntDict> dict(new IntDictImpl(simple_seqs()));
     ASSERT_EQ(-1, dict->parent(0));
     ASSERT_EQ(0, dict->parent(1));
     ASSERT_EQ(1, dict->parent(2));
@@ -51,7 +51,7 @@ TEST(IntDictTests, ParentTest) {
 }
 
 TEST(IntDictTests, SearchTest) {
-    IntDict* dict = new IntDictImpl(simple_seqs());
+    std::shared_ptr<IntDict> dict(new IntDictImpl(simple_seqs()));
     for (int i = 0; i < dict->size(); i++) {
         ASSERT_EQ(i, dict->search(dict->get(i), nullptr));
     }
@@ -80,7 +80,7 @@ TEST(IntDictTests, LinearParseTestOrdinary) {
     std::vector<int> expected(std::begin(arr2), std::end(arr2));
     std::vector<int> result;
 
-    IntDict* dict = new IntDictImpl(simple_seqs());
+    std::shared_ptr<IntDict> dict(new IntDictImpl(simple_seqs()));
     dict->parse(seq, &result);
     ASSERT_EQ(result, expected);
 }
@@ -92,14 +92,14 @@ TEST(IntDictTests, LinearParseTestNewSymbol) {
     std::vector<int> expected(std::begin(arr2), std::end(arr2));
     std::vector<int> result;
 
-    IntDict* dict = new IntDictImpl(simple_seqs());
+    std::shared_ptr<IntDict> dict(new IntDictImpl(simple_seqs()));
     dict->parse(seq, &result, nullptr);
     ASSERT_EQ(result, expected);
 }
 
 TEST(IntDictTests, NewSymbolInEmptyAlphabetTest) {
     IntSeq result;
-    IntDict* dict = new IntDictImpl();
+    std::shared_ptr<IntDict> dict(new IntDictImpl());
     std::vector<std::vector<int>> seqs = simple_seqs();
     for (const IntSeq& seq : seqs) {
         dict->parse(seq, &result);
@@ -117,7 +117,7 @@ TEST(IntDictTests, WeightedParseTest) {
     int total_freqs = 3 + 2 + 1 + 4;
     std::vector<int> result;
 
-    IntDict* dict = new IntDictImpl(simple_seqs());
+    std::shared_ptr<IntDict> dict(new IntDictImpl(simple_seqs()));
     dict->parse(seq, freqs, total_freqs, &result);
     ASSERT_EQ(result, expected);
 }

@@ -11,7 +11,7 @@
 #include "vector_hash.h"
 
 StatDict::StatDict(double min_prob_result) {
-    dict_ = std::make_shared<IntDictImpl>(); // Sanitizer: indirect leak
+    dict_ = std::shared_ptr<IntDict>(new IntDictImpl()); // Sanitizer: indirect leak
     symbol_freqs_ = IntSeq();
     parse_freqs_ = IntSeq();
     pairs_freqs_ = std::unordered_map<std::int64_t , int>(kAggPower); // Sanitizer: indirect leak

@@ -30,9 +30,9 @@ private:
   int size_;
   // ofstream trace_;
   std::vector<IntSeq> symb_alphabet_;
-  StatDict* current_;
+  std::shared_ptr<StatDict> current_;
   bool populate_ = true;
-  StatDict* result_;
+  std::shared_ptr<StatDict> result_;
 
   double prob_found_ = 0.1;
   double best_compression_rate_ = 1.0;
