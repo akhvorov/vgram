@@ -19,7 +19,7 @@ IntDictImpl::IntDictImpl(const std::vector<IntSeq>& seqs) {
 }
 
 IntDictImpl::IntDictImpl(const IntSeq& seqs) {
-    std::vector<IntSeq> vec(seqs.size(), IntSeq(1));
+    std::vector<IntSeq> vec(seqs.size(), IntSeq(1, -1));
     for (int i = 0; i < seqs.size(); i++) {
         vec[i][0] = seqs[i];
     }
@@ -43,13 +43,13 @@ void IntDictImpl::init(const std::vector<IntSeq>& seqs) {
         while (!parents_stack.empty()) {
             IntSeq prefix = parents_stack.back().first;
             if (std::mismatch(prefix.begin(), prefix.end(), current.begin()).first == prefix.end()) {
-            //if (std::memcmp(prefix.begin().base(), current.begin().base(), prefix.size()) == 0) {
+            //if (std::memcmp(&prefix, &current, prefix.size()) == 0) {
                 parents_[i] = parents_stack.back().second;
                 break;
             }
             parents_stack.pop_back();
         }
-        parents_stack.push_back(std::pair<IntSeq, int>(current, i));
+        parents_stack.emplace_back(current, i);
     }
 }
 
@@ -93,7 +93,7 @@ double IntDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double
         solution[len - (++index)] = sym;
         pos -= get(sym).size();
     }
-    builder->insert(builder->end(), solution.begin() + len - index, solution.end());
+    builder->insert(builder->end(), solution.begin() + len - index, solution.end() - 1);
     return score[len];
 }
 
@@ -162,7 +162,7 @@ int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) {
         index = parents_[index];
     }
     int ind = size();
-    seqs_.push_back(IntSeq(1, seq[0]));
+    seqs_.emplace_back(1, seq[0]);
     parents_.push_back(-1);
     return ind;
 }

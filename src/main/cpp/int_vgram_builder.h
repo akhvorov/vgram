@@ -16,7 +16,7 @@ public:
     virtual const IntDict* alpha() const = 0;
     virtual void accept(const IntSeq& seq) = 0;
     virtual IntSeq* result_freqs() = 0;
-    virtual double codeLength() const = 0;
+    virtual double code_length() const = 0;
 };
 
 

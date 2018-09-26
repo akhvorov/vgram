@@ -20,7 +20,7 @@ StatDict::StatDict(double min_prob_result) {
 
 StatDict::StatDict(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs) {
     IntDictImpl int_dict(seqs);
-    dict_ = std::make_shared<IntDictImpl>(int_dict); // Sanitizer: indirect leak
+    dict_ = std::make_shared<IntDictImpl>(int_dict); // Sanitizer: indirect leak // replace int_dict to seqs
     symbol_freqs_ = IntSeq(static_cast<size_t>(int_dict.size()));
     if (init_freqs == nullptr) {
         parse_freqs_ = IntSeq(static_cast<size_t>(dict_->size())); // Sanitizer: indirect leak
@@ -214,7 +214,7 @@ double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs)
     for (const IntSeq& seq : alphabet()) {
         known.insert(seq);
         int symbol = search(seq);
-        items.push_back(StatItem(*this, -1, symbol, std::numeric_limits<double>::max(), freq(symbol)));
+        items.emplace_back(*this, -1, symbol, std::numeric_limits<double>::max(), freq(symbol));
     }
     slots += alphabet().size();
     std::vector<double> start_with(symbol_freqs_.size());
