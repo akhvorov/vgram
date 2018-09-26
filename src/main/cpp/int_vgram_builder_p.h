@@ -24,17 +24,16 @@ public:
   IntSeq* result_freqs() override;
 //  void printPairs(const std::ofstream& ps) const;
 //  void print(const std::ofstream& file_writer) const;
-  double codeLength() const override;
+  double code_length() const override;
 
 private:
   int size_;
   // ofstream trace_;
-  const IntDict* initial_;
+  std::vector<IntSeq> symb_alphabet_;
   StatDict* current_;
   bool populate_ = true;
   StatDict* result_;
 
-  int alphabet_size_;
   double prob_found_ = 0.1;
   double best_compression_rate_ = 1.0;
   int no_rate_increase_turns_ = 0;

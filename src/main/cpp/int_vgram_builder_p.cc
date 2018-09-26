@@ -10,8 +10,7 @@ constexpr double StatDict::kMaxMinProbability;
 
 IntVGramBuilderImpl::IntVGramBuilderImpl(int size) {
     size_ = size;
-    alphabet_size_ = 0;
-    initial_ = nullptr;
+    symb_alphabet_ = std::vector<IntSeq>();
     current_ = new StatDict(StatDict::kMaxMinProbability); // Sanitizer: indirect leak
     result_ = nullptr;
 }
@@ -28,8 +27,7 @@ IntVGramBuilderImpl::IntVGramBuilderImpl(const IntSeq& alphabet, int size) {
 void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
     size_ = size;
     //trace = trace;
-    alphabet_size_ = alphabet.size();
-    initial_ = &alphabet;
+    symb_alphabet_ = alphabet.alphabet();
     current_ = new StatDict(alphabet.alphabet(), StatDict::kMaxMinProbability); // Sanitizer: indirect leak
     result_ = nullptr;
 }
@@ -39,7 +37,6 @@ IntDict* IntVGramBuilderImpl::result() const {
 }
 
 const IntDict* IntVGramBuilderImpl::alpha() const {
-    //return initial_;
     return new IntDictImpl(current_->alphabet());
 }
 
@@ -73,24 +70,36 @@ void IntVGramBuilderImpl::update() {
     StatDict* result;
     std::vector<IntSeq> new_dict;
     IntSeq freqs;
+    int alphabet_size = static_cast<int>(symb_alphabet_.size());
     if (populate_) {
-//        result = current_;
-//        if (trace != null)
-//            trace << "Size: " + current.size() + " rate: " + compressionRate + " minimal probability: " + current.minProbability << std::endl;
         int slots;
         if (current_->size() * kExtensionFactor < 10)
-            slots = size_ - alphabet_size_;
+            slots = size_ - alphabet_size;
         else
             slots = static_cast<int>(current_->size() * kExtensionFactor);
         double min_prob_result = current_->expand(slots, &new_dict, &freqs);
         result = new StatDict(new_dict, min_prob_result, &freqs);
     }
     else {
-        double min_prob_result = current_->reduce(size_ - alphabet_size_, &new_dict, &freqs);
+        double min_prob_result = current_->reduce(size_ - alphabet_size, &new_dict, &freqs);
         result = new StatDict(new_dict, min_prob_result, &freqs);
+        delete result_;
         result_ = result;
     }
+    //delete current_;
     current_ = result;
+    int alpha_accum_num = 0;
+    for (int i = 0; i < current_->size(); i++) {
+        if (current_->parent(i) < 0) {
+            if (alpha_accum_num > alphabet_size) {
+                symb_alphabet_.push_back(current_->get(i));
+            }
+            alpha_accum_num++;
+        }
+    }
+//    for (const IntSeq& seq : current_->alphabet())
+//        if (seq.size() == 1)
+//            symb_alphabet_.push_back(seq);
     populate_ = !populate_;
 }
 
@@ -104,7 +113,7 @@ IntSeq* IntVGramBuilderImpl::result_freqs() {
 //  void printPairs(const std::ofstream& ps) const;
 //  void print(const std::ofstream& file_writer) const;
 
-double IntVGramBuilderImpl::codeLength() const {
+double IntVGramBuilderImpl::code_length() const {
   return result_->code_length_per_char();
 }
 
