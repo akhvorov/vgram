@@ -21,6 +21,7 @@ public:
 typedef std::vector<int> IntSeq;
 
 std::ostream& operator<< (std::ostream &out, const IntSeq& seq);
+std::string to_string(const IntSeq& seq);
 
 class IntDict {
 public:

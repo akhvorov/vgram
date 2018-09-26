@@ -2,12 +2,13 @@
 // Created by Igor E. Kuralenok on 13.07.2018.
 //
 
-#include "int_dict_p.h"
+
+#include "int_dict.h"
 #include <ostream>
 
-IntDict* IntDict::create() {
-
-}
+//IntDict* IntDict::create(int alphabet_size) {
+//
+//}
 
 std::ostream& operator<< (std::ostream &out, const IntSeq& seq)
 {
@@ -15,9 +16,21 @@ std::ostream& operator<< (std::ostream &out, const IntSeq& seq)
     for (int i = 0; i < seq.size() - 1; i++) {
         out << seq[i] << " ";
     }
-    if (seq.size() > 0) {
+    if (!seq.empty()) {
         out << seq[seq.size() - 1];
     }
     out << ")";
     return out;
+}
+
+std::string to_string(const IntSeq& seq) {
+    std::string res = "(";
+    for (int i = 0; i < seq.size() - 1; i++) {
+        res += std::to_string(seq[i]) + " ";
+    }
+    if (!seq.empty()) {
+        res += std::to_string(seq[seq.size() - 1]);
+    }
+    res += ")";
+    return res;
 }

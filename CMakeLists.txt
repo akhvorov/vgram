@@ -56,6 +56,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined -fno-omit-frame-poi
 # for tests
 add_executable(${project_name}
         src/main/cpp/int_dict.h
+        src/main/cpp/int_dict.cc
         src/main/cpp/int_dict_p.h
         src/main/cpp/int_dict_p.cc
         src/test/cpp/int_dict_test.cc
