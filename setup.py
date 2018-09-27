@@ -58,7 +58,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name='vgram',
-    version='0.0.1',
+    version='0.1',
     author='Khvorov Aleksandr',
     author_email='khvorov.aleksandr@gmail.com',
     description='C++ binding of vgram builder library',

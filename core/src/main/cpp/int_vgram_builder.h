@@ -12,8 +12,8 @@ public:
     const double kExtensionFactor = 1.3;
     const double kMaxPower = 20000000;
 
-    virtual IntDict* result() const = 0;
-    virtual const IntDict* alpha() const = 0;
+    virtual std::shared_ptr<IntDict> result() const = 0;
+    virtual const std::shared_ptr<IntDict> alpha() const = 0;
     virtual void accept(const IntSeq& seq) = 0;
     virtual IntSeq* result_freqs() = 0;
     virtual double code_length() const = 0;

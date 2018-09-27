@@ -26,6 +26,7 @@ std::string to_string(const IntSeq& seq);
 class IntDict {
 public:
     IntDict() = default;
+    virtual ~IntDict() = default;
 //    explicit IntDict(const std::vector<IntSeq>& seqs);
 //    explicit IntDict(const IntSeq& seqs);
 
@@ -47,5 +48,23 @@ public:
       return nullptr;
   }
 };
+
+//class PyIntDict : public IntDict {
+//public:
+//    /* Inherit the constructors */
+//    using IntDict::IntDict;
+//
+//    /* Trampoline (need one for each virtual function) */
+//    int parse(const IntSeq& seq, const IntSeq& freqs, double total_freq, IntSeq* output) override {
+//        PYBIND11_OVERLOAD_PURE(
+//                int, /* Return type */
+//                IntDict,      /* Parent class */
+//                parse,          /* Name of function in C++ (must match Python name) */
+//                seq,
+//                freqs, total_freq,
+//                output      /* Argument(s) */
+//        );
+//    }
+//};
 
 #endif //VGRAM_LIST_DICT_H

@@ -18,8 +18,8 @@ public:
   explicit IntVGramBuilderImpl(int size);
   IntVGramBuilderImpl(const IntDict& alphabet, int size);
   IntVGramBuilderImpl(const IntSeq& alphabet, int size);
-  IntDict* result() const override;
-  const IntDict* alpha() const override;
+  std::shared_ptr<IntDict> result() const override;
+  const std::shared_ptr<IntDict> alpha() const override;
   void accept(const IntSeq& seq) override;
   IntSeq* result_freqs() override;
 //  void printPairs(const std::ofstream& ps) const;
