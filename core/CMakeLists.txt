@@ -46,10 +46,7 @@ set(TEST_LIB
         )
 
 add_library(${project_name} STATIC ${SOURCE_LIB})
-#set_target_properties(${project_name} PROPERTIES
-#        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/lib${project_name}.so"
-#        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include/lib${project_name}"
-#        )
+
 
 # tests
 #add_executable(${project_name} ${SOURCE_LIB} ${TEST_LIB})
