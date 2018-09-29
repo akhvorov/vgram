@@ -32,12 +32,12 @@ void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
     result_ = nullptr;
 }
 
-std::shared_ptr<IntDict> IntVGramBuilderImpl::result() const {
-    return result_ != nullptr ? result_->dict_ : nullptr;
+std::shared_ptr<StatDict> IntVGramBuilderImpl::result() const {
+    return result_ != nullptr ? result_ : nullptr;
 }
 
 const std::shared_ptr<IntDict> IntVGramBuilderImpl::alpha() const {
-    return std::shared_ptr<IntDict>(new IntDictImpl(current_->alphabet()));
+    return std::shared_ptr<IntDict>(new IntDictImpl(result_->alphabet()));
 }
 
 void IntVGramBuilderImpl::accept(const IntSeq& seq) {
