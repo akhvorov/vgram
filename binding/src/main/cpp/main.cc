@@ -4,13 +4,12 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-//#include "src/main/cpp/int_vgram_builder_p.h"
-//#include "src/main/cpp/int_dict_p.h"
+#include "py_vgram_builder.h"
 
 namespace py = pybind11;
 
 int add(int a, int b) {
-    return a + b + 1;
+    return 3;
 }
 
 PYBIND11_MODULE(vgram, m) {
@@ -24,8 +23,10 @@ PYBIND11_MODULE(vgram, m) {
 //            .def("size", &IntDictImpl::size)
 //            //.def("parse", (int (IntDictImpl::*)(const IntSeq&, const IntSeq&, double, IntSeq*)) &IntDictImpl::parse, "parse seq");
 //            .def("parse", (int (IntDictImpl::*)(const IntSeq&, const IntSeq&, double, IntSeq*)) &IntDictImpl::parse, "parse seq");
-//    py::class_<IntVGramBuilderImpl>(m, "IntVGramBuilderImpl")
-//            .def(py::init<int>())
-//            .def("accept", &IntVGramBuilderImpl::accept)
-//            .def("result", &IntVGramBuilderImpl::result);
+    py::class_<PyVGramBuilder>(m, "VGram")
+            .def(py::init<int>())
+            .def(py::init<const IntSeq&, int>())
+            .def("accept", &PyVGramBuilder::accept)
+            .def("parse", &PyVGramBuilder::parse)
+            .def("alphabet", &PyVGramBuilder::alphabet);
 }
