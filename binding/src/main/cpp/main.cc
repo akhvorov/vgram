@@ -23,7 +23,7 @@ PYBIND11_MODULE(vgram, m) {
 //            .def("size", &IntDictImpl::size)
 //            //.def("parse", (int (IntDictImpl::*)(const IntSeq&, const IntSeq&, double, IntSeq*)) &IntDictImpl::parse, "parse seq");
 //            .def("parse", (int (IntDictImpl::*)(const IntSeq&, const IntSeq&, double, IntSeq*)) &IntDictImpl::parse, "parse seq");
-    py::class_<PyVGramBuilder>(m, "VGram")
+    py::class_<PyVGramBuilder>(m, "VGramBuilder")
             .def(py::init<int>())
             .def(py::init<const IntSeq&, int>())
             .def("accept", &PyVGramBuilder::accept)
