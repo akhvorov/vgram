@@ -57,9 +57,13 @@ int IntDictImpl::linearParse(const IntSeq& seq, IntSeq* builder, std::unordered_
     IntSeq suffix = seq;
     while (!suffix.empty()) {
         int symbol = search(suffix, excludes);
-        auto sym_len = get(symbol).size();
-        suffix = IntSeq(suffix.begin() + sym_len, suffix.end());
-        builder->push_back(symbol);
+        if (symbol < 0) {
+            suffix = IntSeq(suffix.begin() + 1, suffix.end());
+        } else {
+            auto sym_len = get(symbol).size();
+            suffix = IntSeq(suffix.begin() + sym_len, suffix.end());
+            builder->push_back(symbol);
+        }
     }
     return static_cast<int>(builder->size());
 }
@@ -74,6 +78,8 @@ double IntDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double
     for (int pos = 0; pos < len; pos++) {
         IntSeq suffix(seq.begin() + pos, seq.end());
         int sym = search(suffix, excludes);
+        if (sym < 0)
+            continue;
         do {
             auto sym_len = get(sym).size();
             double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
@@ -97,56 +103,56 @@ double IntDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double
     return score[len];
 }
 
-void IntDictImpl::weightParseVariants(const IntSeq& seq, double multiplier, const IntSeq& freqs,
-                                      double total_freq, std::unordered_map<int, double>* result,
-                                      std::unordered_set<int>* excludes = nullptr) {
-    auto len = seq.size();
-    std::vector<double> count_forward(len + 1);
-    {
-        count_forward[0] = 1;
-        for (int pos = 0; pos < len; pos++) {
-            IntSeq suffix(seq.begin() + pos, seq.end());
-            int sym = search(suffix, excludes);
-            do {
-                auto sym_len = get(sym).size();
-                int freq = sym < freqs.size() ? freqs[sym] : 0;
-                count_forward[pos + sym_len] += freq * count_forward[pos] / total_freq;
-            }
-            while ((sym = parent(sym)) >= 0);
-        }
-    }
-
-    std::vector<double> count_backward(len + 1);
-    {
-        count_backward[len] = 1;
-        for (auto pos = static_cast<int>(len - 1); pos >= 0; pos--) {
-            IntSeq suffix(seq.begin() + pos, seq.end());
-            int sym = search(suffix, excludes);
-            do {
-                auto sym_len = get(sym).size();
-                int freq = sym < freqs.size() ? freqs[sym] : 0;
-                count_backward[pos] += freq * count_backward[pos + sym_len] / total_freq;
-            }
-            while ((sym = parent(sym)) >= 0);
-        }
-    }
-
-    for (int pos = 0; pos < len; pos++) {
-        IntSeq suffix(seq.begin() + pos, seq.end());
-        int sym = search(suffix, excludes);
-        do {
-            auto sym_len = static_cast<int>(get(sym).size());
-            int freq = sym < freqs.size() ? freqs[sym] : 0;
-            double freq_increment = freq / total_freq * count_forward[pos] * count_backward[pos + sym_len];
-            double v = multiplier * freq_increment / count_forward[len];
-            if (result->count(sym) == 0) {
-                (*result)[sym] = 0;
-            }
-            (*result)[sym] += v;
-        }
-        while ((sym = parent(sym)) >= 0);
-    }
-}
+//void IntDictImpl::weightParseVariants(const IntSeq& seq, double multiplier, const IntSeq& freqs,
+//                                      double total_freq, std::unordered_map<int, double>* result,
+//                                      std::unordered_set<int>* excludes = nullptr) {
+//    auto len = seq.size();
+//    std::vector<double> count_forward(len + 1);
+//    {
+//        count_forward[0] = 1;
+//        for (int pos = 0; pos < len; pos++) {
+//            IntSeq suffix(seq.begin() + pos, seq.end());
+//            int sym = search(suffix, excludes);
+//            do {
+//                auto sym_len = get(sym).size();
+//                int freq = sym < freqs.size() ? freqs[sym] : 0;
+//                count_forward[pos + sym_len] += freq * count_forward[pos] / total_freq;
+//            }
+//            while ((sym = parent(sym)) >= 0);
+//        }
+//    }
+//
+//    std::vector<double> count_backward(len + 1);
+//    {
+//        count_backward[len] = 1;
+//        for (auto pos = static_cast<int>(len - 1); pos >= 0; pos--) {
+//            IntSeq suffix(seq.begin() + pos, seq.end());
+//            int sym = search(suffix, excludes);
+//            do {
+//                auto sym_len = get(sym).size();
+//                int freq = sym < freqs.size() ? freqs[sym] : 0;
+//                count_backward[pos] += freq * count_backward[pos + sym_len] / total_freq;
+//            }
+//            while ((sym = parent(sym)) >= 0);
+//        }
+//    }
+//
+//    for (int pos = 0; pos < len; pos++) {
+//        IntSeq suffix(seq.begin() + pos, seq.end());
+//        int sym = search(suffix, excludes);
+//        do {
+//            auto sym_len = static_cast<int>(get(sym).size());
+//            int freq = sym < freqs.size() ? freqs[sym] : 0;
+//            double freq_increment = freq / total_freq * count_forward[pos] * count_backward[pos + sym_len];
+//            double v = multiplier * freq_increment / count_forward[len];
+//            if (result->count(sym) == 0) {
+//                (*result)[sym] = 0;
+//            }
+//            (*result)[sym] += v;
+//        }
+//        while ((sym = parent(sym)) >= 0);
+//    }
+//}
 
 int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) {
     int index = static_cast<int>(std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin());
@@ -161,10 +167,15 @@ int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) {
             return index;
         index = parents_[index];
     }
-    int ind = size();
-    seqs_.emplace_back(1, seq[0]);
-    parents_.push_back(-1);
-    return ind;
+    if (is_mutable_) {
+        int ind = size();
+        seqs_.emplace_back(1, seq[0]);
+        parents_.push_back(-1);
+        return ind;
+    } else {
+        return -1;
+    }
+
 }
 
 int IntDictImpl::parse(const IntSeq& seq, const IntSeq& freqs, double total_freq, IntSeq* output) {
@@ -177,10 +188,7 @@ int IntDictImpl::parse(const IntSeq& seq, const IntSeq& freqs, double total_freq
         std::cout << "->";
         for (int symbol : *output) {
             if (symbol >= 0) {
-                // TODO redefine << operator for IntSeq
-                std::cout << " ";
-                for (int e : get(symbol))
-                    std::cout << e;
+                std::cout << " " << get(symbol);
             } else {
                 std::cout << "##unknown##";
             }
@@ -211,10 +219,8 @@ int IntDictImpl::parent(int second) const {
     return parents_[second];
 }
 
+void IntDictImpl::set_mutable(bool is_mutable) {
+    is_mutable_ = is_mutable;
+}
+
 IntDictImpl::~IntDictImpl() = default;
-//{
-//    for (auto seq : seqs_) {
-//        delete &seq;
-//    }
-//    delete &seqs_;
-//}

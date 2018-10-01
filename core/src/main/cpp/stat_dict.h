@@ -31,12 +31,12 @@ public:
     int freq(int index) const;
     double code_length_per_char() const;
 
-    bool enough(double probFound);
+    bool enough(double probFound) const;
     int parse(const IntSeq& seq, IntSeq* output);
+    void set_mutable(bool is_mutable);
 
 private:
     std::shared_ptr<IntDict> dict_;
-    //IntDict* dict_;
     IntSeq symbol_freqs_;
     IntSeq parse_freqs_;
     double power_ = 0;
@@ -44,23 +44,22 @@ private:
     std::unordered_map<std::int64_t, int> pairs_freqs_;
     double min_probability_;
     double total_chars_ = 0;
-    //FastRandom rng = new FastRandom(0);
+    bool is_mutable_ = true;
 
-    double reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs);
-    int filter_stat_items(int slots, std::vector<StatItem>* items);
-    int stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes);
+    double reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const;
+    int filter_stat_items(int slots, std::vector<StatItem>* items) const;
+    int stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes) const;
 
-    int index_of_two_str(const IntSeq& first, const IntSeq& second, int betw, int ind);
-    bool is_substring(const IntSeq& s, const IntSeq& t);
+//    int index_of_two_str(const IntSeq& first, const IntSeq& second, int betw, int ind);
+//    bool is_substring(const IntSeq& s, const IntSeq& t);
+//    void print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
+//                     const std::unordered_map<std::int64_t, int>& new_pairs) const ;
 
     //TODO: remove, make base class
     double weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
-                         IntSeq* result, std::unordered_set<int>* excludes = nullptr);
+                         IntSeq* result, std::unordered_set<int>* excludes = nullptr) const;
 
-    void print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
-                     const std::unordered_map<std::int64_t, int>& new_pairs) const ;
-
-    double expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs);
+    double expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const;
 
 };
 

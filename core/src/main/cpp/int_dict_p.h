@@ -23,15 +23,17 @@ public:
 
     int parse(const IntSeq& seq, const IntSeq& freqs, double total_freq, IntSeq* output) override;
     int parse(const IntSeq& seq, IntSeq* output, std::unordered_set<int>* excludes) override;
-    void weightParseVariants(const IntSeq& seq, double multiplier, const IntSeq& freqs,
-                             double total_freq, std::unordered_map<int, double>* result,
-                             std::unordered_set<int>* excludes);
+//    void weightParseVariants(const IntSeq& seq, double multiplier, const IntSeq& freqs,
+//                             double total_freq, std::unordered_map<int, double>* result,
+//                             std::unordered_set<int>* excludes);
+    void set_mutable(bool is_mutable) override;
 
     ~IntDictImpl();
 
 private:
     std::vector<IntSeq> seqs_;
     IntSeq parents_;
+    bool is_mutable_ = true;
 
     void init(const std::vector<IntSeq>& seqs);
 //    bool add_new_symbol(const IntSeq& symbol);

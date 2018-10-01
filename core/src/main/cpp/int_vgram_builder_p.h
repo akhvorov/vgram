@@ -37,6 +37,7 @@ private:
   double prob_found_ = 0.1;
   double best_compression_rate_ = 1.0;
   int no_rate_increase_turns_ = 0;
+  bool is_mutable_ = true;
 
   void init(const IntDict& alphabet, int size);
   void update();

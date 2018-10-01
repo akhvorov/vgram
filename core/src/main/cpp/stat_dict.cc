@@ -81,7 +81,7 @@ double StatDict::code_length_per_char() const {
 }
 
 double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
-                               IntSeq* result, std::unordered_set<int>* excludes) {
+                               IntSeq* result, std::unordered_set<int>* excludes) const {
     size_t len = seq.size();
     std::vector<double> score(len + 1, std::numeric_limits<double>::lowest());
     score[0] = 0;
@@ -116,7 +116,7 @@ double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double to
     return score[len];
 }
 
-double StatDict::reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) {
+double StatDict::reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
     std::vector<StatItem> items;
     filter_stat_items(slots, &items);
     double power = 0.0;
@@ -134,7 +134,7 @@ double StatDict::reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs)
     return min_prob_result;
 }
 
-int StatDict::filter_stat_items(int slots, std::vector<StatItem>* items) {
+int StatDict::filter_stat_items(int slots, std::vector<StatItem>* items) const {
     for (int s = 0; s < symbol_freqs_.size(); s++)
         if (parent(s) < 0)
             slots += 1;
@@ -148,7 +148,7 @@ int StatDict::filter_stat_items(int slots, std::vector<StatItem>* items) {
     return static_cast<int>(items->size());
 }
 
-int StatDict::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes) {
+int StatDict::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes) const {
     double code_length = code_length_per_char() * total_chars_;
     for (int id = 0; id < symbol_freqs_.size(); id++) {
         if (excludes->count(id) == 0) {
@@ -179,36 +179,36 @@ int StatDict::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* 
     return static_cast<int>(items->size());
 }
 
-int StatDict::index_of_two_str(const IntSeq& first, const IntSeq& second, int betw, int ind) {
-    if (ind >= 0 && ind < first.size()) {
-        return first[ind];
-    } else if (ind == first.size()) {
-        return betw;
-    } else if (ind > first.size() && ind < first.size() + 1 + second.size()) {
-        return second[ind - first.size() - 1];
-    } else {
-        return -1;
-    }
-}
+//int StatDict::index_of_two_str(const IntSeq& first, const IntSeq& second, int betw, int ind) {
+//    if (ind >= 0 && ind < first.size()) {
+//        return first[ind];
+//    } else if (ind == first.size()) {
+//        return betw;
+//    } else if (ind > first.size() && ind < first.size() + 1 + second.size()) {
+//        return second[ind - first.size() - 1];
+//    } else {
+//        return -1;
+//    }
+//}
+//
+//bool StatDict::is_substring(const IntSeq& s, const IntSeq& t) {
+//    return std::search(s.begin(), s.end(), t.begin(), t.end()) != t.end();
+//}
+//
+//void StatDict::print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
+//                          const std::unordered_map<std::int64_t, int>& new_pairs) const {
+//    for (int first = 0; first < size(); first++) {
+//        for (int second = 0; second < size(); second++) {
+//            std::int64_t code = (((std::int64_t) first) << 32) | second;
+//            if (old_pairs.at(code) != new_pairs.at(code)) {
+//                std::cout << "\t" << &dict_->get(first) << "|" << &dict_->get(second) << ": " << old_pairs.at(code) <<
+//                          " -> " << new_pairs.at(code) << std::endl;
+//            }
+//        }
+//    }
+//}
 
-bool StatDict::is_substring(const IntSeq& s, const IntSeq& t) {
-    return std::search(s.begin(), s.end(), t.begin(), t.end()) != t.end();
-}
-
-void StatDict::print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
-                          const std::unordered_map<std::int64_t, int>& new_pairs) const {
-    for (int first = 0; first < size(); first++) {
-        for (int second = 0; second < size(); second++) {
-            std::int64_t code = (((std::int64_t) first) << 32) | second;
-            if (old_pairs.at(code) != new_pairs.at(code)) {
-                std::cout << "\t" << &dict_->get(first) << "|" << &dict_->get(second) << ": " << old_pairs.at(code) <<
-                          " -> " << new_pairs.at(code) << std::endl;
-            }
-        }
-    }
-}
-
-double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) {
+double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
     std::vector<StatItem> items;
     std::unordered_set<IntSeq, VectorHash> known;
     for (const IntSeq& seq : alphabet()) {
@@ -286,25 +286,30 @@ double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs)
     return min_prob_result;
 }
 
-bool StatDict::enough(double prob_found) {
+bool StatDict::enough(double prob_found) const {
     return power_ > -log(prob_found) / min_probability_;
 }
 
 int StatDict::parse(const IntSeq& seq, IntSeq* parse_result) {
-    total_chars_ += seq.size();
     dict_->parse(seq, parse_freqs_, power_ + parse_freqs_init_power_, parse_result);
-    auto length = parse_result->size();
-    int prev = -1;
-    for (int i = 0; i < length; ++i) {
-        int symbol = (*parse_result)[i];
-        update_symbol(symbol, 1);
-        if (prev >= 0)
-            pairs_freqs_[(((std::int64_t) prev) << 32) | symbol] += 1; // Sanitizer: indirect leak
-        prev = symbol;
+    if (is_mutable_) {
+        total_chars_ += seq.size();
+        auto length = parse_result->size();
+        int prev = -1;
+        for (int i = 0; i < length; ++i) {
+            int symbol = (*parse_result)[i];
+            update_symbol(symbol, 1);
+            if (prev >= 0)
+                pairs_freqs_[(((std::int64_t) prev) << 32) | symbol] += 1; // Sanitizer: indirect leak
+            prev = symbol;
+        }
     }
     return static_cast<int>(parse_result->size());
 }
 
+void StatDict::set_mutable(bool is_mutable) {
+    is_mutable_ = is_mutable;
+}
 
 //StatItem
 

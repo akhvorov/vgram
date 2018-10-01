@@ -107,9 +107,6 @@ IntSeq* IntVGramBuilderImpl::result_freqs() {
   return &result_->symbol_freqs_;
 }
 
-//  void printPairs(const std::ofstream& ps) const;
-//  void print(const std::ofstream& file_writer) const;
-
 double IntVGramBuilderImpl::code_length() const {
   return result_->code_length_per_char();
 }
