@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-set(project_name vgram_builder_core)
+set(project_name vgram_builder_test)
 project(${project_name})
 
 set(CMAKE_CXX_STANDARD 11)
@@ -7,12 +7,12 @@ option(WITH_PYTHON "Build with python interface" ON)
 
 
 # gtest
-#include(src/test/googletest.cmake)
-#fetch_googletest(
-#        ${PROJECT_SOURCE_DIR}
-#        ${PROJECT_BINARY_DIR}/googletest
-#)
-#enable_testing()
+include(googletest.cmake)
+fetch_googletest(
+        ${PROJECT_SOURCE_DIR}
+        ${PROJECT_BINARY_DIR}/googletest
+)
+enable_testing()
 
 # Google Sanitizer
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -g -O1")
@@ -38,23 +38,16 @@ option(WITH_PYTHON "Build with python interface" ON)
 #        src/main/cpp/list_dict.cc
 #        src/main/cpp/vgram_builder.cc
 #        )
-#
-#set(TEST_LIB
-#        src/test/cpp/int_dict_test.cc
-#        src/test/cpp/stat_dict_test.cc
-#        src/test/cpp/int_vgram_builder_test.cpp
-#        )
-#
-#add_library(${project_name} STATIC ${SOURCE_LIB})
 
+set(TEST_LIB
+        cpp/common.h
+        cpp/common.cc
+        cpp/int_dict_test.cc
+        cpp/stat_dict_test.cc
+        cpp/int_vgram_builder_test.cpp
+        )
 
 # tests
-#add_executable(${project_name} ${SOURCE_LIB} ${TEST_LIB})
-
-#target_link_libraries(${project_name} gtest gtest_main)
-
-#include_directories(src/main)
-#add_subdirectory(src/main)
-
-#include_directories(src/test)
-#add_subdirectory(src/test)
+add_executable(${project_name} ${TEST_LIB})
+#target_link_libraries(${project_name} vgram_builder)
+target_link_libraries(${project_name} vgram_builder gtest gtest_main)
