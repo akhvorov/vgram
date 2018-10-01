@@ -3,8 +3,8 @@
 //
 
 #include <gtest/gtest.h>
-#include "../../main/cpp/stat_dict.h"
-#include "../../main/cpp/vector_hash.h"
+#include "cpp/stat_dict.h"
+#include "cpp/vector_hash.h"
 #include "common.h"
 
 TEST(StatDictTests, EmptyTest) {

@@ -3,8 +3,8 @@
 //
 
 #include <gtest/gtest.h>
-#include "../../main/cpp/int_dict_p.h"
-#include "../../main/cpp/vector_hash.h"
+#include "cpp/int_dict_p.h"
+#include "cpp/vector_hash.h"
 #include "common.h"
 
 TEST(IntDictTests, EmptyTest) {
@@ -64,20 +64,19 @@ TEST(IntDictTests, SearchTest) {
     ASSERT_EQ(0, dict->search(dict->get(2), &excludes));
     ASSERT_EQ(3, dict->search(dict->get(3), &excludes));
 
-    int arr1[] = {1, 0};
-    int arr2[] = {0, 0, 0};
-    int arr3[] = {0, 1, 0};
-    ASSERT_EQ(3, dict->search(std::vector<int>(std::begin(arr1), std::end(arr1)), &excludes));
-    ASSERT_EQ(0, dict->search(std::vector<int>(std::begin(arr2), std::end(arr2)), &excludes));
-    ASSERT_EQ(0, dict->search(std::vector<int>(std::begin(arr3), std::end(arr3)), &excludes));
-    ASSERT_EQ(1, dict->search(std::vector<int>(std::begin(arr3), std::end(arr3)), nullptr));
+    ASSERT_EQ(3, dict->search(std::vector<int>{1, 0}, &excludes));
+    ASSERT_EQ(0, dict->search(std::vector<int>{0, 0, 0}, &excludes));
+    ASSERT_EQ(0, dict->search(std::vector<int>{0, 1, 0}, &excludes));
+    ASSERT_EQ(1, dict->search(std::vector<int>{0, 1, 0}, nullptr));
+
+    ASSERT_EQ(4, dict->search(std::vector<int>{2}, nullptr));
+    dict->set_mutable(false);
+    ASSERT_EQ(-1, dict->search(std::vector<int>{3}, nullptr));
 }
 
 TEST(IntDictTests, LinearParseTestOrdinary) {
-    int arr1[] = {0, 1, 0, 1, 1, 0, 1, 1, 1, 0};
-    int arr2[] = {1, 2, 2, 3, 0};
-    std::vector<int> seq(std::begin(arr1), std::end(arr1));
-    std::vector<int> expected(std::begin(arr2), std::end(arr2));
+    std::vector<int> seq{0, 1, 0, 1, 1, 0, 1, 1, 1, 0};
+    std::vector<int> expected{1, 2, 2, 3, 0};
     std::vector<int> result;
 
     std::shared_ptr<IntDict> dict(new IntDictImpl(simple_seqs()));
@@ -86,13 +85,22 @@ TEST(IntDictTests, LinearParseTestOrdinary) {
 }
 
 TEST(IntDictTests, LinearParseTestNewSymbol) {
-    int arr1[] = {0, 1, 2, 0, 1, 1, 0, 1, 1, 1, 0};
-    int arr2[] = {1, 4, 2, 2, 3, 0};
-    std::vector<int> seq(std::begin(arr1), std::end(arr1));
-    std::vector<int> expected(std::begin(arr2), std::end(arr2));
+    std::vector<int> seq{0, 1, 2, 0, 1, 1, 0, 1, 1, 1, 0};
+    std::vector<int> expected{1, 4, 2, 2, 3, 0};
     std::vector<int> result;
 
     std::shared_ptr<IntDict> dict(new IntDictImpl(simple_seqs()));
+    dict->parse(seq, &result, nullptr);
+    ASSERT_EQ(result, expected);
+}
+
+TEST(IntDictTests, LinearParseTestNewSymbolNotMutable) {
+    std::vector<int> seq{0, 1, 2, 0, 1, 1, 0, 1, 1, 1, 0};
+    std::vector<int> expected{1, 2, 2, 3, 0};
+    std::vector<int> result;
+
+    std::shared_ptr<IntDict> dict(new IntDictImpl(simple_seqs()));
+    dict->set_mutable(false);
     dict->parse(seq, &result, nullptr);
     ASSERT_EQ(result, expected);
 }
@@ -108,12 +116,9 @@ TEST(IntDictTests, NewSymbolInEmptyAlphabetTest) {
 }
 
 TEST(IntDictTests, WeightedParseTest) {
-    int arr1[] = {0, 1, 0, 1, 1, 0, 1, 1, 1, 0};
-    int arr2[] = {1, 2, 2, 3, 0};
-    int arr3[] = {3, 2, 1, 4};
-    std::vector<int> seq(std::begin(arr1), std::end(arr1));
-    std::vector<int> expected(std::begin(arr2), std::end(arr2));
-    std::vector<int> freqs(std::begin(arr3), std::end(arr3));
+    std::vector<int> seq{0, 1, 0, 1, 1, 0, 1, 1, 1, 0};
+    std::vector<int> expected{1, 2, 2, 3, 0};
+    std::vector<int> freqs{3, 2, 1, 4};
     int total_freqs = 3 + 2 + 1 + 4;
     std::vector<int> result;
 

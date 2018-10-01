@@ -4,10 +4,10 @@
 
 #include <gtest/gtest.h>
 #include <random>
-#include "../../main/cpp/int_vgram_builder_p.h"
-#include "../../main/cpp/int_dict_p.h"
+#include "cpp/int_vgram_builder_p.h"
+#include "cpp/int_dict_p.h"
 #include "common.h"
-#include "../../main/cpp/vector_hash.h"
+#include "cpp/vector_hash.h"
 
 TEST(IntVgramBuilderTests, EmptyTest) {
     ASSERT_TRUE(true);
