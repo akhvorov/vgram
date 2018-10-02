@@ -5,6 +5,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include "py_vgram_builder.h"
+#include "tokenizer.h"
 
 namespace py = pybind11;
 
@@ -12,11 +13,17 @@ int add(int a, int b) {
     return 3;
 }
 
+//class PyTokenizer : public Tokenizer {
+//public:
+//    using Tokenizer::Tokenizer;
+//    void fit(const std::vector<std::string>& seqs) override { PYBIND11_OVERLOAD(void, Tokenizer, fit, seqs); }
+//    std::vector<std::vector<int>> transform(const std::vector<std::string>& seqs) override { PYBIND11_OVERLOAD(std::vector<std::vector<int>>, Tokenizer, transform, seqs); }
+//};
+
 PYBIND11_MODULE(vgram, m) {
-    m.doc() = "pybind11 example plugin"; // optional module docstring
+    m.doc() = "python lib for vgram features building";
     m.def("add", &add, "A function which adds two numbers");
-//    m.def("parse", &parse, "A function which adds two numbers");
-//
+
 //    py::class_<IntDict>(m, "IntDict");
 //    py::class_<IntDictImpl, IntDict>(m, "IntDictImpl")
 //            .def(py::init<>())
@@ -24,9 +31,30 @@ PYBIND11_MODULE(vgram, m) {
 //            //.def("parse", (int (IntDictImpl::*)(const IntSeq&, const IntSeq&, double, IntSeq*)) &IntDictImpl::parse, "parse seq");
 //            .def("parse", (int (IntDictImpl::*)(const IntSeq&, const IntSeq&, double, IntSeq*)) &IntDictImpl::parse, "parse seq");
     py::class_<PyVGramBuilder>(m, "VGramBuilder")
-            .def(py::init<int>())
-            .def(py::init<const IntSeq&, int>())
-            .def("accept", &PyVGramBuilder::accept)
-            .def("parse", &PyVGramBuilder::parse)
-            .def("alphabet", &PyVGramBuilder::alphabet);
+            //.def(py::init<int, const IntSeq&, int>())
+            // fix constructor!
+            .def(py::init<int, int>())
+            .def("fit", &PyVGramBuilder::fit)
+            .def("transform", &PyVGramBuilder::transform)
+            .def("alphabet", &PyVGramBuilder::alphabet)
+            ;
+//    py::class_<Tokenizer>(m, "Tokenizer");
+//    py::class_<SimpleTokenizer, Tokenizer>(m, "SimpleTokenizer")
+//            .def(py::init<>())
+//            .def("fit", &SimpleTokenizer::fit)
+//            .def("transform", &SimpleTokenizer::transform);
+
+//    py::class_<Tokenizer, PyTokenizer>(m, "Tokenizer")
+//            .def(py::init<>())
+//            .def("fit", &Tokenizer::fit)
+//            .def("transform", &Tokenizer::transform);
+//
+//    py::class_<SimpleTokenizer, Tokenizer>(m, "SimpleTokenizer")
+//            .def(py::init<char>());
+
+    py::class_<Tokenizer>(m, "Tokenizer")
+            .def(py::init<>())
+            .def("fit", &Tokenizer::fit)
+            .def("transform", &Tokenizer::transform);
+
 }
