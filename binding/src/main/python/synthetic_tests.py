@@ -4,14 +4,14 @@ import numpy as np
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.linear_model import SGDClassifier
-from vgram import VGramBuilder
+from vgram import VGramBuilder, Tokenizer
 
 
 def restore_test():
     alpha = [i for i in range(26)]
-    vgb = VGramBuilder(alpha, len(alpha) + 100)
+    vgb = VGramBuilder(len(alpha) + 100, alpha)
     for i in range(100000):
         l = random.randint(1, 300)
         seq = [alpha[random.randint(0, len(alpha) - 1)] for _ in range(l)]
@@ -53,7 +53,7 @@ def newsgroups1():
     classify_text(baseline)
 
 
-class Tokenizer:
+class MyTokenizer:
     def __init__(self):
         self.fcode = {}
         self.bcode = {}
@@ -127,7 +127,7 @@ def test_20ng():
     start = time.time()
     train, test = fetch_20newsgroups(subset='train'), fetch_20newsgroups(subset='test')
     print("dataset: ", time.time() - start)
-    tokenizer = Tokenizer()
+    tokenizer = MyTokenizer()
     ttrain = tokenizer.encode(train.data)
     ttest = tokenizer.encode(test.data)
     print("encode: ", time.time() - start)
@@ -174,10 +174,6 @@ def test_20ng():
     print(np.mean(predicted == test.target))
 
     print("ml: ", time.time() - start)
-
-
-
-
     # print(type(train))
     # print(train.data[0])
     # vectorizer = CountVectorizer(analyzer='char')
@@ -188,9 +184,66 @@ def test_20ng():
     # print(vectorizer.decode(train.data[0]))
 
 
+class TokenizerP:
+    def __init__(self):
+        self.tok = Tokenizer()
+
+    def fit(self, X, y=None):
+        self.tok.fit(X)
+        return self
+
+    def transform(self, X, y=None):
+        return self.tok.transform(X)
+
+
+class VGramBuilderP:
+    def __init__(self, size, iter_num):
+        self.vgb = VGramBuilder(size, iter_num)
+
+    def fit(self, X, y=None):
+        self.vgb.fit(X)
+        return self
+
+    def transform(self, X, y=None):
+        return self.vgb.transform(X)
+
+
+def vgram_20ng():
+    train, test = fetch_20newsgroups(subset='train'), fetch_20newsgroups(subset='test')
+    # VGramFeatures = Pipeline([
+    #     ("tokenizer", TokenizerP()),
+    #     ("vgb", VGramBuilderP(10000, 1)),
+    #     ('vectorizer', CountVectorizer())
+    # ])
+    # union = FeatureUnion([("vgram", VGramFeatures), ("words", CountVectorizer)])
+    # res = union.fit_transform(train.data, train.target)
+    # print(res.shape)
+    # print(res[0])
+
+    # pipeline = Pipeline([
+    #     ("features", FeatureUnion([("vgram", VGramFeatures), ("words", CountVectorizer)])),
+    #     ('tfidf', TfidfTransformer()),
+    #     ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, max_iter=5, random_state=42))
+    # ])
+
+    pipeline = Pipeline([
+        ("tokenizer", TokenizerP()),
+        ("vgb", VGramBuilderP(10000, 1)),
+        ('vectorizer', CountVectorizer()),
+        ('tfidf', TfidfTransformer()),
+        ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, max_iter=5, random_state=42))
+    ])
+    pipeline = pipeline.fit(train.data, train.target)
+    predicted = pipeline.predict(test.data)
+    print(np.mean(predicted == test.target))
+
+
+
 def main():
     start = time.time()
-    test_20ng()
+    #test_20ng()
+    #restore_test()
+    vgram_20ng()
     print("time: ", time.time() - start)
 
 
