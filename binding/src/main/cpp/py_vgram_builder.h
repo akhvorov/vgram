@@ -18,7 +18,7 @@ public:
     //PyVGramBuilder(int size, IntSeq* alphabet = nullptr, int iter_num = 1);
     //PyVGramBuilder(int size, IntSeq* alphabet, int iter_num);
     void fit(const std::vector<IntSeq>& seqs);
-    std::vector<std::string> transform(const std::vector<IntSeq>& seqs);
+    std::vector<IntSeq> transform(const std::vector<IntSeq>& seqs);
 
     std::vector<IntSeq> alphabet() const;
 

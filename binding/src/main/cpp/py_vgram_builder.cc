@@ -2,7 +2,7 @@
 // Created by Aleksandr Khvorov on 29/09/2018.
 //
 
-//#include <algorithm>
+#include <algorithm>
 #include <cpp/int_vgram_builder_p.h>
 #include "py_vgram_builder.h"
 
@@ -37,29 +37,26 @@ PyVGramBuilder::PyVGramBuilder(int size, int iter_num) {
 //}
 
 void PyVGramBuilder::fit(const std::vector<IntSeq>& seqs) {
+    std::vector<IntSeq> mut_seqs(seqs);
     if (stat_dict_ != nullptr)
         stat_dict_->set_mutable(true);
     for (int i = 0; i < iter_num_; i++) {
-        //std::next_permutation(seqs.begin(), seqs.end());
-        for (const IntSeq& seq : seqs) {
+        std::next_permutation(mut_seqs.begin(), mut_seqs.end());
+        for (const IntSeq& seq : mut_seqs) {
             builder_->accept(seq);
         }
     }
     stat_dict_ = builder_->result();
 }
 
-std::vector<std::string> PyVGramBuilder::transform(const std::vector<IntSeq>& seqs) {
+std::vector<IntSeq> PyVGramBuilder::transform(const std::vector<IntSeq>& seqs) {
     stat_dict_->set_mutable(false);
-    std::vector<std::string> res;
+    std::vector<IntSeq> res;
     res.reserve(seqs.size());
     for (const IntSeq& seq : seqs) {
         IntSeq result;
         stat_dict_->parse(seq, &result);
-        std::string str;
-        for (int sym : result) {
-            str += std::to_string(sym) + " ";
-        }
-        res.push_back(str);
+        res.push_back(result);
     }
     return res;
 }
