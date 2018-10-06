@@ -46,6 +46,7 @@ private:
     double total_chars_ = 0;
     bool is_mutable_ = true;
 
+    double expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const;
     double reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const;
     int filter_stat_items(int slots, std::vector<StatItem>* items) const;
     int stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes) const;
@@ -59,23 +60,21 @@ private:
     double weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
                          IntSeq* result, std::unordered_set<int>* excludes = nullptr) const;
 
-    double expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const;
+    void stat_item_to_text(const StatItem& item, IntSeq* output) const;
 
 };
 
 class StatItem {
 public:
-    StatItem(const StatDict& dict, int first_, int second_, double score_, int count_);
+    StatItem(int first_, int second_, double score_, int count_);
     //std::string to_string();
     bool equals(const StatItem& statItem);
-    void text(IntSeq* output) const;
     int first() const;
     int second() const;
     double score() const;
     int count() const;
 
 private:
-    const StatDict* stat_dict_;
     int first_;
     int second_;
     double score_;

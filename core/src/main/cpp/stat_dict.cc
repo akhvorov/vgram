@@ -41,6 +41,9 @@ void StatDict::update_symbol(int index, int freq) {
         for (auto i = parse_freqs_.size(); i < index + 1; i++)
             parse_freqs_.push_back(0); // Sanitizer: indirect leak
     }
+    if (index >= symbol_freqs_.size() || index >= parse_freqs_.size()) {
+        std::cout << "Error in stat_dict.cc 1" << std::endl;
+    }
     symbol_freqs_[index] += freq;
     parse_freqs_[index] += freq;
     power_ += freq;
@@ -94,6 +97,9 @@ double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double to
             auto sym_len = get(sym).size();
             double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
 
+            if (sym_len + pos >= score.size() || sym_len + pos >= symbols.size()) {
+                std::cout << "Error in stat_dict.cc 2" << std::endl;
+            }
             if (score[sym_len + pos] < score[pos] + sym_log_prob)
             {
                 score[sym_len + pos] = score[pos] + sym_log_prob;
@@ -107,14 +113,101 @@ double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double to
     int index = 0;
     while (pos > 0) {
         int sym = symbols[pos];
+        if (len - index - 1 >= solution.size()) {
+            std::cout << "Error in stat_dict.cc 3" << std::endl;
+        }
         solution[len - (++index)] = sym;
         pos -= get(sym).size();
     }
-    for (int i = 0; i < index; i++) {
-        result->push_back(solution[len - index + i]);
-    }
+//    for (int i = 0; i < index; i++) {
+//        result->push_back(solution[len - index + i]);
+//    }
+    result->insert(result->end(), solution.begin() + len - index, solution.end() - 1);
     return score[len];
 }
+
+double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
+    std::vector<StatItem> items;
+    std::unordered_set<IntSeq, VectorHash> known;
+    std::cout << "expand 0" << std::endl;
+    for (const IntSeq& seq : alphabet()) {
+        known.insert(seq);
+        int symbol = search(seq);
+        items.emplace_back(-1, symbol, std::numeric_limits<double>::max(), freq(symbol));
+    }
+    std::cout << "expand 1" << std::endl;
+    slots += alphabet().size();
+    std::vector<double> start_with(symbol_freqs_.size());
+    std::vector<double> ends_with(symbol_freqs_.size());
+    for (auto &pairs_freq : pairs_freqs_) {
+        std::int64_t code = pairs_freq.first;
+        int freq = pairs_freq.second;
+        auto first = static_cast<int>(code >> 32);
+        auto second = static_cast<int>(code & 0xFFFFFFFFL);
+        // !!! TODO check it
+        start_with[first] += freq;
+        ends_with[second] += freq;
+    }
+    std::cout << "expand 2" << std::endl;
+
+    double total_pair_freqs = std::accumulate(start_with.begin(), start_with.end(), 0.0);
+    for (auto &pairs_freq : pairs_freqs_) {
+        std::int64_t code = pairs_freq.first;
+        int freq = pairs_freq.second;
+        auto first = static_cast<int>(code >> 32);
+        auto second = static_cast<int>(code & 0xFFFFFFFFL);
+        double ab = freq;
+        double xb = ends_with[second] - freq;
+        double ay = start_with[first] - freq;
+        double xy = total_pair_freqs - ay - xb - ab;
+
+        double params[] = {ab + 1, ay + 1, xb + 1, xy + 1};
+        std::vector<double> dirichlet_params(std::begin(params), std::end(params));
+        double score = 0;
+        int samples_count = 10;
+        std::vector<double> sample(dirichlet_params.size());
+        for (int i = 0; i < samples_count; i++) {
+            //rng.nextDirichlet(dirichlet_params, sample);
+            next_dirichlet(dirichlet_params, &sample);
+            double pAB = sample[0];
+            double pAY = sample[1];
+            double pXB = sample[2];
+            score += freq * pAB / (pAY + pAB) * log(pAB / (pAY + pAB) / (pXB + pAB)) / samples_count;
+        }
+
+        StatItem item(first, second, score, freq);
+        // !!!
+        IntSeq item_text;
+        stat_item_to_text(item, &item_text);
+        if (known.count(item_text) == 0) {
+            known.insert(item_text);
+            items.push_back(item);
+        }
+    }
+    std::cout << "expand 3" << std::endl;
+
+    std::sort(items.begin(), items.end(), [] (const StatItem& a, const StatItem& b) { return -a.score() < -b.score(); });
+    double min_prob_result = min_probability_;
+    double accumulated_freqs = 0.0;
+    for (const auto& pair : pairs_freqs_) {
+        accumulated_freqs += pair.second;
+    }
+
+    for (const StatItem& item : items) {
+        if (item.score() < 0)
+            break;
+        if (--slots < 0)
+            break;
+        IntSeq item_text;
+        stat_item_to_text(item, &item_text);
+        new_dict->push_back(item_text);
+        freqs->push_back(item.count());
+        if (item.first() >= 0)
+            min_prob_result = std::min(min_prob_result, item.count() / accumulated_freqs); // !!! maybe accumulated_freqs is wrong
+    }
+    return min_prob_result;
+}
+
 
 double StatDict::reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
     std::vector<StatItem> items;
@@ -168,10 +261,10 @@ int StatDict::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* 
                 }
                 double score = code_length_without_symbol - code_length;
                 if (score > 0) {
-                    items->push_back(StatItem(*this, -1, id, score, count));
+                    items->emplace_back(-1, id, score, count);
                 }
             } else {
-                items->push_back(StatItem(*this, -1, id, std::numeric_limits<double>::max(), count));
+                items->emplace_back(-1, id, std::numeric_limits<double>::max(), count);
             }
         }
     }
@@ -208,84 +301,6 @@ int StatDict::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* 
 //    }
 //}
 
-double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
-    std::vector<StatItem> items;
-    std::unordered_set<IntSeq, VectorHash> known;
-    for (const IntSeq& seq : alphabet()) {
-        known.insert(seq);
-        int symbol = search(seq);
-        items.emplace_back(*this, -1, symbol, std::numeric_limits<double>::max(), freq(symbol));
-    }
-    slots += alphabet().size();
-    std::vector<double> start_with(symbol_freqs_.size());
-    std::vector<double> ends_with(symbol_freqs_.size());
-    for (auto &pairs_freq : pairs_freqs_) {
-        std::int64_t code = pairs_freq.first;
-        int freq = pairs_freq.second;
-        auto first = static_cast<int>(code >> 32);
-        auto second = static_cast<int>(code & 0xFFFFFFFFL);
-        // !!! TODO check it
-        start_with[first] += freq;
-        ends_with[second] += freq;
-    }
-
-    double total_pair_freqs = std::accumulate(start_with.begin(), start_with.end(), 0.0);
-    for (auto &pairs_freq : pairs_freqs_) {
-        std::int64_t code = pairs_freq.first;
-        int freq = pairs_freq.second;
-        auto first = static_cast<int>(code >> 32);
-        auto second = static_cast<int>(code & 0xFFFFFFFFL);
-        double ab = freq;
-        double xb = ends_with[second] - freq;
-        double ay = start_with[first] - freq;
-        double xy = total_pair_freqs - ay - xb - ab;
-
-        double params[] = {ab + 1, ay + 1, xb + 1, xy + 1};
-        std::vector<double> dirichlet_params(std::begin(params), std::end(params));
-        double score = 0;
-        int samples_count = 10;
-        std::vector<double> sample(dirichlet_params.size());
-        for (int i = 0; i < samples_count; i++) {
-            //rng.nextDirichlet(dirichlet_params, sample);
-            next_dirichlet(dirichlet_params, &sample);
-            double pAB = sample[0];
-            double pAY = sample[1];
-            double pXB = sample[2];
-            score += freq * pAB / (pAY + pAB) * log(pAB / (pAY + pAB) / (pXB + pAB)) / samples_count;
-        }
-
-        StatItem item(*this, first, second, score, freq);
-        // !!!
-        IntSeq item_text;
-        item.text(&item_text);
-        if (known.count(item_text) == 0) {
-            known.insert(item_text);
-            items.push_back(item);
-        }
-    }
-
-    std::sort(items.begin(), items.end(), [] (const StatItem& a, const StatItem& b) { return -a.score() < -b.score(); });
-    double min_prob_result = min_probability_;
-    double accumulated_freqs = 0.0;
-    for (const auto& pair : pairs_freqs_) {
-        accumulated_freqs += pair.second;
-    }
-
-    for (const StatItem& item : items) {
-        if (item.score() < 0)
-            break;
-        if (--slots < 0)
-            break;
-        IntSeq item_text;
-        item.text(&item_text);
-        new_dict->push_back(item_text);
-        freqs->push_back(item.count());
-        if (item.first() >= 0)
-            min_prob_result = std::min(min_prob_result, item.count() / accumulated_freqs); // !!! maybe accumulated_freqs is wrong
-    }
-    return min_prob_result;
-}
-
 bool StatDict::enough(double prob_found) const {
     return power_ > -log(prob_found) / min_probability_;
 }
@@ -311,10 +326,18 @@ void StatDict::set_mutable(bool is_mutable) {
     is_mutable_ = is_mutable;
 }
 
+void StatDict::stat_item_to_text(const StatItem& item, IntSeq* output) const {
+    if (item.first() >= 0) {
+        output->insert(output->end(), get(item.first()).begin(), get(item.first()).end());
+        output->insert(output->end(), get(item.second()).begin(), get(item.second()).end());
+    } else {
+        output->insert(output->end(), get(item.second()).begin(), get(item.second()).end());
+    }
+}
+
 //StatItem
 
-StatItem::StatItem(const StatDict& dict, int first, int second, double score, int count) {
-    stat_dict_ = &dict;
+StatItem::StatItem(int first, int second, double score, int count) {
     first_ = first;
     second_ = second;
     score_ = score;
@@ -335,15 +358,6 @@ StatItem::StatItem(const StatDict& dict, int first, int second, double score, in
 
 bool StatItem::equals(const StatItem& stat_item) {
     return first_ == stat_item.first_ && second_ == stat_item.second_;
-}
-
-void StatItem::text(IntSeq* output) const {
-    if (first_ >= 0) {
-        output->insert(output->end(), stat_dict_->get(first_).begin(), stat_dict_->get(first_).end());
-        output->insert(output->end(), stat_dict_->get(second_).begin(), stat_dict_->get(second_).end());
-    } else {
-        output->insert(output->end(), stat_dict_->get(second_).begin(), stat_dict_->get(second_).end());
-    }
 }
 
 int StatItem::first() const {
