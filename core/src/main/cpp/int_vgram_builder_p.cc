@@ -3,6 +3,7 @@
 //
 
 #include <numeric>
+#include <iostream>
 #import "int_vgram_builder_p.h"
 #import "int_dict_p.h"
 
@@ -11,7 +12,7 @@ constexpr double StatDict::kMaxMinProbability;
 IntVGramBuilderImpl::IntVGramBuilderImpl(int size) {
     size_ = size;
     symb_alphabet_ = std::vector<IntSeq>();
-    current_ = std::shared_ptr<StatDict>(new StatDict(StatDict::kMaxMinProbability)); // Sanitizer: indirect leak
+    current_ = std::shared_ptr<StatDict>(new StatDict()); // Sanitizer: indirect leak
     result_ = nullptr;
 }
 
@@ -43,8 +44,11 @@ const std::shared_ptr<IntDict> IntVGramBuilderImpl::alpha() const {
 void IntVGramBuilderImpl::accept(const IntSeq& seq) {
     IntSeq result;
     current_->parse(seq, &result);
-    if (current_->enough(prob_found_) || current_->power_ > kMaxPower)
+    if (current_->enough(prob_found_) || current_->power_ > kMaxPower) {
+        std::cout << "start update in accept" << std::endl;
         update();
+        std::cout << "end update in accept" << std::endl;
+    }
 }
 
 void IntVGramBuilderImpl::update() {
@@ -77,12 +81,16 @@ void IntVGramBuilderImpl::update() {
             slots = size_ - alphabet_size;
         else
             slots = static_cast<int>(current_->size() * kExtensionFactor);
+        std::cout << "update expand 1" << std::endl;
         double min_prob_result = current_->expand(slots, &new_dict, &freqs);
         result = std::shared_ptr<StatDict>(new StatDict(new_dict, min_prob_result, &freqs));
+        std::cout << "update expand 2" << std::endl;
     }
     else {
+        std::cout << "update reduce 1" << std::endl;
         double min_prob_result = current_->reduce(size_ - alphabet_size, &new_dict, &freqs);
         result = std::shared_ptr<StatDict>(new StatDict(new_dict, min_prob_result, &freqs));
+        std::cout << "update reduce 2" << std::endl;
         // delete result_;
         result_ = result;
     }

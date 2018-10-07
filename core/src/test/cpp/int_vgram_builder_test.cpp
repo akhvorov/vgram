@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 #include <random>
+//#include <fstream>
+//#include <dirent.h>
 #include "cpp/int_vgram_builder_p.h"
 #include "cpp/int_dict_p.h"
 #include "common.h"
@@ -146,3 +148,47 @@ TEST(IntVGramBuilderTests, RestoreTestLong) {
     }
     ASSERT_TRUE(equalsAtLeastOnce);
 }
+
+//std::vector<std::string> filenames() {
+//    std::vector<std::string> files;
+//    DIR *dir;
+//    struct dirent *ent;
+//    if ((dir = opendir ("c:\\src\\")) != nullptr) {
+//        while ((ent = readdir (dir)) != nullptr) {
+//            files.push_back(ent->d_name);
+//        }
+//        closedir (dir);
+//    } else {
+//        std::cout << "error in read directory" << std::endl;
+//    }
+//    return files;
+//}
+//
+//std::vector<std::string> get_data(std::string dir) {
+//    for (auto & p : fs::directory_iterator(dir))
+//        std::cout << p << std::endl;
+//
+//    ofstream myfile;
+//    myfile.open ("example.txt");
+//    myfile << "Writing this to a file.\n";
+//    myfile.close();
+//}
+//
+//std::vector<IntSeq> transform_data(std::vector<std::string> dir) {
+//    SimpleTokenizer tok();
+//}
+//
+//TEST(IntVGramBuilderTests, ImdbTest) {
+//    std::vector<std::string> texts = get_data("/Users/akhvorov/data/datasets/aclImdb/train/neg/");
+//
+//    std::vector<IntSeq> mut_seqs(seqs);
+//    if (stat_dict_ != nullptr)
+//        stat_dict_->set_mutable(true);
+//    for (int i = 0; i < iter_num_; i++) {
+//        std::next_permutation(mut_seqs.begin(), mut_seqs.end());
+//        for (const IntSeq& seq : mut_seqs) {
+//            builder_->accept(seq);
+//        }
+//    }
+//    stat_dict_ = builder_->result();
+//}

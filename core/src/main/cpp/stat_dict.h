@@ -19,7 +19,7 @@ public:
     static constexpr double kMaxMinProbability = 0.002;
     const size_t kAggPower = 100000;
 
-    explicit StatDict(double min_prob_result);
+    StatDict();
     StatDict(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs = nullptr);
 
     void update_symbol(int index, int freq);
@@ -30,7 +30,6 @@ public:
     int parent(int second) const;
     int freq(int index) const;
     double code_length_per_char() const;
-
     bool enough(double probFound) const;
     int parse(const IntSeq& seq, IntSeq* output);
     void set_mutable(bool is_mutable);

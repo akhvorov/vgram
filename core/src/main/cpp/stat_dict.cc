@@ -10,12 +10,12 @@
 #include "fast_random.h"
 #include "vector_hash.h"
 
-StatDict::StatDict(double min_prob_result) {
+StatDict::StatDict() {
     dict_ = std::shared_ptr<IntDict>(new IntDictImpl()); // Sanitizer: indirect leak
     symbol_freqs_ = IntSeq();
     parse_freqs_ = IntSeq();
     pairs_freqs_ = std::unordered_map<std::int64_t , int>(kAggPower); // Sanitizer: indirect leak
-    min_probability_ = min_prob_result;
+    min_probability_ = kMaxMinProbability;
 }
 
 StatDict::StatDict(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs) {
@@ -42,7 +42,7 @@ void StatDict::update_symbol(int index, int freq) {
             parse_freqs_.push_back(0); // Sanitizer: indirect leak
     }
     if (index >= symbol_freqs_.size() || index >= parse_freqs_.size()) {
-        std::cout << "Error in stat_dict.cc 1" << std::endl;
+        std::cout << "Error in stat_dict.cc update_symbol" << std::endl;
     }
     symbol_freqs_[index] += freq;
     parse_freqs_[index] += freq;
@@ -83,59 +83,44 @@ double StatDict::code_length_per_char() const {
     return (sum + power_ * log(power_)) / total_chars_;
 }
 
-double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
-                               IntSeq* result, std::unordered_set<int>* excludes) const {
-    size_t len = seq.size();
-    std::vector<double> score(len + 1, std::numeric_limits<double>::lowest());
-    score[0] = 0;
-    IntSeq symbols(len + 1);
+bool StatDict::enough(double prob_found) const {
+    return power_ > -log(prob_found) / min_probability_;
+}
 
-    for (int pos = 0; pos < len; pos++) {
-        IntSeq suffix(seq.begin() + pos, seq.end());
-        int sym = search(suffix, excludes);
-        do {
-            auto sym_len = get(sym).size();
-            double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
+int StatDict::parse(const IntSeq& seq, IntSeq* parse_result) {
+    dict_->parse(seq, parse_freqs_, power_ + parse_freqs_init_power_, parse_result);
+    if (is_mutable_) {
+        total_chars_ += seq.size();
+        int prev = -1;
+        for (int symbol : *parse_result) {
+            update_symbol(symbol, 1);
+            if (prev >= 0)
+                pairs_freqs_[(((std::int64_t) prev) << 32) | symbol] += 1; // Sanitizer: indirect leak
+            prev = symbol;
+        }
+    }
+    return static_cast<int>(parse_result->size());
+}
 
-            if (sym_len + pos >= score.size() || sym_len + pos >= symbols.size()) {
-                std::cout << "Error in stat_dict.cc 2" << std::endl;
-            }
-            if (score[sym_len + pos] < score[pos] + sym_log_prob)
-            {
-                score[sym_len + pos] = score[pos] + sym_log_prob;
-                symbols[sym_len + pos] = sym;
-            }
-        }
-        while ((sym = parent(sym)) >= 0);
-    }
-    IntSeq solution(len + 1);
-    auto pos = static_cast<int>(len);
-    int index = 0;
-    while (pos > 0) {
-        int sym = symbols[pos];
-        if (len - index - 1 >= solution.size()) {
-            std::cout << "Error in stat_dict.cc 3" << std::endl;
-        }
-        solution[len - (++index)] = sym;
-        pos -= get(sym).size();
-    }
-//    for (int i = 0; i < index; i++) {
-//        result->push_back(solution[len - index + i]);
-//    }
-    result->insert(result->end(), solution.begin() + len - index, solution.end() - 1);
-    return score[len];
+void StatDict::set_mutable(bool is_mutable) {
+    is_mutable_ = is_mutable;
 }
 
 double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
     std::vector<StatItem> items;
     std::unordered_set<IntSeq, VectorHash> known;
-    std::cout << "expand 0" << std::endl;
+    std::cout << "Alphabet size in expand: " << alphabet().size() << std::endl;
     for (const IntSeq& seq : alphabet()) {
         known.insert(seq);
+        std::cout << "After search" << std::endl;
         int symbol = search(seq);
+        std::cout << "Before search" << std::endl;
+        if (symbol < 0) {
+            std::cout << "Error in stat_dict.cc expand 1";
+            std::cout << ": freq = " << freq(symbol) << std::endl;
+        }
         items.emplace_back(-1, symbol, std::numeric_limits<double>::max(), freq(symbol));
     }
-    std::cout << "expand 1" << std::endl;
     slots += alphabet().size();
     std::vector<double> start_with(symbol_freqs_.size());
     std::vector<double> ends_with(symbol_freqs_.size());
@@ -148,7 +133,6 @@ double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs)
         start_with[first] += freq;
         ends_with[second] += freq;
     }
-    std::cout << "expand 2" << std::endl;
 
     double total_pair_freqs = std::accumulate(start_with.begin(), start_with.end(), 0.0);
     for (auto &pairs_freq : pairs_freqs_) {
@@ -301,29 +285,44 @@ int StatDict::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* 
 //    }
 //}
 
-bool StatDict::enough(double prob_found) const {
-    return power_ > -log(prob_found) / min_probability_;
-}
+double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
+                               IntSeq* result, std::unordered_set<int>* excludes) const {
+    size_t len = seq.size();
+    std::vector<double> score(len + 1, std::numeric_limits<double>::lowest());
+    score[0] = 0;
+    IntSeq symbols(len + 1);
 
-int StatDict::parse(const IntSeq& seq, IntSeq* parse_result) {
-    dict_->parse(seq, parse_freqs_, power_ + parse_freqs_init_power_, parse_result);
-    if (is_mutable_) {
-        total_chars_ += seq.size();
-        auto length = parse_result->size();
-        int prev = -1;
-        for (int i = 0; i < length; ++i) {
-            int symbol = (*parse_result)[i];
-            update_symbol(symbol, 1);
-            if (prev >= 0)
-                pairs_freqs_[(((std::int64_t) prev) << 32) | symbol] += 1; // Sanitizer: indirect leak
-            prev = symbol;
+    for (int pos = 0; pos < len; pos++) {
+        IntSeq suffix(seq.begin() + pos, seq.end());
+        int sym = search(suffix, excludes);
+        do {
+            auto sym_len = get(sym).size();
+            double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
+
+            if (sym_len + pos >= score.size() || sym_len + pos >= symbols.size()) {
+                std::cout << "Error in stat_dict.cc 2" << std::endl;
+            }
+            if (score[sym_len + pos] < score[pos] + sym_log_prob)
+            {
+                score[sym_len + pos] = score[pos] + sym_log_prob;
+                symbols[sym_len + pos] = sym;
+            }
         }
+        while ((sym = parent(sym)) >= 0);
     }
-    return static_cast<int>(parse_result->size());
-}
-
-void StatDict::set_mutable(bool is_mutable) {
-    is_mutable_ = is_mutable;
+    IntSeq solution(len + 1);
+    auto pos = static_cast<int>(len);
+    int index = 0;
+    while (pos > 0) {
+        int sym = symbols[pos];
+        if (len - index - 1 >= solution.size()) {
+            std::cout << "Error in stat_dict.cc 3" << std::endl;
+        }
+        solution[len - (++index)] = sym;
+        pos -= get(sym).size();
+    }
+    result->insert(result->end(), solution.begin() + len - index, solution.end() - 1);
+    return score[len];
 }
 
 void StatDict::stat_item_to_text(const StatItem& item, IntSeq* output) const {
