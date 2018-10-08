@@ -57,19 +57,32 @@ class BaseTokenizer:
         self.fcode = {}
         self.bcode = {}
 
+    # def fit(self, X, y=None):
+    #     xx = self.normalize(X)
+    #     xx = self.tokenize(xx)
+    #     tokens = set()
+    #     for x in xx:
+    #         for w in x:
+    #             tokens.add(w)
+    #     tokens = sorted(list(tokens))
+    #     s = 0
+    #     for token in tokens:
+    #         self.fcode[token] = s
+    #         self.bcode[s] = token
+    #         s += 1
+    #     print("tokenizer dict len: ", len(self.fcode))
+    #     return self
+
     def fit(self, X, y=None):
         xx = self.normalize(X)
         xx = self.tokenize(xx)
-        tokens = set()
-        for x in xx:
-            for w in x:
-                tokens.add(w)
-        tokens = sorted(list(tokens))
         s = 0
-        for token in tokens:
-            self.fcode[token] = s
-            self.bcode[s] = token
-            s += 1
+        for x in xx:
+            for token in x:
+                if token not in self.fcode:
+                    self.fcode[token] = s
+                    self.bcode[s] = token
+                    s += 1
         print("tokenizer dict len: ", len(self.fcode))
         return self
 
@@ -110,6 +123,7 @@ class CharTokenizer(BaseTokenizer):
         return [[c for c in x] for x in X]
 
 
+# deprecated
 class TokenizerP:
     def __init__(self):
         self.tok = Tokenizer()
@@ -131,9 +145,9 @@ class VGramBuilderP:
         self.vgb = VGramBuilder(size, iter_num)
 
     def fit(self, X, y=None):
-        print("in vgram builder fit")
+        print("in vgram builder fit start")
         self.vgb.fit(X)
-        print("in vgram builder fit 2. yeah!")
+        print("in vgram builder fit end")
         return self
 
     def transform(self, X, y=None):
@@ -152,14 +166,15 @@ def only_words(X_tr, y_tr, X_te, y_te):
         ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=50, random_state=42))
     ])
     pipeline = pipeline.fit(X_tr, y_tr)
+    print("train accuracy: ", np.mean(pipeline.predict(X_tr) == y_te))
     predicted = pipeline.predict(X_te)
-    print(np.mean(predicted == y_te))
+    print("train accuracy: ", np.mean(predicted == y_te))
 
 
-def only_vgram(X_tr, y_tr, X_te, y_te):
+def only_vgram(X_tr, y_tr, X_te, y_te, size=15000, iter=15):
     vgram_features = Pipeline([
         ("tokenizer", CharTokenizer()),
-        ("vgb", VGramBuilderP(15000, 20))
+        ("vgb", VGramBuilderP(size, iter))
     ])
     data = [x for x in X_tr]
     for x in X_te:
@@ -171,20 +186,26 @@ def only_vgram(X_tr, y_tr, X_te, y_te):
     pipeline = Pipeline([
         ("words", CountVectorizer()),
         ('tfidf', TfidfTransformer()),
-        ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=20, random_state=42))
+        ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=50, random_state=42))
     ])
     pipeline = pipeline.fit(traint, y_tr)
+    print("train accuracy: ", np.mean(pipeline.predict(X_tr) == y_te))
     predicted = pipeline.predict(testt)
-    print(np.mean(predicted == y_te))
-    # alpha = vgram_features.named_steps['vgb'].alpha()
-    # alpha = vgram_features.named_steps['tokenizer'].decode(alpha)
+    print("test accuracy: ", np.mean(predicted == y_te))
+
+    alpha = vgram_features.named_steps['vgb'].alpha()
+    alpha = vgram_features.named_steps['tokenizer'].decode(alpha)
     # for word in alpha:
     #     print(word)
+    coef = pipeline.named_steps['clf'].coef_
+    print(len(alpha), len(coef))
+    alpha_coefs = zip(alpha, coef)
+    alpha_coefs = sorted(alpha_coefs, key=lambda p: -p[1])
+    for i in range(50):
+        print(alpha_coefs[i])
 
 
-def vgram_and_words(X_tr, y_tr, X_te, y_te):
-    size = 5000
-    iter = 3
+def vgram_and_words(X_tr, y_tr, X_te, y_te, unsup=None, size=15000, iter=15):
     vgram_features = Pipeline([
         ("tokenizer", CharTokenizer()),
         ("vgb", VGramBuilderP(size, iter))
@@ -192,11 +213,21 @@ def vgram_and_words(X_tr, y_tr, X_te, y_te):
     data = [x for x in X_tr]
     for x in X_te:
         data.append(x)
+    if unsup is not None:
+        for x in unsup:
+            data.append(x)
     vgram_features.fit(data)
-    # traint = vgram_features.transform(train.data)
-    # testt = vgram_features.transform(test.data)
-    all_words = CountVectorizer().fit(data)
-    words_without_vgrams = set(all_words.vocabulary_)
+    vX_tr = vgram_features.transform(X_tr)
+    vX_te = vgram_features.transform(X_te)
+
+    vgram_features_vec = CountVectorizer().fit(vX_tr)
+    vcX_tr = vgram_features_vec.transform(vX_tr)
+    vcX_te = vgram_features_vec.transform(vX_te)
+
+    words_features = CountVectorizer().fit(X_tr)
+    wX_tr = words_features.transform(X_tr)
+    wX_te = words_features.transform(X_te)
+    words_without_vgrams = set(words_features.vocabulary_)
     vgrams_alpha = set(vgram_features.named_steps['tokenizer'].decode(vgram_features.named_steps["vgb"].alpha()))
     print("all words: ", len(words_without_vgrams))
     print("intersect: ", len(words_without_vgrams & vgrams_alpha))
@@ -224,22 +255,40 @@ def vgram_and_words(X_tr, y_tr, X_te, y_te):
     #     print(word)
 
 
-def all_union(X_tr, y_tr, X_te, y_te):
+def all_union(X_tr, y_tr, X_te, y_te, size=15000, iter=15):
     vgram_features = Pipeline([
         ("tokenizer", CharTokenizer()),
-        ("vgb", VGramBuilderP(5000, 3)),
+        ("vgb", VGramBuilderP(size, iter)),
         ('vectorizer', CountVectorizer())
     ])
+    data = [x for x in X_tr]
+    for x in X_te:
+        data.append(x)
+    fu = FeatureUnion([("vgram", vgram_features), ("words", CountVectorizer())])
+    fu.fit(data)
+    X_tr = fu.transform(X_tr)
+    X_te = fu.transform(X_te)
     pipeline = Pipeline([
-        ("features", FeatureUnion([("vgram", vgram_features), ("words", CountVectorizer())])),
+        # ("features", FeatureUnion([("vgram", vgram_features), ("words", CountVectorizer())])),
         # ("words", CountVectorizer()),
         # ("vgram", vgram_features),
         ('tfidf', TfidfTransformer()),
         ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=50, random_state=42))
     ])
     pipeline = pipeline.fit(X_tr, y_tr)
+    print("train accuracy: ", np.mean(pipeline.predict(X_tr) == y_te))
     predicted = pipeline.predict(X_te)
-    print(np.mean(predicted == y_te))
+    print("test accuracy: ", np.mean(predicted == y_te))
+
+    alpha = vgram_features.named_steps['vgb'].alpha()
+    alpha = vgram_features.named_steps['tokenizer'].decode(alpha)
+    words = list(fu.named_step['words'].vocabulary_)
+    coef = pipeline.named_steps['clf'].coef_
+    print(len(alpha), len(words), len(coef))
+    alpha_coefs = zip(alpha + words, coef)
+    alpha_coefs = sorted(alpha_coefs, key=lambda p: -p[1])
+    for i in range(50):
+        print(alpha_coefs[i])
 
 
 def get_data(dataset):
@@ -254,19 +303,23 @@ def get_data(dataset):
         print("wrong dataset")
         return -1
     print("train data shape: ", len(X_tr), len(X_tr[0]), len(y_tr))
-    print("test data shape: ", len(X_te), len(X_te[0]), len(y_te))
+    print("test data shape:  ", len(X_te), len(X_te[0]), len(y_te))
     return X_tr, y_tr, X_te, y_te
 
 
-def apply_model(X_tr, y_tr, X_te, y_te, mode):
-    if mode == "v":
-        only_vgram(X_tr, y_tr, X_te, y_te)
-    elif mode == "w":
+def apply_model(X_tr, y_tr, X_te, y_te, args):
+    if args.mode == "v":
+        print("v")
+        only_vgram(X_tr, y_tr, X_te, y_te, int(args.size), int(args.iter))
+    elif args.mode == "w":
+        print("w")
         only_words(X_tr, y_tr, X_te, y_te)
-    elif mode == "w|v" or mode == "v|w":
-        all_union(X_tr, y_tr, X_te, y_te)
-    elif mode == "w&v" or mode == "v&w":
-        vgram_and_words(X_tr, y_tr, X_te, y_te)
+    elif args.mode == "w_or_v" or args.mode == "v_or_w":
+        print("w|v")
+        all_union(X_tr, y_tr, X_te, y_te, int(args.size), int(args.iter))
+    elif args.mode == "w_and_v" or args.mode == "v_and_w":
+        print("w&v")
+        vgram_and_words(X_tr, y_tr, X_te, y_te, int(args.size), int(args.iter))
     else:
         print("wrong mode")
     # test_20ng()
@@ -278,8 +331,10 @@ def apply_model(X_tr, y_tr, X_te, y_te, mode):
 
 def arg_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument ('-d', '--dataset')
-    parser.add_argument ('-m', '--mode')
+    parser.add_argument('-d', '--dataset')
+    parser.add_argument('-m', '--mode')
+    parser.add_argument('-s', '--size', default=15000)
+    parser.add_argument('-i', '--iter', default=15)
     # parser.add_argument ('-p', '--path', default='.')
     # parser.add_argument ('-d', '--dataset', default='20newsgroups')
     # parser.add_argument ('-n', '--size', default=15000)
@@ -294,7 +349,7 @@ def main():
     args = arg_parser().parse_args()
     start = time.time()
     X_tr, y_tr, X_te, y_te = get_data(args.dataset)
-    apply_model(X_tr, y_tr, X_te, y_te, args.mode)
+    apply_model(X_tr, y_tr, X_te, y_te, args)
     print("time: ", time.time() - start)
 
 
@@ -303,5 +358,15 @@ if __name__ == "__main__":
 
 
 '''
+08.10
+8. 0.8918 -d imdb -m v_or_w -s 20000 -i 25
+7. 0.8922 -d imdb -m v_or_w -s 15000 -i 15
+6. 0.8555 -d 20ng -m v_and_w -s 15000 -i 15
+5. 0.8870 -d imdb -m v -s 15000 -i 15
+4. 0.8858 -d imdb -m w
+3. 0.8538 -d 20ng -m w
+2. 0.8578 -d 20ng -m v_or_w -s 15000 -i 15
+
+later
 1. 0.8614 - words + vgrams(25000, 20), double intersection, train on train, svm(1e-4, max_iter=50)
 '''
