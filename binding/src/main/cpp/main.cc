@@ -26,7 +26,12 @@ PYBIND11_MODULE(vgram, m) {
     py::class_<PyVGramBuilder>(m, "VGramBuilder")
             //.def(py::init<int, const IntSeq&, int>())
             // fix constructor!
+//            .def("set", &Pet::set)
+//            .def("set", (void (Pet::*)(int)) &Pet::set, "Set the pet's age")
+//            .def("set", (void (Pet::*)(const std::string &)) &Pet::set, "Set the pet's name");
             .def(py::init<int, int>())
+            .def(py::init<std::string>())
+            .def("save", &PyVGramBuilder::save)
             .def("fit", &PyVGramBuilder::fit)
             .def("transform", &PyVGramBuilder::transform)
             .def("alphabet", &PyVGramBuilder::alphabet);

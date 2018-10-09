@@ -15,6 +15,8 @@ public:
 //    IntSeq parse(const IntSeq& seq);
 
     PyVGramBuilder(int size, int iter_num);
+    explicit PyVGramBuilder(std::string filename);
+    void save(const std::string& filename) const;
     //PyVGramBuilder(int size, IntSeq* alphabet = nullptr, int iter_num = 1);
     //PyVGramBuilder(int size, IntSeq* alphabet, int iter_num);
     void fit(const std::vector<IntSeq>& seqs);
