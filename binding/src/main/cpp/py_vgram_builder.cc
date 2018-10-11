@@ -24,7 +24,8 @@ PyVGramBuilder::PyVGramBuilder(std::string filename) {
     while (std::getline(file, line)) {
         int freq = -1;
         IntSeq seq;
-        for (size_t i = 0; i < line.length(); i++) {
+        size_t i = 0;
+        for ( ; i < line.length() && line[i] != ')'; i++) {
             std::string tmp;
             while (i < line.length() && line[i] != ' ' && line[i] != '\t' && line[i] != ')') {
                 tmp += line[i++];
@@ -33,8 +34,11 @@ PyVGramBuilder::PyVGramBuilder(std::string filename) {
             std::istringstream convert(tmp);
             if (!(convert >> num)) {
                 num = 0;
-                std::cout << "Error in read file:" << tmp << "!" << std::endl;
                 return;
+            }
+            if (line[i] == ')' || (line[i] == '\t' && freq != -1)) {
+                seq.push_back(num);
+                break;
             }
             if (freq == -1) {
                 freq = num;
