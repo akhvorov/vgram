@@ -89,32 +89,23 @@ bool StatDict::enough(double prob_found) const {
 
 int StatDict::parse(const IntSeq& seq, IntSeq* parse_result) {
     dict_->parse(seq, parse_freqs_, power_ + parse_freqs_init_power_, parse_result);
-    if (is_mutable_) {
-        total_chars_ += seq.size();
-        int prev = -1;
-        for (int symbol : *parse_result) {
-            update_symbol(symbol, 1);
-            if (prev >= 0)
-                pairs_freqs_[(((std::int64_t) prev) << 32) | symbol] += 1; // Sanitizer: indirect leak
-            prev = symbol;
-        }
+    total_chars_ += seq.size();
+    int prev = -1;
+    for (int symbol : *parse_result) {
+        update_symbol(symbol, 1);
+        if (prev >= 0)
+            pairs_freqs_[(((std::int64_t) prev) << 32) | symbol] += 1; // Sanitizer: indirect leak
+        prev = symbol;
     }
     return static_cast<int>(parse_result->size());
-}
-
-void StatDict::set_mutable(bool is_mutable) {
-    is_mutable_ = is_mutable;
 }
 
 double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
     std::vector<StatItem> items;
     std::unordered_set<IntSeq, VectorHash> known;
-    std::cout << "Alphabet size in expand: " << alphabet().size() << std::endl;
     for (const IntSeq& seq : alphabet()) {
         known.insert(seq);
-        std::cout << "After search" << std::endl;
         int symbol = search(seq);
-        std::cout << "Before search" << std::endl;
         if (symbol < 0) {
             std::cout << "Error in stat_dict.cc expand 1";
             std::cout << ": freq = " << freq(symbol) << std::endl;
@@ -168,7 +159,6 @@ double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs)
             items.push_back(item);
         }
     }
-    std::cout << "expand 3" << std::endl;
 
     std::sort(items.begin(), items.end(), [] (const StatItem& a, const StatItem& b) { return -a.score() < -b.score(); });
     double min_prob_result = min_probability_;
@@ -192,7 +182,6 @@ double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs)
     return min_prob_result;
 }
 
-
 double StatDict::reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
     std::vector<StatItem> items;
     filter_stat_items(slots, &items);
@@ -200,7 +189,7 @@ double StatDict::reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs)
     for (const auto& item : items)
         power += item.count();
 
-    double min_prob_result = std::min(1. / size(), kMaxMinProbability);
+    double min_prob_result = std::min(1. / size(), min_probability_);
     for (const auto& item : items) {
         double p = (item.count() + 1.0) / (power + size());
         if (parent(item.second()) >= 0)

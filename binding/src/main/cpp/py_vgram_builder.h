@@ -27,7 +27,9 @@ public:
 private:
     int iter_num_;
     std::shared_ptr<IntVGramBuilder> builder_;
-    std::shared_ptr<StatDict> stat_dict_;
+    std::shared_ptr<IntDict> dict_;
+    IntSeq freqs_;
+    int total_freqs_;
 };
 
 #endif //DICT_EXPANSION_VGRAM_H

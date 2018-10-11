@@ -7,17 +7,20 @@
 #include <fstream>
 #include <sstream>
 #include <cpp/int_vgram_builder_p.h>
+#include <cpp/int_dict_p.h>
+#include <numeric>
 #include "py_vgram_builder.h"
 
 PyVGramBuilder::PyVGramBuilder(int size, int iter_num) {
     builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(size));
-    stat_dict_ = nullptr;
+    dict_ = nullptr;
+    freqs_ = IntSeq();
+    total_freqs_ = 0;
     iter_num_ = iter_num;
 }
 
 PyVGramBuilder::PyVGramBuilder(std::string filename) {
     std::vector<IntSeq> seqs;
-    IntSeq freqs;
     std::ifstream file;
     file.open(filename);
     std::string line;
@@ -47,18 +50,19 @@ PyVGramBuilder::PyVGramBuilder(std::string filename) {
                 seq.push_back(num);
             }
         }
-        freqs.push_back(freq);
+        freqs_.push_back(freq);
+        total_freqs_ += freq;
         seqs.push_back(seq);
     }
     file.close();
-    stat_dict_ = std::shared_ptr<StatDict>(new StatDict(seqs, 0.002, &freqs));
+    dict_ = std::shared_ptr<IntDict>(new IntDictImpl(seqs));
 }
 
 void PyVGramBuilder::save(const std::string& filename) const {
     std::ofstream file;
     file.open(filename);
-    for (int i = 0; i < stat_dict_->size(); i++) {
-        file << stat_dict_->freq(i) << "\t" << stat_dict_->get(i) << std::endl;
+    for (int i = 0; i < dict_->size(); i++) {
+        file << freqs_[i] << "\t" << dict_->get(i) << std::endl;
     }
     file.close();
 }
@@ -90,29 +94,40 @@ void PyVGramBuilder::save(const std::string& filename) const {
 
 void PyVGramBuilder::fit(const std::vector<IntSeq>& seqs) {
     std::vector<IntSeq> mut_seqs(seqs);
-    if (stat_dict_ != nullptr)
-        stat_dict_->set_mutable(true);
     for (int i = 0; i < iter_num_; i++) {
         std::next_permutation(mut_seqs.begin(), mut_seqs.end());
         for (const IntSeq& seq : mut_seqs) {
             builder_->accept(seq);
         }
     }
-    stat_dict_ = builder_->result();
+    dict_ = builder_->result();
+    IntSeq freqs;
+    builder_->result_freqs(&freqs);
+    freqs_ = IntSeq(freqs.size(), 0);
+    int total_freqs = std::accumulate(freqs.begin(), freqs.end(), 0);
+    for (int i = 0; i < iter_num_; i++) {
+        for (const IntSeq& seq : seqs) {
+            IntSeq result;
+            dict_->parse(seq, freqs, total_freqs, &result);
+            for (int symb : result) {
+                total_freqs_++;
+                freqs_[symb]++;
+            }
+        }
+    }
 }
 
 std::vector<IntSeq> PyVGramBuilder::transform(const std::vector<IntSeq>& seqs) {
-    stat_dict_->set_mutable(false);
     std::vector<IntSeq> res;
     res.reserve(seqs.size());
     for (const IntSeq& seq : seqs) {
         IntSeq result;
-        stat_dict_->parse(seq, &result);
+        dict_->parse(seq, freqs_, total_freqs_, &result);
         res.push_back(result);
     }
     return res;
 }
 
 std::vector<IntSeq> PyVGramBuilder::alphabet() const {
-    return stat_dict_->alphabet();
+    return dict_->alphabet();
 }

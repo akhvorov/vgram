@@ -32,7 +32,6 @@ public:
     double code_length_per_char() const;
     bool enough(double probFound) const;
     int parse(const IntSeq& seq, IntSeq* output);
-    void set_mutable(bool is_mutable);
 
 private:
     std::shared_ptr<IntDict> dict_;
@@ -43,7 +42,6 @@ private:
     std::unordered_map<std::int64_t, int> pairs_freqs_;
     double min_probability_;
     double total_chars_ = 0;
-    bool is_mutable_ = true;
 
     double expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const;
     double reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const;

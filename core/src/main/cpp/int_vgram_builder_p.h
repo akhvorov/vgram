@@ -18,10 +18,10 @@ public:
   explicit IntVGramBuilderImpl(int size);
   IntVGramBuilderImpl(const IntDict& alphabet, int size);
   IntVGramBuilderImpl(const IntSeq& alphabet, int size);
-  std::shared_ptr<StatDict> result() const override;
+  std::shared_ptr<IntDict> result() const override;
   const std::shared_ptr<IntDict> alpha() const override;
   void accept(const IntSeq& seq) override;
-  IntSeq* result_freqs() override;
+  int result_freqs(IntSeq* freqs) override;
 //  void printPairs(const std::ofstream& ps) const;
 //  void print(const std::ofstream& file_writer) const;
   double code_length() const override;
@@ -37,7 +37,6 @@ private:
   double prob_found_ = 0.1;
   double best_compression_rate_ = 1.0;
   int no_rate_increase_turns_ = 0;
-  bool is_mutable_ = true;
 
   void init(const IntDict& alphabet, int size);
   void update();

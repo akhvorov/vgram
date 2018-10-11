@@ -169,24 +169,23 @@ double IntDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double
 int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) {
     int index = static_cast<int>(std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin());
     if (index >= 0 && index < size() && seqs_[index] == seq) {
-        if (excludes == nullptr || excludes->count(index) == 0)
+        if (excludes == nullptr || excludes->count(index) == 0) {
             return index;
+        }
     }
     index--;
-    while (index >= 0 && index < seqs_.size()) {
-        if (index >= seqs_.size() || index < 0) {
-            std::cout << "Error in int_dict_p.cc 5" << std::endl;
+    while (index >= 0 && index < size()) {
+        if (std::mismatch(seqs_[index].begin(), seqs_[index].end(), seq.begin()).first == seqs_[index].end()) {
+            if (excludes == nullptr || excludes->count(index) == 0) {
+                return index;
+            }
         }
-        if (std::mismatch(seqs_[index].begin(), seqs_[index].end(), seq.begin()).first == seqs_[index].end() &&
-            (excludes == nullptr || excludes->count(index) == 0))
-            return index;
         index = parents_[index];
     }
-    if (is_mutable_) {
+    if (is_mutable_ && excludes == nullptr) {
         int ind = size();
         seqs_.emplace_back(1, seq[0]);
         parents_.push_back(-1);
-        std::cout << "Add new symbol: " << ind << std::endl;
         return ind;
     } else {
         return -1;
@@ -198,18 +197,19 @@ int IntDictImpl::parse(const IntSeq& seq, const IntSeq& freqs, double total_freq
     IntSeq result;
     double log_probability = weightedParse(seq, freqs, total_freq, output, nullptr);
     if (log_probability > 0) {
-        for (int i : seq) {
-            std::cout << i << " ";
-        }
-        std::cout << "->";
-        for (int symbol : *output) {
-            if (symbol >= 0) {
-                std::cout << " " << get(symbol);
-            } else {
-                std::cout << "##unknown##";
-            }
-        }
-        std::cout << " " << log_probability << std::endl;
+        std::cout << "log_prob > 0" << std::endl;
+//        for (int i : seq) {
+//            std::cout << i << " ";
+//        }
+//        std::cout << "->";
+//        for (int symbol : *output) {
+//            if (symbol >= 0) {
+//                std::cout << " " << get(symbol);
+//            } else {
+//                std::cout << "##unknown##";
+//            }
+//        }
+//        std::cout << " " << log_probability << std::endl;
     }
     return static_cast<int>(output->size());
 }

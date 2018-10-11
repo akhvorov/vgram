@@ -25,6 +25,17 @@ IntVGramBuilderImpl::IntVGramBuilderImpl(const IntSeq& alphabet, int size) {
     init(int_dict, size);
 }
 
+//IntVGramBuilderImpl::IntVGramBuilderImpl(const std::vector<IntSeq>& alphabet, IntSeq& freq) {
+//    IntDictImpl int_dict(alphabet);
+//    init(int_dict, int_dict.size());
+//
+//    size_ = static_cast<int>(alphabet.size());
+//    //trace = trace;
+//    symb_alphabet_ = alphabet;
+//    current_ = std::shared_ptr<StatDict>(new StatDict(alphabet, StatDict::kMaxMinProbability, &freq)); // Sanitizer: indirect leak
+//    result_ = current_;
+//}
+
 void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
     size_ = size;
     //trace = trace;
@@ -33,8 +44,8 @@ void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
     result_ = nullptr;
 }
 
-std::shared_ptr<StatDict> IntVGramBuilderImpl::result() const {
-    return result_ != nullptr ? result_ : nullptr;
+std::shared_ptr<IntDict> IntVGramBuilderImpl::result() const {
+    return result_ != nullptr ? result_->dict_ : nullptr;
 }
 
 const std::shared_ptr<IntDict> IntVGramBuilderImpl::alpha() const {
@@ -45,9 +56,7 @@ void IntVGramBuilderImpl::accept(const IntSeq& seq) {
     IntSeq result;
     current_->parse(seq, &result);
     if (current_->enough(prob_found_) || current_->power_ > kMaxPower) {
-        std::cout << "start update in accept" << std::endl;
         update();
-        std::cout << "end update in accept" << std::endl;
     }
 }
 
@@ -81,20 +90,14 @@ void IntVGramBuilderImpl::update() {
             slots = size_ - alphabet_size;
         else
             slots = static_cast<int>(current_->size() * kExtensionFactor);
-        std::cout << "update expand 1" << std::endl;
         double min_prob_result = current_->expand(slots, &new_dict, &freqs);
         result = std::shared_ptr<StatDict>(new StatDict(new_dict, min_prob_result, &freqs));
-        std::cout << "update expand 2" << std::endl;
     }
     else {
-        std::cout << "update reduce 1" << std::endl;
         double min_prob_result = current_->reduce(size_ - alphabet_size, &new_dict, &freqs);
         result = std::shared_ptr<StatDict>(new StatDict(new_dict, min_prob_result, &freqs));
-        std::cout << "update reduce 2" << std::endl;
-        // delete result_;
         result_ = result;
     }
-    //delete current_;
     current_ = result;
     int alpha_accum_num = 0;
     for (int i = 0; i < current_->size(); i++) {
@@ -108,11 +111,18 @@ void IntVGramBuilderImpl::update() {
     populate_ = !populate_;
 }
 
-IntSeq* IntVGramBuilderImpl::result_freqs() {
-  if (result_->size() > result_->symbol_freqs_.size())
-    for (auto i = result_->symbol_freqs_.size(); i < result_->size(); i++)
-      result_->symbol_freqs_.push_back(0);
-  return &result_->symbol_freqs_;
+int IntVGramBuilderImpl::result_freqs(IntSeq* freqs) {
+    if (result_->size() > result_->symbol_freqs_.size())
+        for (auto i = result_->symbol_freqs_.size(); i < result_->size(); i++)
+            result_->symbol_freqs_.push_back(0);
+    for (int symbol_freq : result_->symbol_freqs_) {
+        freqs->push_back(symbol_freq);
+    }
+    return static_cast<int>(freqs->size());
+//    if (result_->size() > result_->symbol_freqs_.size())
+//        for (auto i = result_->symbol_freqs_.size(); i < result_->size(); i++)
+//            result_->symbol_freqs_.push_back(0);
+//    return &result_->symbol_freqs_;
 }
 
 double IntVGramBuilderImpl::code_length() const {

@@ -28,7 +28,7 @@ public:
 //                             std::unordered_set<int>* excludes);
     void set_mutable(bool is_mutable) override;
 
-    ~IntDictImpl();
+    ~IntDictImpl() override;
 
 private:
     std::vector<IntSeq> seqs_;
