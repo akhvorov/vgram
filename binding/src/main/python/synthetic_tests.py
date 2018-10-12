@@ -2,6 +2,7 @@ import random
 import time
 import re
 import os
+from pathlib import Path
 import argparse
 import numpy as np
 from sklearn.datasets import fetch_20newsgroups
@@ -58,11 +59,9 @@ def format_dict_cpp_to_java(from_file, to_file, tokenizer):
     out.close()
 
 
-def translate_dict(X_tr, X_te, from_file, to_file, domain):
+def translate_dict(directory, from_file, to_file, domain):
     tokenizer = CharTokenizer()
-    data = [x for x in X_tr]
-    for x in X_te:
-        data.append(x)
+    data = imdb_data(directory, unsup=True)
     tokenizer.fit(data)
     if domain == "cpp":
         format_dict_cpp_to_java(from_file, to_file, tokenizer)
@@ -72,22 +71,23 @@ def translate_dict(X_tr, X_te, from_file, to_file, domain):
         print("wrong domain: only cpp and java allowed")
 
 
-def imdb_data(directory):
-    # labels = set([x for x in os.listdir(directory) if os.path.isdir(x)])
-    # if 'unsup' in labels:
-    #     labels.remove('unsup')
-    # labels = list(labels)
-    # labels.sort()
+def imdb_data(directory, unsup=False):
+    X = []
+    if unsup:
+        src = Path(directory)
+        for filename in src.rglob('*.txt'):
+            f = open(str(filename), encoding='latin1')
+            X.append(f.read())
+            f.close()
+        return X
     labels = ["neg", "pos"]
     lab_to_num = {}
     for i, l in enumerate(labels):
         lab_to_num[l] = i
-    X, y = [], []
+    y = []
     for l in labels:
         path = directory + l
         for filename in os.listdir(path):
-            # if '(' in filename:
-            #     continue
             f = open(path + '/' + filename, encoding='latin1')
             X.append(f.read())
             f.close()
@@ -187,22 +187,23 @@ class VGramBuilderP:
     def __init__(self, size=None, iter=None, filename=None):
         if filename is not None:
             self.vgb = VGramBuilder(filename)
-            self.restored = True
+            self.fitted = True
         else:
             self.vgb = VGramBuilder(size, iter)
-            self.restored = False
+            self.fitted = False
 
     def fit(self, X, y=None):
         print("in vgram builder fit start")
         start = time.time()
-        if not self.restored:
+        if not self.fitted:
             self.vgb.fit(X)
+            self.fitted = True
         print("in vgram builder fit end, time:", time.time() - start)
         return self
 
     def transform(self, X, y=None):
         res = [" ".join([str(a) for a in x]) for x in self.vgb.transform(X)]
-        print("transform")
+        # print("transform")
         return res
 
     def alpha(self):
@@ -212,44 +213,28 @@ class VGramBuilderP:
         return self.vgb.save(filename)
 
 
-def write_vgrams_to_file(X, y, pipeline, suffix):
-    train_dir_bow = "/Users/akhvorov/data/mlimlab/vgram/imdb/" + suffix + "/"
+def write_vgram_bows_to_file(pipeline, directory):
     alpha = pipeline.named_steps['vgb'].alpha()
     alpha = pipeline.named_steps['tokenizer'].decode(alpha)
-    i = 0
-    for (x, label) in zip(X, y):
-        with open(train_dir_bow + str(i) + '.bow', 'w') as file:
-            nums = [int(n) for n in x.split(' ')]
-            map = {}
-            for n in nums:
-                if n not in map:
-                    map[n] = 0
-                map[n] += 1
-            for key in map.keys():
-                file.write(str(key) + "\t" + str(map[key]) + "\t" + alpha[key] + "\n")
-            i += 1
-
-
-def dict_from_file(X_tr, y_tr, X_te, y_te):
-    vgram_features = Pipeline([
-        ("tokenizer", CharTokenizer()),
-        ("vgb", VGramBuilderP("/Users/akhvorov/data/mlimlab/vgram/dict_15000.dict"))
-    ])
-    vgram_features.fit(X_tr)
-    print("ok 2")
-    traint = vgram_features.transform(X_tr[:5])
-    # testt = vgram_features.transform(X_te)
-    print("ok 3")
-
-    pipeline = Pipeline([
-        ("words", CountVectorizer()),
-        ('tfidf', TfidfTransformer()),
-        ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=50, random_state=42))
-    ])
-    pipeline = pipeline.fit(traint, y_tr)
-    # print("train accuracy: ", np.mean(pipeline.predict(traint) == y_tr))
-    # predicted = pipeline.predict(testt)
-    # print("test accuracy: ", np.mean(predicted == y_te))
+    src = Path(directory)
+    dst = Path(directory + "-cpp-bows")
+    for file in src.rglob('*.txt'):
+        dst_file = dst / file.relative_to(src)
+        try:
+            dst_file.parent.mkdir(parents=True)
+        except OSError:
+            pass
+        with open(str(file), encoding='latin1') as input:
+            x = pipeline.named_steps['vgb'].transform(pipeline.named_steps['tokenizer'].transform([input.read()]))[0]
+            with open(str(dst_file) + ".bow", 'w') as out:
+                nums = [int(n) for n in x.split(' ')]
+                map = {}
+                for n in nums:
+                    if n not in map:
+                        map[n] = 0
+                    map[n] += 1
+                for key in map.keys():
+                    out.write(str(key) + "\t" + str(map[key]) + "\t" + alpha[key] + "\n")
 
 
 def compare_restored_score(X_tr, y_tr, X_te, y_te, size=15000, iter=15, filename=None, restore=False):
@@ -342,24 +327,10 @@ def only_words(X_tr, y_tr, X_te, y_te):
     # print(keys[1], voc[keys[1]])
 
 
-def only_vgram(X_tr, y_tr, X_te, y_te, size=15000, iter=15, filename=None, restore=False):
-    if restore:
-        vgb = VGramBuilderP(size=size, iter=iter, filename=filename)
-    else:
-        vgb = VGramBuilderP(size=size, iter=iter)
-    vgram_features = Pipeline([
-        ("tokenizer", CharTokenizer()),
-        ("vgb", vgb)
-    ])
-    data = [x for x in X_tr]
-    for x in X_te:
-        data.append(x)
-    vgram_features.fit(data)
-    traint = vgram_features.transform(X_tr)
-    testt = vgram_features.transform(X_te)
-
+def only_vgram(X_tr, y_tr, X_te, y_te, vgb): #size=15000, iter=15, filename=None, restore=False):
+    traint = vgb.transform(X_tr)
+    testt = vgb.transform(X_te)
     pipeline = Pipeline([
-        ("words", CountVectorizer()),
         ('tfidf', TfidfTransformer()),
         ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=50, random_state=42))
     ])
@@ -367,9 +338,6 @@ def only_vgram(X_tr, y_tr, X_te, y_te, size=15000, iter=15, filename=None, resto
     print("train accuracy: ", np.mean(pipeline.predict(traint) == y_tr))
     predicted = pipeline.predict(testt)
     print("test accuracy: ", np.mean(predicted == y_te))
-    if not restore:
-        vgram_features.named_steps['vgb'].save(filename)
-
     # coef_interpretation(vgram_features, pipeline)
 
 
@@ -420,25 +388,62 @@ def vgram_and_words(X_tr, y_tr, X_te, y_te, unsup=None, size=15000, iter=15):
     print(np.mean(predicted == y_te))
 
 
-def all_union(X_tr, y_tr, X_te, y_te, size=15000, iter=15, filename=None, restore=False):
-    if restore:
-        vgb = VGramBuilderP(size=size, iter=iter, filename=filename)
-    else:
-        vgb = VGramBuilderP(size=size, iter=iter)
-    vgram_features = Pipeline([
-        ("tokenizer", CharTokenizer()),
-        ("vgb", vgb),
-        ('vectorizer', CountVectorizer())
-    ])
-    data = [x for x in X_tr]
-    for x in X_te:
-        data.append(x)
-    fu = FeatureUnion([("vgram", vgram_features), ("words", CountVectorizer())])
-    fu.fit(data)
-    X_tr = fu.transform(X_tr)
-    X_te = fu.transform(X_te)
+def union_error(X_tr, y_tr, X_te, y_te, vgb):
+    # fu = FeatureUnion([("vgram", vgb),
+    #                    ("words", CountVectorizer())])
+    # fu.fit(X_tr)
+    # X_tr = fu.transform(X_tr)
+    # X_te = fu.transform(X_te)
+
+    X_tr_v = vgb.transform(X_tr)
+    X_te_v = vgb.transform(X_te)
+    words_vect = CountVectorizer()
+    words_vect.fit(X_tr)
+    X_tr_w = words_vect.transform(X_tr)
+    X_te_w = words_vect.transform(X_te)
+    print(X_tr_w.shape)
+    print(X_tr_v.shape)
+    X_tr = np.hstack((X_tr_v, X_tr_w))
+    X_te = np.hstack((X_te_v, X_te_w))
+    print(X_tr.shape)
+
+    features_union = FeatureUnion([("vgram", vgb), ("words", CountVectorizer())])
+    # X_tr = features_union.fit(X_tr).transform(X_tr)
+    # X_te = features_union.transform(X_te)
+    # print(X_tr.shape)
+    # print(X_te.shape)
     pipeline = Pipeline([
-        # ("features", FeatureUnion([("vgram", vgram_features), ("words", CountVectorizer())])),
+        # ("features", features_union),
+        # ("words", CountVectorizer()),
+        # ("vgram", vgram_features),
+        ('tfidf', TfidfTransformer()),
+        ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=50, random_state=42))
+    ])
+    # pipeline = pipeline.fit(X_tr, y_tr)
+    # print("train accuracy: ", np.mean(pipeline.predict(X_tr) == y_te))
+    # predicted = pipeline.predict(X_te)
+    # print("test accuracy: ", np.mean(predicted == y_te))
+
+
+def all_union(X_tr, y_tr, X_te, y_te, vgb):# size=15000, iter=15, filename=None, restore=False):
+    # fu = FeatureUnion([("vgram", vgb),
+    #                    ("words", CountVectorizer())])
+    # fu.fit(X_tr)
+    # X_tr = fu.transform(X_tr)
+    # X_te = fu.transform(X_te)
+
+    # X_tr_v = vgb.transform(X_tr)
+    # X_te_v = vgb.transform(X_te)
+    # words_vect = CountVectorizer()
+    # words_vect.fit(X_tr)
+    # X_tr_w = words_vect.transform(X_tr)
+    # X_te_w = words_vect.transform(X_te)
+    # X_tr = np.hstack((X_tr_v, X_tr_w))
+    # X_te = np.hstack((X_te_v, X_te_w))
+
+    features_union = FeatureUnion([("vgram", vgb), ("words", CountVectorizer())])
+    pipeline = Pipeline([
+        ("features", features_union),
         # ("words", CountVectorizer()),
         # ("vgram", vgram_features),
         ('tfidf', TfidfTransformer()),
@@ -448,8 +453,6 @@ def all_union(X_tr, y_tr, X_te, y_te, size=15000, iter=15, filename=None, restor
     print("train accuracy: ", np.mean(pipeline.predict(X_tr) == y_te))
     predicted = pipeline.predict(X_te)
     print("test accuracy: ", np.mean(predicted == y_te))
-    if not restore:
-        vgram_features.named_steps['vgb'].save(filename)
 
     # alpha = vgram_features.named_steps['vgb'].alpha()
     # alpha = vgram_features.named_steps['tokenizer'].decode(alpha)
@@ -462,23 +465,11 @@ def all_union(X_tr, y_tr, X_te, y_te, size=15000, iter=15, filename=None, restor
     #     print(alpha_coefs[i])
 
 
-def vgram_to_file(X_tr, y_tr, X_te, y_te, size=15000, iter=15):
-    vgram_features = Pipeline([
-        ("tokenizer", CharTokenizer()),
-        ("vgb", VGramBuilderP(size, iter)),
-    ])
-    data = [x for x in X_tr]
-    for x in X_te:
-        data.append(x)
-    vgram_features.fit(data)
-    X_tr = vgram_features.transform(X_tr)
-    X_te = vgram_features.transform(X_te)
-    X_tr, y_tr = np.array(X_tr), np.array(y_tr)
-    X_te, y_te = np.array(X_te), np.array(y_te)
-    write_vgrams_to_file(X_tr[y_tr == 1], y_tr[y_tr == 1], vgram_features, "train/pos")
-    write_vgrams_to_file(X_tr[y_tr == 0], y_tr[y_tr == 0], vgram_features, "train/neg")
-    write_vgrams_to_file(X_te[y_te == 1], y_te[y_te == 1], vgram_features, "test/pos")
-    write_vgrams_to_file(X_te[y_te == 0], y_te[y_te == 0], vgram_features, "test/neg")
+def vgram_to_file(root, vgb):
+    start = time.time()
+    write_vgram_bows_to_file(vgb, root + "train")
+    write_vgram_bows_to_file(vgb, root + "test")
+    print("time for writing bows: ", time.time() - start)
 
 
 def get_data(dataset):
@@ -497,20 +488,40 @@ def get_data(dataset):
     return X_tr, y_tr, X_te, y_te
 
 
+def vgb_pipeline(args):
+    if args.restore:
+        vgb = VGramBuilderP(filename=args.filename)
+    else:
+        vgb = VGramBuilderP(size=int(args.size), iter=int(args.iter))
+    vgram_features = Pipeline([
+        ("tokenizer", CharTokenizer()),
+        ("vgb", vgb),
+        ("vect", CountVectorizer())
+    ])
+    if args.dataset == "imdb":
+        data = imdb_data("/Users/akhvorov/data/datasets/aclImdb/", unsup=True)
+    else:
+        print("add new dataset to vgb_pipeline")
+    print("texts for vgram learning:", len(data))
+    vgram_features.fit(data)
+    if not args.restore:
+        vgram_features.named_steps['vgb'].save(args.filename)
+    return vgram_features
+
+
 def apply_model(X_tr, y_tr, X_te, y_te, args):
-    # dict_name = "/Users/akhvorov/data/mlimlab/vgram/" + args.dataset + "_" + args.size + "_" + args.iter + ".dict"
-    dict_name = "/Users/akhvorov/data/datasets/aclImdb2/dict_200.cpp.dict"
-    print("filename:", dict_name)
     print("mode: ", end='')
     if args.mode == "v":
         print("only vgram")
-        only_vgram(X_tr, y_tr, X_te, y_te, int(args.size), int(args.iter), dict_name, args.restore)
+        vgb = vgb_pipeline(args)
+        only_vgram(X_tr, y_tr, X_te, y_te, vgb) #, int(args.size), int(args.iter), dict_name, args.restore)
     elif args.mode == "w":
         print("only words")
         only_words(X_tr, y_tr, X_te, y_te)
     elif args.mode == "w_or_v" or args.mode == "v_or_w":
         print("w|v, union of two feature sets")
-        all_union(X_tr, y_tr, X_te, y_te, int(args.size), int(args.iter), dict_name, args.restore)
+        vgb = vgb_pipeline(args)
+        all_union(X_tr, y_tr, X_te, y_te, vgb)# int(args.size), int(args.iter), dict_name, args.restore)
     elif args.mode == "w_and_v" or args.mode == "v_and_w":
         print("w&v, two features sets without intersection. it works not so good")
         vgram_and_words(X_tr, y_tr, X_te, y_te, int(args.size), int(args.iter))
@@ -542,17 +553,21 @@ def arg_parser():
 
 def main():
     args = arg_parser().parse_args()
+    dict_name = "/Users/akhvorov/data/datasets/aclImdb3/" + args.dataset + "_" + args.size + "_" + args.iter + ".cpp.dict"
+    # dict_name = "/Users/akhvorov/data/datasets/aclImdb2/dict_200.cpp.dict"
+    args.filename = dict_name
+    print("dict path:", args.filename)
     start = time.time()
+
     X_tr, y_tr, X_te, y_te = get_data(args.dataset)
     # translate_dict(X_tr, X_te, "/Users/akhvorov/data/datasets/aclImdb2/dict_15000.dict", "/Users/akhvorov/data/datasets/aclImdb2/dict_15000.cpp.dict", "java")
     # translate_dict(X_tr, X_te, "/Users/akhvorov/data/datasets/aclImdb2/dict_15000.cpp.dict", "/Users/akhvorov/data/datasets/aclImdb2/dict_15000.java.dict", "cpp")
+    # vgb = vgb_pipeline(args)
+    # translate_dict("/Users/akhvorov/data/datasets/aclImdb/", dict_name, "/Users/akhvorov/data/datasets/aclImdb3/imdb_15000_3.java.dict", "cpp")
     # print("dict translated")
     # apply_model(X_tr, y_tr, X_te, y_te, args)
-    # vgram_to_file(X_tr, y_tr, X_te, y_te, 15000, 10)
-    # dict_from_file(X_tr, y_tr, X_te, y_te)
-    # compare_restored_score(X_tr, y_tr, X_te, y_te, int(args.size), int(args.iter), dict_name, args.restore)
-    # transform_java_dict_format(None, None, None)
-    # format_dict_cpp_to_java(None, None, None)
+    union_error(X_tr, y_tr, X_te, y_te, vgb_pipeline(args))
+    # vgram_to_file("/Users/akhvorov/data/datasets/aclImdb3/", vgb)
     print("time: ", time.time() - start)
 
 
