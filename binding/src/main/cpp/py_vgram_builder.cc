@@ -67,6 +67,10 @@ void PyVGramBuilder::save(const std::string& filename) const {
     file.close();
 }
 
+IntSeq PyVGramBuilder::freqs() const {
+    return freqs_;
+}
+
 //
 //PyVGramBuilder::PyVGramBuilder(const IntSeq& alphabet, int size) {
 //    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(alphabet, size));
@@ -95,6 +99,7 @@ void PyVGramBuilder::save(const std::string& filename) const {
 void PyVGramBuilder::fit(const std::vector<IntSeq>& seqs) {
     std::vector<IntSeq> mut_seqs(seqs);
     for (int i = 0; i < iter_num_; i++) {
+        std::cout << i << "-th iteration" << std::endl;
         std::next_permutation(mut_seqs.begin(), mut_seqs.end());
         for (const IntSeq& seq : mut_seqs) {
             builder_->accept(seq);
@@ -105,6 +110,7 @@ void PyVGramBuilder::fit(const std::vector<IntSeq>& seqs) {
     builder_->result_freqs(&freqs);
     freqs_ = IntSeq(freqs.size(), 0);
     int total_freqs = std::accumulate(freqs.begin(), freqs.end(), 0);
+    std::cout << "last iteration" << std::endl;
     for (int i = 0; i < iter_num_; i++) {
         for (const IntSeq& seq : seqs) {
             IntSeq result;

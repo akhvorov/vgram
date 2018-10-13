@@ -32,6 +32,7 @@ PYBIND11_MODULE(vgram, m) {
             .def(py::init<int, int>())
             .def(py::init<std::string>())
             .def("save", &PyVGramBuilder::save)
+            .def("freqs", &PyVGramBuilder::freqs)
             .def("fit", &PyVGramBuilder::fit)
             .def("transform", &PyVGramBuilder::transform)
             .def("alphabet", &PyVGramBuilder::alphabet);
