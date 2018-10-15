@@ -5,12 +5,12 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
-#include "stat_dict.h"
+#include "stat_dict_p.h"
 #include "int_dict_p.h"
 #include "fast_random.h"
 #include "vector_hash.h"
 
-StatDict::StatDict() {
+StatDictImpl::StatDictImpl() {
     dict_ = std::shared_ptr<IntDict>(new IntDictImpl()); // Sanitizer: indirect leak
     symbol_freqs_ = IntSeq();
     parse_freqs_ = IntSeq();
@@ -18,7 +18,7 @@ StatDict::StatDict() {
     min_probability_ = kMaxMinProbability;
 }
 
-StatDict::StatDict(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs) {
+StatDictImpl::StatDictImpl(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs) {
     IntDictImpl int_dict(seqs);
     dict_ = std::make_shared<IntDictImpl>(int_dict); // Sanitizer: indirect leak // replace int_dict to seqs
     symbol_freqs_ = IntSeq(static_cast<size_t>(int_dict.size()));
@@ -34,7 +34,7 @@ StatDict::StatDict(const std::vector<IntSeq>& seqs, double min_prob_result, IntS
     min_probability_ = min_prob_result;
 }
 
-void StatDict::update_symbol(int index, int freq) {
+void StatDictImpl::update_symbol(int index, int freq) {
     if (index >= symbol_freqs_.size()) {
         for (auto i = symbol_freqs_.size(); i < index + 1; i++)
             symbol_freqs_.push_back(0); // Sanitizer: indirect leak
@@ -49,31 +49,35 @@ void StatDict::update_symbol(int index, int freq) {
     power_ += freq;
 }
 
-int StatDict::search(const IntSeq& seq, std::unordered_set<int>* excludes) const {
+int StatDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) const {
     return dict_->search(seq, excludes);
 }
 
-const IntSeq& StatDict::get(int index) const {
+int StatDictImpl::search(const IntSeq& seq) const {
+    return dict_->search(seq, nullptr);
+}
+
+const IntSeq& StatDictImpl::get(int index) const {
     return dict_->get(index);
 }
 
-int StatDict::size() const {
+int StatDictImpl::size() const {
     return dict_->size();
 }
 
-const std::vector<IntSeq>& StatDict::alphabet() const {
+const std::vector<IntSeq>& StatDictImpl::alphabet() const {
     return dict_->alphabet();
 }
 
-int StatDict::parent(int second) const {
+int StatDictImpl::parent(int second) const {
     return dict_->parent(second);
 }
 
-int StatDict::freq(int index) const {
+int StatDictImpl::freq(int index) const {
     return index < symbol_freqs_.size() ? symbol_freqs_[index] : 0;
 }
 
-double StatDict::code_length_per_char() const {
+double StatDictImpl::code_length_per_char() const {
     double sum = 0;
     for (int i = 0; i < size(); i++) {
         int frequency = freq(i);
@@ -83,11 +87,11 @@ double StatDict::code_length_per_char() const {
     return (sum + power_ * log(power_)) / total_chars_;
 }
 
-bool StatDict::enough(double prob_found) const {
+bool StatDictImpl::enough(double prob_found) const {
     return power_ > -log(prob_found) / min_probability_;
 }
 
-int StatDict::parse(const IntSeq& seq, IntSeq* parse_result) {
+int StatDictImpl::parse(const IntSeq& seq, IntSeq* parse_result) {
     dict_->parse(seq, parse_freqs_, power_ + parse_freqs_init_power_, parse_result);
     total_chars_ += seq.size();
     int prev = -1;
@@ -100,7 +104,7 @@ int StatDict::parse(const IntSeq& seq, IntSeq* parse_result) {
     return static_cast<int>(parse_result->size());
 }
 
-double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
+double StatDictImpl::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
     std::vector<StatItem> items;
     std::unordered_set<IntSeq, VectorHash> known;
     for (const IntSeq& seq : alphabet()) {
@@ -182,7 +186,7 @@ double StatDict::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs)
     return min_prob_result;
 }
 
-double StatDict::reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
+double StatDictImpl::reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs) const {
     std::vector<StatItem> items;
     filter_stat_items(slots, &items);
     double power = 0.0;
@@ -200,7 +204,7 @@ double StatDict::reduce(int slots, std::vector<IntSeq>* new_dict, IntSeq* freqs)
     return min_prob_result;
 }
 
-int StatDict::filter_stat_items(int slots, std::vector<StatItem>* items) const {
+int StatDictImpl::filter_stat_items(int slots, std::vector<StatItem>* items) const {
     for (int s = 0; s < symbol_freqs_.size(); s++)
         if (parent(s) < 0)
             slots += 1;
@@ -214,7 +218,7 @@ int StatDict::filter_stat_items(int slots, std::vector<StatItem>* items) const {
     return static_cast<int>(items->size());
 }
 
-int StatDict::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes) const {
+int StatDictImpl::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes) const {
     double code_length = code_length_per_char() * total_chars_;
     for (int id = 0; id < symbol_freqs_.size(); id++) {
         if (excludes->count(id) == 0) {
@@ -274,7 +278,7 @@ int StatDict::stat_items(std::vector<StatItem>* items, std::unordered_set<int>* 
 //    }
 //}
 
-double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
+double StatDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
                                IntSeq* result, std::unordered_set<int>* excludes) const {
     size_t len = seq.size();
     std::vector<double> score(len + 1, std::numeric_limits<double>::lowest());
@@ -314,7 +318,7 @@ double StatDict::weightedParse(const IntSeq& seq, const IntSeq& freqs, double to
     return score[len];
 }
 
-void StatDict::stat_item_to_text(const StatItem& item, IntSeq* output) const {
+void StatDictImpl::stat_item_to_text(const StatItem& item, IntSeq* output) const {
     if (item.first() >= 0) {
         output->insert(output->end(), get(item.first()).begin(), get(item.first()).end());
         output->insert(output->end(), get(item.second()).begin(), get(item.second()).end());

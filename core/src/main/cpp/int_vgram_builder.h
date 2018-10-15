@@ -6,7 +6,6 @@
 #define VGRAM_INT_VGRAM_BUILDER_H
 
 #include "int_dict.h"
-#include "stat_dict.h"
 
 class IntVGramBuilder {
 public:

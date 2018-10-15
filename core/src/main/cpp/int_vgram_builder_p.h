@@ -8,9 +8,7 @@
 #include <fstream>
 #include <unordered_map>
 #include "int_vgram_builder.h"
-#include "stat_dict.h"
-
-class StatDict;
+#include "stat_dict_p.h"
 
 class IntVGramBuilderImpl : public IntVGramBuilder {
 public:
@@ -30,9 +28,9 @@ private:
   int size_;
   // ofstream trace_;
   std::vector<IntSeq> symb_alphabet_;
-  std::shared_ptr<StatDict> current_;
+  std::shared_ptr<StatDictImpl> current_;
   bool populate_ = true;
-  std::shared_ptr<StatDict> result_;
+  std::shared_ptr<StatDictImpl> result_;
 
   double prob_found_ = 0.1;
   double best_compression_rate_ = 1.0;

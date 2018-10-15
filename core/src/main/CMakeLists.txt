@@ -12,12 +12,14 @@ set(SOURCE_LIB
         cpp/int_dict_p.cc
 
         cpp/stat_dict.h
-        cpp/stat_dict.cc
+        cpp/stat_dict_p.h
+        cpp/stat_dict_p.cc
 
         cpp/vector_hash.h
         cpp/fast_random.h
         cpp/fast_random.cc
 
+        cpp/int_vgram_builder.h
         cpp/int_vgram_builder_p.h
         cpp/int_vgram_builder_p.cc
 

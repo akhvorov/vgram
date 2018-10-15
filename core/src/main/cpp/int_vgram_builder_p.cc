@@ -7,12 +7,12 @@
 #import "int_vgram_builder_p.h"
 #import "int_dict_p.h"
 
-constexpr double StatDict::kMaxMinProbability;
+constexpr double StatDictImpl::kMaxMinProbability;
 
 IntVGramBuilderImpl::IntVGramBuilderImpl(int size) {
     size_ = size;
     symb_alphabet_ = std::vector<IntSeq>();
-    current_ = std::shared_ptr<StatDict>(new StatDict()); // Sanitizer: indirect leak
+    current_ = std::shared_ptr<StatDictImpl>(new StatDictImpl()); // Sanitizer: indirect leak
     result_ = nullptr;
 }
 
@@ -40,7 +40,7 @@ void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
     size_ = size;
     //trace = trace;
     symb_alphabet_ = alphabet.alphabet();
-    current_ = std::shared_ptr<StatDict>(new StatDict(alphabet.alphabet(), StatDict::kMaxMinProbability)); // Sanitizer: indirect leak
+    current_ = std::shared_ptr<StatDictImpl>(new StatDictImpl(alphabet.alphabet(), StatDictImpl::kMaxMinProbability)); // Sanitizer: indirect leak
     result_ = nullptr;
 }
 
@@ -80,22 +80,23 @@ void IntVGramBuilderImpl::update() {
         prob_found_ *= 0.8;
     }
 
-    std::shared_ptr<StatDict> result;
+    std::shared_ptr<StatDictImpl> result;
     std::vector<IntSeq> new_dict;
     IntSeq freqs;
     int alphabet_size = static_cast<int>(symb_alphabet_.size());
     if (populate_) {
+        std::cout << "Size: " << current_->size() << " rate: " << compression_rate << " minimal probability: " << current_->min_probability_ << std::endl;
         int slots;
         if (current_->size() * kExtensionFactor < 10)
             slots = size_ - alphabet_size;
         else
             slots = static_cast<int>(current_->size() * kExtensionFactor);
         double min_prob_result = current_->expand(slots, &new_dict, &freqs);
-        result = std::shared_ptr<StatDict>(new StatDict(new_dict, min_prob_result, &freqs));
+        result = std::shared_ptr<StatDictImpl>(new StatDictImpl(new_dict, min_prob_result, &freqs));
     }
     else {
         double min_prob_result = current_->reduce(size_ - alphabet_size, &new_dict, &freqs);
-        result = std::shared_ptr<StatDict>(new StatDict(new_dict, min_prob_result, &freqs));
+        result = std::shared_ptr<StatDictImpl>(new StatDictImpl(new_dict, min_prob_result, &freqs));
         result_ = result;
     }
     current_ = result;
@@ -119,10 +120,6 @@ int IntVGramBuilderImpl::result_freqs(IntSeq* freqs) {
         freqs->push_back(symbol_freq);
     }
     return static_cast<int>(freqs->size());
-//    if (result_->size() > result_->symbol_freqs_.size())
-//        for (auto i = result_->symbol_freqs_.size(); i < result_->size(); i++)
-//            result_->symbol_freqs_.push_back(0);
-//    return &result_->symbol_freqs_;
 }
 
 double IntVGramBuilderImpl::code_length() const {
