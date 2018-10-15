@@ -63,6 +63,7 @@ setup(
     author_email='khvorov.aleksandr@gmail.com',
     description='C++ binding of vgram builder library',
     long_description='',
+    url='https://github.com/akhvorov/vgram',
     ext_modules=[CMakeExtension('vgram')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
