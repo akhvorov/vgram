@@ -6,6 +6,7 @@
 #define DICT_EXPANSION_VGRAM_H
 
 #include <cpp/int_vgram_builder.h>
+#include <cpp/seq_coder.h>
 
 class PyVGramBuilder {
 public:
@@ -29,8 +30,11 @@ private:
     int iter_num_;
     std::shared_ptr<IntVGramBuilder> builder_;
     std::shared_ptr<IntDict> dict_;
+    SeqCoder coder_;
     IntSeq freqs_;
     int total_freqs_;
+
+    void compute_freqs(const std::vector<IntSeq>& seqs);
 };
 
 #endif //DICT_EXPANSION_VGRAM_H
