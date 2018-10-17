@@ -23,6 +23,11 @@ set(SOURCE_LIB
         cpp/int_vgram_builder_p.h
         cpp/int_vgram_builder_p.cc
 
+        cpp/seq_coder.h
+        cpp/seq_coder.cc
+#        cpp/int_int_vgram_builder_p.h
+#        cpp/int_int_vgram_builder_p.cc
+
         cpp/list_dict.h
         cpp/list_dict.cc
         cpp/vgram_builder.h
