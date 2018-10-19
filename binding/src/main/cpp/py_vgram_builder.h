@@ -5,8 +5,12 @@
 #ifndef DICT_EXPANSION_VGRAM_H
 #define DICT_EXPANSION_VGRAM_H
 
+#include <pybind11/pybind11.h>
 #include <cpp/int_vgram_builder.h>
 #include <cpp/seq_coder.h>
+#include <pybind11/pytypes.h>
+
+namespace py = pybind11;
 
 class PyVGramBuilder {
 public:
@@ -21,8 +25,10 @@ public:
     IntSeq freqs() const;
     //PyVGramBuilder(int size, IntSeq* alphabet = nullptr, int iter_num = 1);
     //PyVGramBuilder(int size, IntSeq* alphabet, int iter_num);
-    void fit(const std::vector<IntSeq>& seqs);
-    std::vector<IntSeq> transform(const std::vector<IntSeq>& seqs);
+//    PyVGramBuilder* fit(const std::vector<IntSeq>& seqs);
+    PyVGramBuilder* fit(const std::vector<IntSeq>& seqs, py::args args);
+//    std::vector<std::string> transform(const std::vector<IntSeq>& seqs);
+    std::vector<std::string> transform(const std::vector<IntSeq>& seqs, py::args args);
 
     std::vector<IntSeq> alphabet() const;
 
@@ -33,6 +39,7 @@ private:
     SeqCoder coder_;
     IntSeq freqs_;
     int total_freqs_;
+    bool fitted_ = false;
 
     void compute_freqs(const std::vector<IntSeq>& seqs);
 };

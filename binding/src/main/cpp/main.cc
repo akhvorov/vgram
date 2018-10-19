@@ -5,7 +5,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include "py_vgram_builder.h"
-#include "tokenizer.h"
+#include "base_tokenizer.h"
 
 namespace py = pybind11;
 
@@ -33,13 +33,20 @@ PYBIND11_MODULE(vgram, m) {
             .def(py::init<std::string>())
             .def("save", &PyVGramBuilder::save)
             .def("freqs", &PyVGramBuilder::freqs)
+//            .def("fit", (PyVGramBuilder* (PyVGramBuilder::*)(const std::vector<IntSeq>&, const IntSeq&)) &PyVGramBuilder::fit)
+//            .def("fit", (PyVGramBuilder* (PyVGramBuilder::*)(const std::vector<IntSeq>&)) &PyVGramBuilder::fit)
             .def("fit", &PyVGramBuilder::fit)
+//            .def("fit", &PyVGramBuilder::fit, py::arg("seqs") = nullptr, py::arg("y").none(true) = nullptr)
+//            .def("transform", (std::vector<std::string> (PyVGramBuilder::*)(const std::vector<IntSeq>&, const IntSeq&)) &PyVGramBuilder::transform)
+//            .def("transform", (std::vector<std::string> (PyVGramBuilder::*)(const std::vector<IntSeq>&)) &PyVGramBuilder::transform)
             .def("transform", &PyVGramBuilder::transform)
+//            .def("transform", &PyVGramBuilder::transform, py::arg("seqs") = nullptr, py::arg("y").none(true) = nullptr)
             .def("alphabet", &PyVGramBuilder::alphabet);
-    py::class_<Tokenizer>(m, "Tokenizer")
-            .def(py::init<>())
-            .def("fit", &Tokenizer::fit)
-            .def("transform", &Tokenizer::transform);
+
+//    py::class_<Tokenizer>(m, "Tokenizer")
+//            .def(py::init<>())
+//            .def("fit", &Tokenizer::fit)
+//            .def("transform", &Tokenizer::transform);
 
 //    py::class_<Tokenizer>(m, "Tokenizer");
 //    py::class_<SimpleTokenizer, Tokenizer>(m, "SimpleTokenizer")
