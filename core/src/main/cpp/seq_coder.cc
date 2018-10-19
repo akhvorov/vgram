@@ -23,6 +23,16 @@ std::vector<int> SeqCoder::encode(const std::vector<int>& seq) {
     return result;
 }
 
+std::vector<int> SeqCoder::encode(const std::vector<int>& seq) const {
+    std::vector<int> result;
+    for (int symbol : seq) {
+        if (forward_code_.count(symbol) != 0) {
+            result.push_back(forward_code_.at(symbol));
+        }
+    }
+    return result;
+}
+
 void SeqCoder::emplace_encode(std::vector<int>& seq) {
     for (int &i : seq) {
         if (forward_code_.count(i) == 0) {
@@ -31,6 +41,14 @@ void SeqCoder::emplace_encode(std::vector<int>& seq) {
             backward_code_[size] = i;
         }
         i = forward_code_[i];
+    }
+}
+
+void SeqCoder::emplace_encode(std::vector<int>& seq) const {
+    for (int &i : seq) {
+        if (forward_code_.count(i) != 0) {
+            i = forward_code_.at(i);
+        }
     }
 }
 

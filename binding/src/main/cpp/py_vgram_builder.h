@@ -8,28 +8,19 @@
 #include <pybind11/pybind11.h>
 #include <cpp/int_vgram_builder.h>
 #include <cpp/seq_coder.h>
+#include "base_tokenizer.h"
 #include <pybind11/pytypes.h>
 
 namespace py = pybind11;
 
 class PyVGramBuilder {
 public:
-//    PyVGramBuilder(int size);
-//    PyVGramBuilder(const IntSeq& alphabet, int size);
-//    void accept(const IntSeq& seq);
-//    IntSeq parse(const IntSeq& seq);
-
     PyVGramBuilder(int size, int iter_num);
     explicit PyVGramBuilder(std::string filename);
-    void save(const std::string& filename) const;
+    void save(const std::string& filename, BaseTokenizer* tokenizer = nullptr) const;
     IntSeq freqs() const;
-    //PyVGramBuilder(int size, IntSeq* alphabet = nullptr, int iter_num = 1);
-    //PyVGramBuilder(int size, IntSeq* alphabet, int iter_num);
-//    PyVGramBuilder* fit(const std::vector<IntSeq>& seqs);
     PyVGramBuilder* fit(const std::vector<IntSeq>& seqs, py::args args);
-//    std::vector<std::string> transform(const std::vector<IntSeq>& seqs);
-    std::vector<std::string> transform(const std::vector<IntSeq>& seqs, py::args args);
-
+    std::vector<std::string> transform(const std::vector<IntSeq>& seqs, py::args args) const;
     std::vector<IntSeq> alphabet() const;
 
 private:

@@ -58,13 +58,13 @@ class CMakeBuild(build_ext):
 
 setup(
     name='vgram',
-    version='0.1',
+    version='0.1.2',
     author='Khvorov Aleksandr',
     author_email='khvorov.aleksandr@gmail.com',
-    description='C++ binding of vgram builder library',
-    long_description='',
+    description='V-gram builder library',
+    long_description='Dictionary of v-gram construction',
     url='https://github.com/akhvorov/vgram',
-    ext_modules=[CMakeExtension('vgram')],
+    ext_modules=[CMakeExtension('vgram')],  # ext_modules=[CMakeExtension('vgram')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
 )
