@@ -16,9 +16,9 @@ set(SOURCE_LIB
         src/main/cpp/main.cc
         src/main/cpp/py_vgram_builder.h
         src/main/cpp/py_vgram_builder.cc
-        src/main/cpp/tokenizer.h
-        src/main/cpp/tokenizer.cc
-        src/main/cpp/simple_tokenizer.h
+        src/main/cpp/base_tokenizer.h
+        src/main/cpp/base_tokenizer.cc
+        src/main/cpp/char_tokenizer.h
         )
 
 pybind11_add_module(${project_name} ${SOURCE_LIB})

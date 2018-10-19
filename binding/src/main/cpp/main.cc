@@ -6,6 +6,7 @@
 #include <pybind11/stl.h>
 #include "py_vgram_builder.h"
 #include "base_tokenizer.h"
+#include "char_tokenizer.h"
 
 namespace py = pybind11;
 
@@ -13,35 +14,47 @@ int add(int a, int b) {
     return 3;
 }
 
-//class PyTokenizer : public Tokenizer {
-//public:
-//    using Tokenizer::Tokenizer;
-//    void fit(const std::vector<std::string>& seqs) override { PYBIND11_OVERLOAD(void, Tokenizer, fit, seqs); }
-//    std::vector<std::vector<int>> transform(const std::vector<std::string>& seqs) override { PYBIND11_OVERLOAD(std::vector<std::vector<int>>, Tokenizer, transform, seqs); }
-//};
+class PyBaseTokenizer : public BaseTokenizer {
+public:
+    using BaseTokenizer::BaseTokenizer;
+
+    std::string normalize(const std::string& str) const override {
+        PYBIND11_OVERLOAD_PURE(
+                std::string,
+                BaseTokenizer,
+                normalize,
+                str
+        );
+    }
+
+    std::vector<std::string> tokenize(const std::string& str) const override {
+        PYBIND11_OVERLOAD_PURE(
+                std::vector<std::string>, /* Return type */
+                BaseTokenizer,      /* Parent class */
+                tokenize,          /* Name of function in C++ (must match Python name) */
+                str      /* Argument(s) */
+        );
+    }
+};
 
 PYBIND11_MODULE(vgram, m) {
     m.doc() = "python lib for vgram features building";
     m.def("add", &add, "A function which adds two numbers");
     py::class_<PyVGramBuilder>(m, "VGramBuilder")
-            //.def(py::init<int, const IntSeq&, int>())
-            // fix constructor!
-//            .def("set", &Pet::set)
-//            .def("set", (void (Pet::*)(int)) &Pet::set, "Set the pet's age")
-//            .def("set", (void (Pet::*)(const std::string &)) &Pet::set, "Set the pet's name");
             .def(py::init<int, int>())
             .def(py::init<std::string>())
             .def("save", &PyVGramBuilder::save)
             .def("freqs", &PyVGramBuilder::freqs)
-//            .def("fit", (PyVGramBuilder* (PyVGramBuilder::*)(const std::vector<IntSeq>&, const IntSeq&)) &PyVGramBuilder::fit)
-//            .def("fit", (PyVGramBuilder* (PyVGramBuilder::*)(const std::vector<IntSeq>&)) &PyVGramBuilder::fit)
             .def("fit", &PyVGramBuilder::fit)
-//            .def("fit", &PyVGramBuilder::fit, py::arg("seqs") = nullptr, py::arg("y").none(true) = nullptr)
-//            .def("transform", (std::vector<std::string> (PyVGramBuilder::*)(const std::vector<IntSeq>&, const IntSeq&)) &PyVGramBuilder::transform)
-//            .def("transform", (std::vector<std::string> (PyVGramBuilder::*)(const std::vector<IntSeq>&)) &PyVGramBuilder::transform)
             .def("transform", &PyVGramBuilder::transform)
-//            .def("transform", &PyVGramBuilder::transform, py::arg("seqs") = nullptr, py::arg("y").none(true) = nullptr)
             .def("alphabet", &PyVGramBuilder::alphabet);
+
+    py::class_<BaseTokenizer, PyBaseTokenizer>(m, "BaseTokenizer")
+            .def(py::init<>())
+            .def("fit", &BaseTokenizer::fit)
+            .def("transform", &BaseTokenizer::transform)
+            .def("normalize", &BaseTokenizer::normalize)
+            .def("tokenize", &BaseTokenizer::tokenize);
 
 //    py::class_<Tokenizer>(m, "Tokenizer")
 //            .def(py::init<>())
