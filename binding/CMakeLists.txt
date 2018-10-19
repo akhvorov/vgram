@@ -19,6 +19,7 @@ set(SOURCE_LIB
         src/main/cpp/base_tokenizer.h
         src/main/cpp/base_tokenizer.cc
         src/main/cpp/char_tokenizer.h
+        src/main/cpp/char_tokenizer.cc
         )
 
 pybind11_add_module(${project_name} ${SOURCE_LIB})
