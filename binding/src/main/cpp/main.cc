@@ -19,21 +19,24 @@ public:
     using BaseTokenizer::BaseTokenizer;
 
     std::string normalize(const std::string& str) const override {
-        PYBIND11_OVERLOAD_PURE(
-                std::string,
-                BaseTokenizer,
-                normalize,
-                str
-        );
+        PYBIND11_OVERLOAD(std::string, BaseTokenizer, normalize, str);
     }
 
     std::vector<std::string> tokenize(const std::string& str) const override {
-        PYBIND11_OVERLOAD_PURE(
-                std::vector<std::string>, /* Return type */
-                BaseTokenizer,      /* Parent class */
-                tokenize,          /* Name of function in C++ (must match Python name) */
-                str      /* Argument(s) */
-        );
+        PYBIND11_OVERLOAD(std::vector<std::string>, BaseTokenizer, tokenize, str);
+    }
+};
+
+class PyCharTokenizer : public CharTokenizer {
+public:
+    using CharTokenizer::CharTokenizer;
+
+    std::string normalize(const std::string& str) const override {
+        PYBIND11_OVERLOAD(std::string, CharTokenizer, normalize, str);
+    }
+
+    std::vector<std::string> tokenize(const std::string& str) const override {
+        PYBIND11_OVERLOAD(std::vector<std::string>, CharTokenizer, tokenize, str);
     }
 };
 
@@ -49,12 +52,26 @@ PYBIND11_MODULE(vgram, m) {
             .def("transform", &PyVGramBuilder::transform)
             .def("alphabet", &PyVGramBuilder::alphabet);
 
-    py::class_<BaseTokenizer, PyBaseTokenizer>(m, "BaseTokenizer")
+    py::class_<BaseTokenizer, PyBaseTokenizer> base_tokenizer(m, "BaseTokenizer");
+    base_tokenizer
             .def(py::init<>())
             .def("fit", &BaseTokenizer::fit)
             .def("transform", &BaseTokenizer::transform)
             .def("normalize", &BaseTokenizer::normalize)
-            .def("tokenize", &BaseTokenizer::tokenize);
+            .def("tokenize", &BaseTokenizer::tokenize)
+//            .def("decode", (std::vector<std::string> (BaseTokenizer::*)(const std::vector<std::vector<int>>&, py::args)) &BaseTokenizer::decode)
+//            .def("decode", (std::vector<std::string> (BaseTokenizer::*)(const std::vector<std::string>&, py::args)) &BaseTokenizer::decode)
+            .def("decode", &BaseTokenizer::decode)
+            ;
+
+    py::class_<CharTokenizer, PyCharTokenizer>(m, "CharTokenizer", base_tokenizer)
+            .def(py::init<>())
+//            .def("fit", &CharTokenizer::fit)
+//            .def("transform", &CharTokenizer::transform)
+            .def("normalize", &CharTokenizer::normalize)
+            .def("tokenize", &CharTokenizer::tokenize)
+//            .def("decode", &BaseTokenizer::decode)
+            ;
 
 //    py::class_<Tokenizer>(m, "Tokenizer")
 //            .def(py::init<>())
