@@ -9,7 +9,7 @@ option(WITH_PYTHON "Build with python interface" ON)
 # gtest
 include(googletest.cmake)
 fetch_googletest(
-        ${PROJECT_SOURCE_DIR}
+        ../..
         ${PROJECT_BINARY_DIR}/googletest
 )
 enable_testing()
