@@ -1,0 +1,14 @@
+include src/main/cpp/base_tokenizer.h
+include src/main/cpp/char_tokenizer.h
+include src/main/cpp/fast_random.h
+include src/main/cpp/int_dict.h
+include src/main/cpp/int_dict_p.h
+include src/main/cpp/int_vgram_builder.h
+include src/main/cpp/int_vgram_builder_p.h
+include src/main/cpp/list_dict.h
+include src/main/cpp/py_vgram_builder.h
+include src/main/cpp/seq_coder.h
+include src/main/cpp/stat_dict.h
+include src/main/cpp/stat_dict_p.h
+include src/main/cpp/vector_hash.h
+include src/main/cpp/vgram_builder.h

@@ -5,6 +5,7 @@
 #ifndef VGRAM_INT_VGRAM_BUILDER_H
 #define VGRAM_INT_VGRAM_BUILDER_H
 
+#include <memory>
 #include "int_dict.h"
 
 class IntVGramBuilder {
