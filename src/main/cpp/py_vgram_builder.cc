@@ -12,7 +12,7 @@
 #include "py_vgram_builder.h"
 
 PyVGramBuilder::PyVGramBuilder(int size, int iter_num) {
-    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(size));
+    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(size - 1));
     dict_ = nullptr;
     coder_ = SeqCoder();
     freqs_ = IntSeq();
