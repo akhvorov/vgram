@@ -22,7 +22,7 @@ from sklearn.base import BaseEstimator
 from sklearn.linear_model.base import LinearClassifierMixin, SparseCoefMixin
 from sklearn.svm import LinearSVC
 
-from catboost import CatBoostClassifier, Pool
+from catboost import CatBoostClassifier
 
 
 def restore_test():
@@ -169,12 +169,6 @@ def nbsvm(X_tr, y_tr, X_te, y_te, vgb=None, alpha=1e-5):
     print('Test Accuracy: %s' % mnbsvm.score(X_te, y_te))
 
 
-def download_data(cats=None):
-    if cats is None:
-        return fetch_20newsgroups(subset='train'), fetch_20newsgroups(subset='test')
-    return fetch_20newsgroups(subset='train', categories=cats), fetch_20newsgroups(subset='test', categories=cats)
-
-
 def format_dict_java_to_cpp(from_file, to_file, tokenizer):
     out = open(to_file, 'w')
     for line in open(from_file, 'r'):
@@ -247,88 +241,6 @@ def imdb_data(directory, unsup=False):
     return X, y
 
 
-class BaseTokenizer:
-    def __init__(self):
-        self.fcode = {}
-        self.bcode = {}
-
-    # def fit(self, X, y=None):
-    #     xx = self.normalize(X)
-    #     xx = self.tokenize(xx)
-    #     tokens = set()
-    #     for x in xx:
-    #         for w in x:
-    #             tokens.add(w)
-    #     tokens = sorted(list(tokens))
-    #     s = 0
-    #     for token in tokens:
-    #         self.fcode[token] = s
-    #         self.bcode[s] = token
-    #         s += 1
-    #     print("tokenizer dict len: ", len(self.fcode))
-    #     return self
-
-    def fit(self, X, y=None):
-        xx = self.normalize(X)
-        xx = self.tokenize(xx)
-        s = 0
-        for x in xx:
-            for token in x:
-                if token not in self.fcode:
-                    self.fcode[token] = s
-                    self.bcode[s] = token
-                    s += 1
-        print("tokenizer dict len: ", len(self.fcode))
-        return self
-
-    def transform(self, X, y=None):
-        xx = self.normalize(X)
-        xx = self.tokenize(xx)
-        return [[self.fcode[w] for w in x if w in self.fcode.keys()] for x in xx]
-
-    def decode(self, X, y=None):
-        return ["".join([self.bcode[w] for w in x if w in self.bcode.keys()]) for x in X]
-
-    def normalize(self, X):
-        return [re.sub("[^\w\d]", "", x).lower() for x in X]
-
-    def tokenize(self, X):
-        return [[c for c in x] for x in X]
-
-
-class WordTokenizer(BaseTokenizer):
-    def __init__(self):
-        super().__init__()
-
-    def normalize(self, X):
-        return [re.sub("[^ \w\d]", "", re.sub(" +", " ", x)).lower() for x in X]
-
-    def tokenize(self, X):
-        return [x.split(" ") for x in X]
-
-
-class PyCharTokenizer(BaseTokenizer):
-    def __init__(self):
-        super().__init__()
-
-    def normalize(self, X):
-        return [re.sub("[^\w\d]", "", x).lower() for x in X]
-
-    def tokenize(self, X):
-        return [[c for c in x] for x in X]
-
-
-class CharTokenizer2(BaseTokenizer):
-    def __init__(self):
-        super().__init__()
-
-    def normalize(self, X):
-        return [re.sub(" +", " ", re.sub("[^\w\d]", " ", x)).lower() + ' ' for x in X]
-
-    def tokenize(self, X):
-        return [[c for c in x] for x in X]
-
-
 class VGramBuilderP:
     def __init__(self, size=None, iter=None, filename=None):
         if filename is not None:
@@ -396,19 +308,16 @@ def read_bin_from_file(filename):
     return np.array(X), np.array(Y)
 
 
-def boosting(X_tr, y_tr, X_te, y_te, vgb):
-    X_tr = vgb.transform(X_tr).toarray()
-    X_te = vgb.transform(X_te).toarray()
-    save_bin_to_file(X_tr, y_tr, "/Users/akhvorov/data/mlimlab/vgram/train.vbin")
-    X_tr, y_tr = read_bin_from_file("/Users/akhvorov/data/mlimlab/vgram/train.vbin")
-    save_bin_to_file(X_te, y_te, "/Users/akhvorov/data/mlimlab/vgram/test.vbin")
-    X_te, y_te = read_bin_from_file("/Users/akhvorov/data/mlimlab/vgram/test.vbin")
-
-    model = CatBoostClassifier(iterations=20)
-    # model.fit(tr_p, use_best_model=True, eval_set=te_p)
-    model.fit(X_tr, y_tr)
-    print("Train:", np.mean(model.predict(X_tr) != np.array(y_tr)))
-    print("Test:", np.mean(model.predict(X_te) != np.array(y_te)))
+def boosting(X_tr, y_tr, X_te, y_te):
+    model = CatBoostClassifier(
+        iterations=100,
+        # learning_rate=0.001,
+        thread_count=4,
+        custom_loss=['Accuracy']
+    )
+    model.fit(X_tr, y_tr, use_best_model=True, eval_set=(X_te, y_te), silent=True, plot=True)
+    print("Train:", np.mean(model.predict(X_tr) == np.array(y_tr)))
+    print("Test:", np.mean(model.predict(X_te) == np.array(y_te)))
 
 
 def get_data(dataset, unsup=False):
@@ -452,36 +361,27 @@ def get_data(dataset, unsup=False):
 def vgb_pipeline(args):
     if args.restore:
         # vgb = VGramBuilderP(filename=args.filename)
-        vgb = VGramBuilder(args.filename)
+        vgb = VGramBuilder(args.dict_path)
     else:
         # vgb = VGramBuilderP(size=int(args.size), iter=int(args.iter))
         vgb = VGramBuilder(int(args.size), int(args.iter))
     # vgb = VGramBuilder(int(args.size), int(args.iter))
 
-    if args.tokenizer == "1":
-        tokenizer = CharTokenizer()
-    # elif args.tokenizer == "2":
-    #     tokenizer = CharTokenizer2()
-    else:
-        tokenizer = CharTokenizer()
-
     vgram_features = Pipeline([
-        ("tokenizer", tokenizer),
+        ("tokenizer", CharTokenizer()),
         ("vgb", vgb),
         ("vect", CountVectorizer())
     ])
     data = get_data(args.dataset, unsup=True)
     print("texts for vgram learning:", len(data))
-    # print("\n".join(str(i) + " " + str(o) for (i, o) in enumerate(text for text in data if not data)))
     vgram_features.fit(data)
-
-    # data = CharTokenizer().fit(data).transform(data[:1000])
-    # vgb = vgb.fit(data)
-    # data = vgb.transform(data)
-    # data = CountVectorizer().fit(data).transform(data)
-    # print(data)
+    # alpha = vgram_features.named_steps["tokenizer"].decode(vgram_features.named_steps["vgb"].alphabet())
+    # res = vgram_features.named_steps['vgb'].transform(vgram_features.named_steps['tokenizer'].transform(["from from hello world where are you from"]))
+    # print(res)
+    # print([alpha[int(i)] for i in res[0].strip().split(' ')])
     if not args.restore:
-        vgram_features.named_steps['vgb'].save(args.filename, vgram_features.named_steps['tokenizer'])
+        print("save in vgb_pipeline")
+        vgram_features.named_steps['vgb'].save(args.dict_path, vgram_features.named_steps['tokenizer'])
     return vgram_features
 
 
@@ -527,26 +427,37 @@ def arg_parser():
     parser.add_argument('-t', '--tokenizer', default="1")
     parser.add_argument('-ns', '--nbsvm', action='store_true')
     parser.add_argument('-a', '--alpha', default=1e-4)
+    parser.add_argument('-dp', '--dict_path')
+    parser.add_argument('-b', '--boost', action='store_true')
     return parser
 
 
 def main():
     args = arg_parser().parse_args()
     vgb = None
-    if args.mode != "w":
-        dict_name = "/Users/akhvorov/data/mlimlab/vgram/" + args.dataset + "_" + args.size + "_" + args.iter + "_" + args.tokenizer + ".dict2"
-        # dict_name = "/Users/akhvorov/data/mlimlab/vgram/20ng_15000_50_1.dict"
-        args.filename = dict_name
-        print("Using dict path:", args.filename)
+    # if args.mode != "w":
+    #     dict_name = "/Users/akhvorov/data/mlimlab/vgram/" + args.dataset + "_" + args.size + "_" + args.iter + "_" + args.tokenizer + ".dict2"
+    #     dict_name = "/Users/akhvorov/data/mlimlab/vgram/20ng_15000_50_1.dict"
+    #     args.filename = dict_name
+    #     print("Using dict path:", args.filename)
     start = time.time()
     X_tr, y_tr, X_te, y_te = get_data(args.dataset)
-    # boosting(X_tr, y_tr, X_te, y_te, vgb_pipeline(args))
-    if args.nbsvm:
-        if args.mode != "w":
-            vgb = vgb_pipeline(args)
-        nbsvm(X_tr, y_tr, X_te, y_te, vgb, float(args.alpha))
+    if args.boost:
+        print("Algorithm: Boosting")
+        vgb = vgb_pipeline(args)
+        x_tr = vgb.transform(X_tr).toarray()
+        x_te = vgb.transform(X_te).toarray()
+        print("Shape:", x_tr.shape, x_te.shape)
+        boosting(x_tr, y_tr, x_te, y_te)
     else:
-        apply_model(X_tr, y_tr, X_te, y_te, args)
+        if args.nbsvm:
+            print("Algorithm: NBSVM")
+            if args.mode != "w":
+                vgb = vgb_pipeline(args)
+            nbsvm(X_tr, y_tr, X_te, y_te, vgb, float(args.alpha))
+        else:
+            print("Algorithm: SVM")
+            apply_model(X_tr, y_tr, X_te, y_te, args)
     print("time: ", time.time() - start)
 
 
