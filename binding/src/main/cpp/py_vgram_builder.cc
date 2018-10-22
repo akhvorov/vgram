@@ -12,7 +12,7 @@
 #include "py_vgram_builder.h"
 
 PyVGramBuilder::PyVGramBuilder(int size, int iter_num) {
-    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(size));
+    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(size - 1));
     dict_ = nullptr;
     coder_ = SeqCoder();
     freqs_ = IntSeq();
@@ -49,20 +49,14 @@ PyVGramBuilder::PyVGramBuilder(std::string filename) {
             }
             if (freq == -1) {
                 freq = num;
-                if (num == 0) {
-                    not_include = true;
-                    break;
-                }
                 i++;
             } else {
                 seq.push_back(num);
             }
         }
-        if (!not_include) {
-            freqs_.push_back(freq);
-            total_freqs_ += freq;
-            seqs.push_back(coder_.encode(seq));
-        }
+        freqs_.push_back(freq);
+        total_freqs_ += freq;
+        seqs.push_back(coder_.encode(seq));
     }
     std::cout << "Real size: "<< freqs_.size() << std::endl;
     file.close();
