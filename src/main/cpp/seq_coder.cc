@@ -3,6 +3,7 @@
 //
 
 #include <vector>
+#include <string>
 #include "seq_coder.h"
 
 SeqCoder::SeqCoder() {
@@ -65,4 +66,17 @@ void SeqCoder::emplace_decode(std::vector<int>& seq) const {
     for (int &i : seq) {
         i = backward_code_.at(i);
     }
+}
+
+std::string SeqCoder::to_string() const {
+    std::vector<std::pair<int, int>> pairs;
+    for (const auto& p : forward_code_) {
+        pairs.emplace_back(p);
+    }
+    std::sort(pairs.begin(), pairs.end(), [](const std::pair<int,int>& a, const std::pair<int,int>& b) { return a.second < b.second; });
+    std::string res;
+    for (const auto& p : pairs) {
+        res += ":" + std::to_string(p.first) + "\n";
+    }
+    return res;
 }
