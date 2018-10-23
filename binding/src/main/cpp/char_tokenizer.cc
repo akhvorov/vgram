@@ -3,6 +3,8 @@
 //
 
 //#import <regex>
+#import <algorithm>
+#import <string>
 #include "char_tokenizer.h"
 
 std::string CharTokenizer::normalize(const std::string &str) const {
