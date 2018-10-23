@@ -55,8 +55,8 @@ PyVGramBuilder::PyVGramBuilder(std::string filename) {
                 std::istringstream convert(tmp);
                 if (!(convert >> num)) {
                     num = 0;
-                    std::cout << "can't convert to num in string " << k << ", !" << tmp << "! ind " << i << " : " << line.substr(
-                            (unsigned long) std::max(i - 5, 0), (unsigned long) std::min(i + 5, (int) line.length())) << std::endl;
+//                    std::cout << "can't convert to num in string " << k << ", !" << tmp << "! ind " << i << " : " << line.substr(
+//                            (unsigned long) std::max(i - 5, 0), (unsigned long) std::min(i + 5, (int) line.length())) << std::endl;
                     break;
                 }
                 if (line[i] == ')' || (line[i] == '\t' && freq != -1)) {
