@@ -6,9 +6,11 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <numeric>
+#include <cmath>
+#include <algorithm>
 #include <cpp/int_vgram_builder_p.h>
 #include <cpp/int_dict_p.h>
-#include <numeric>
 #include "py_vgram_builder.h"
 
 PyVGramBuilder::PyVGramBuilder(int size, int iter_num) {
@@ -27,38 +29,53 @@ PyVGramBuilder::PyVGramBuilder(std::string filename) {
     std::ifstream file;
     file.open(filename);
     std::string line;
+    int k = 0;
     while (std::getline(file, line)) {
-        int freq = -1;
-        IntSeq seq;
-        size_t i = 0;
-        bool not_include = false;
-        for ( ; i < line.length() && line[i] != ')'; i++) {
-            std::string tmp;
-            while (i < line.length() && line[i] != ' ' && line[i] != '\t' && line[i] != ')') {
-                tmp += line[i++];
+        if (line.length() > 0 && line[0] == ':') {
+            int i = 1;
+            std::string s;
+            for ( ; i < line.length() && line[i] != '\t'; i++) {
+                s += line[i];
             }
-            int num;
-            std::istringstream convert(tmp);
-            if (!(convert >> num)) {
-                num = 0;
-                return;
+            int a;
+            std::istringstream convert(s);
+            if (!(convert >> a)) {
+                a = 0;
             }
-            if (line[i] == ')' || (line[i] == '\t' && freq != -1)) {
-                seq.push_back(num);
-                break;
+            coder_.encode(std::vector<int>(1, a));
+        } else {
+            int freq = -1;
+            IntSeq seq;
+            for (int i = 0; i < line.length() && line[i] != ')'; i++) {
+                std::string tmp;
+                while (i < line.length() && line[i] != ' ' && line[i] != '\t' && line[i] != ')') {
+                    tmp += line[i++];
+                }
+                int num;
+                std::istringstream convert(tmp);
+                if (!(convert >> num)) {
+                    num = 0;
+                    std::cout << "can't convert to num in string " << k << ", !" << tmp << "! ind " << i << " : " << line.substr(
+                            (unsigned long) std::max(i - 5, 0), (unsigned long) std::min(i + 5, (int) line.length())) << std::endl;
+                    break;
+                }
+                if (line[i] == ')' || (line[i] == '\t' && freq != -1)) {
+                    seq.push_back(num);
+                    break;
+                }
+                if (freq == -1) {
+                    freq = num;
+                    i++;
+                } else {
+                    seq.push_back(num);
+                }
             }
-            if (freq == -1) {
-                freq = num;
-                i++;
-            } else {
-                seq.push_back(num);
-            }
+            freqs_.push_back(freq);
+            total_freqs_ += freq;
+            seqs.push_back(coder_.encode(seq));
+            k++;
         }
-        freqs_.push_back(freq);
-        total_freqs_ += freq;
-        seqs.push_back(coder_.encode(seq));
     }
-    std::cout << "Real size: "<< freqs_.size() << std::endl;
     file.close();
     dict_ = std::shared_ptr<IntDict>(new IntDictImpl(seqs));
     iter_num_ = 0;
@@ -68,6 +85,7 @@ PyVGramBuilder::PyVGramBuilder(std::string filename) {
 void PyVGramBuilder::save(const std::string& filename, BaseTokenizer* tokenizer) const {
     std::ofstream file;
     file.open(filename);
+    file << coder_.to_string();
     for (int i = 0; i < dict_->size(); i++) {
         file << freqs_[i] << "\t" << coder_.decode(dict_->get(i)) << "\t" << tokenizer->decode(std::vector<std::vector<int>>(1, coder_.decode(dict_->get(i))))[0] << std::endl;
     }
@@ -105,8 +123,10 @@ void PyVGramBuilder::compute_freqs(const std::vector<IntSeq>& seqs) {
         IntSeq result;
         dict_->parse(coder_.encode(seq), freqs, total_freqs, &result);
         for (int symb : result) {
-            total_freqs_++;
-            freqs_[symb]++;
+            if (symb >= 0) {
+                total_freqs_++;
+                freqs_[symb]++;
+            }
         }
     }
 }

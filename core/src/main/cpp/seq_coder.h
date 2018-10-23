@@ -16,6 +16,7 @@ public:
     void emplace_encode(std::vector<int>& seq) const;
     std::vector<int> decode(const std::vector<int>& seq) const;
     void emplace_decode(std::vector<int>& seq) const;
+    std::string to_string() const;
 
 private:
     std::unordered_map<int, int> forward_code_;
