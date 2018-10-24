@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "seq_coder.h"
 
 SeqCoder::SeqCoder() {
