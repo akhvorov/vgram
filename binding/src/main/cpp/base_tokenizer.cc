@@ -61,16 +61,3 @@ std::vector<std::string> BaseTokenizer::decode(const std::vector<std::vector<int
     }
     return res;
 }
-
-//std::vector<std::string> BaseTokenizer::decode(const std::vector<std::string>& seqs) const {
-//    std::vector<std::vector<int>> splited_seqs;
-//    for (const std::string& seq : seqs) {
-//        std::vector<int> splited_seq;
-//        std::istringstream iss(seq);
-//        std::string s;
-//        while (getline(iss, s, ' ')) {
-//            splited_seq.push_back(std::stoi(s));
-//        }
-//    }
-//    return decode_ints(splited_seqs);
-//}

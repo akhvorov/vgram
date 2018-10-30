@@ -36,7 +36,6 @@ IntDictImpl::IntDictImpl(const IntDictImpl& dict) {
 
 void IntDictImpl::init(const std::vector<IntSeq>& seqs) {
     seqs_ = std::vector<IntSeq>(seqs); // Sanitizer: indirect leak
-    //seqs_ = seqs;
     parents_ = IntSeq(seqs_.size(), -1); // Sanitizer: indirect leak
     std::vector<std::pair<IntSeq, int>> parents_stack;
     std::sort(seqs_.begin(), seqs_.end());
@@ -46,7 +45,6 @@ void IntDictImpl::init(const std::vector<IntSeq>& seqs) {
         while (!parents_stack.empty()) {
             IntSeq prefix = parents_stack.back().first;
             if (std::mismatch(prefix.begin(), prefix.end(), current.begin()).first == prefix.end()) {
-            //if (std::memcmp(&prefix, &current, prefix.size()) == 0) {
                 parents_[i] = parents_stack.back().second;
                 break;
             }
@@ -115,57 +113,6 @@ double IntDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double
     return score[len];
 }
 
-//void IntDictImpl::weightParseVariants(const IntSeq& seq, double multiplier, const IntSeq& freqs,
-//                                      double total_freq, std::unordered_map<int, double>* result,
-//                                      std::unordered_set<int>* excludes = nullptr) {
-//    auto len = seq.size();
-//    std::vector<double> count_forward(len + 1);
-//    {
-//        count_forward[0] = 1;
-//        for (int pos = 0; pos < len; pos++) {
-//            IntSeq suffix(seq.begin() + pos, seq.end());
-//            int sym = search(suffix, excludes);
-//            do {
-//                auto sym_len = get(sym).size();
-//                int freq = sym < freqs.size() ? freqs[sym] : 0;
-//                count_forward[pos + sym_len] += freq * count_forward[pos] / total_freq;
-//            }
-//            while ((sym = parent(sym)) >= 0);
-//        }
-//    }
-//
-//    std::vector<double> count_backward(len + 1);
-//    {
-//        count_backward[len] = 1;
-//        for (auto pos = static_cast<int>(len - 1); pos >= 0; pos--) {
-//            IntSeq suffix(seq.begin() + pos, seq.end());
-//            int sym = search(suffix, excludes);
-//            do {
-//                auto sym_len = get(sym).size();
-//                int freq = sym < freqs.size() ? freqs[sym] : 0;
-//                count_backward[pos] += freq * count_backward[pos + sym_len] / total_freq;
-//            }
-//            while ((sym = parent(sym)) >= 0);
-//        }
-//    }
-//
-//    for (int pos = 0; pos < len; pos++) {
-//        IntSeq suffix(seq.begin() + pos, seq.end());
-//        int sym = search(suffix, excludes);
-//        do {
-//            auto sym_len = static_cast<int>(get(sym).size());
-//            int freq = sym < freqs.size() ? freqs[sym] : 0;
-//            double freq_increment = freq / total_freq * count_forward[pos] * count_backward[pos + sym_len];
-//            double v = multiplier * freq_increment / count_forward[len];
-//            if (result->count(sym) == 0) {
-//                (*result)[sym] = 0;
-//            }
-//            (*result)[sym] += v;
-//        }
-//        while ((sym = parent(sym)) >= 0);
-//    }
-//}
-
 int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) {
     int index = static_cast<int>(std::lower_bound(seqs_.begin(), seqs_.end(), seq) - seqs_.begin());
     if (index >= 0 && index < size() && seqs_[index] == seq) {
@@ -182,7 +129,7 @@ int IntDictImpl::search(const IntSeq& seq, std::unordered_set<int>* excludes) {
         }
         index = parents_[index];
     }
-    if (is_mutable_ && excludes == nullptr) {
+    if (excludes == nullptr) {
         int ind = size();
         seqs_.emplace_back(1, seq[0]);
         parents_.push_back(-1);
@@ -198,18 +145,6 @@ int IntDictImpl::parse(const IntSeq& seq, const IntSeq& freqs, double total_freq
     double log_probability = weightedParse(seq, freqs, total_freq, output, nullptr);
     if (log_probability > 0) {
         std::cout << "log_prob > 0" << std::endl;
-//        for (int i : seq) {
-//            std::cout << i << " ";
-//        }
-//        std::cout << "->";
-//        for (int symbol : *output) {
-//            if (symbol >= 0) {
-//                std::cout << " " << get(symbol);
-//            } else {
-//                std::cout << "##unknown##";
-//            }
-//        }
-//        std::cout << " " << log_probability << std::endl;
     }
     return static_cast<int>(output->size());
 }
@@ -239,10 +174,6 @@ int IntDictImpl::parent(int second) const {
         std::cout << "Error in int_dict_p.cc parent" << std::endl;
     }
     return parents_[second];
-}
-
-void IntDictImpl::set_mutable(bool is_mutable) {
-    is_mutable_ = is_mutable;
 }
 
 IntDictImpl::~IntDictImpl() = default;

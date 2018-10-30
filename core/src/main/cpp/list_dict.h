@@ -39,15 +39,10 @@ public:
   ListDict(int alphabet_size);
 
   int parse(const std::vector<T>& input, const std::vector<double>& freqs, IntSeq* output) {
-    //TODO two ways: freqs = nullptr and other
     std::vector<T> temp(input.size());
     encoder_.encode(input, &temp);
     double total_freq = std::accumulate(freqs.begin(), freqs.end(), 0.0);
     return delegate_->parse(temp, freqs, total_freq, output);
-  }
-
-  static void save(const ListDict& dict) {
-
   }
 
 private:

@@ -25,20 +25,8 @@ IntVGramBuilderImpl::IntVGramBuilderImpl(const IntSeq& alphabet, int size) {
     init(int_dict, size);
 }
 
-//IntVGramBuilderImpl::IntVGramBuilderImpl(const std::vector<IntSeq>& alphabet, IntSeq& freq) {
-//    IntDictImpl int_dict(alphabet);
-//    init(int_dict, int_dict.size());
-//
-//    size_ = static_cast<int>(alphabet.size());
-//    //trace = trace;
-//    symb_alphabet_ = alphabet;
-//    current_ = std::shared_ptr<StatDict>(new StatDict(alphabet, StatDict::kMaxMinProbability, &freq)); // Sanitizer: indirect leak
-//    result_ = current_;
-//}
-
 void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
     size_ = size;
-    //trace = trace;
     symb_alphabet_ = alphabet.alphabet();
     current_ = std::shared_ptr<StatDictImpl>(new StatDictImpl(alphabet.alphabet(), StatDictImpl::kMaxMinProbability)); // Sanitizer: indirect leak
     result_ = nullptr;
@@ -71,7 +59,7 @@ void IntVGramBuilderImpl::update() {
         if (freq > 0)
             sum -= freq * log(freq) / log(2);
     }
-    double code_length = (sum + current_->power_ * log(current_->power_) / log(2)) / 8.;
+    double code_length = (sum + current_->power_ * std::log(current_->power_) / log(2)) / 8.;
     double compression_rate = code_length / text_length;
     if (compression_rate < best_compression_rate_) {
         best_compression_rate_ = compression_rate;
@@ -85,7 +73,8 @@ void IntVGramBuilderImpl::update() {
     IntSeq freqs;
     int alphabet_size = static_cast<int>(symb_alphabet_.size());
     if (populate_) {
-        std::cout << "Size: " << current_->size() << " rate: " << compression_rate << " minimal probability: " << current_->min_probability_ << std::endl;
+        std::cout << "Size: " << current_->size() << " rate: " << compression_rate <<
+        " minimal probability: " << current_->min_probability_ << std::endl;
         int slots;
         if (current_->size() * kExtensionFactor < 10)
             slots = size_ - alphabet_size;
@@ -133,13 +122,9 @@ double IntVGramBuilderImpl::kl(const IntSeq& freqs, const std::unordered_map<std
         int freq = e.second;
         freq_first[(int)(code >> 32)] = freq;
     }
-
-    //TODO maybe accumulate can be removed
     double total_pair_freqs = std::accumulate(freq_first.begin(), freq_first.end(), 0.0);
     double total_freqs = std::accumulate(freqs.begin(), freqs.end(), 0.0);
-
-    //why array?
-    double result[] = {0};
+    double result = 0;
     for (auto &e : pair_freqs) {
         std::int64_t code = e.first;
         double freq = e.second;
@@ -149,7 +134,7 @@ double IntVGramBuilderImpl::kl(const IntSeq& freqs, const std::unordered_map<std
         double pBcondA = freq / freq_first[first];
         double pA = freqs[first] / total_freqs;
         double pB = freqs[second] / total_freqs;
-        result[0] += freq * pBcondA * log(pAB / pA / pB);
+        result += freq * pBcondA * std::log(pAB / pA / pB);
     }
-    return result[0];
+    return result;
 }

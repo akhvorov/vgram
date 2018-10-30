@@ -6,10 +6,6 @@
 #include "int_dict.h"
 #include <ostream>
 
-//IntDict* IntDict::create(int alphabet_size) {
-//
-//}
-
 std::ostream& operator<< (std::ostream &out, const IntSeq& seq)
 {
     out << "(";

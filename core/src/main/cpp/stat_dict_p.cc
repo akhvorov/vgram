@@ -84,11 +84,11 @@ double StatDictImpl::code_length_per_char() const {
         if (frequency > 0)
             sum -= frequency * log(frequency);
     }
-    return (sum + power_ * log(power_)) / total_chars_;
+    return (sum + power_ * std::log(power_)) / total_chars_;
 }
 
 bool StatDictImpl::enough(double prob_found) const {
-    return power_ > -log(prob_found) / min_probability_;
+    return power_ > -std::log(prob_found) / min_probability_;
 }
 
 int StatDictImpl::parse(const IntSeq& seq, IntSeq* parse_result) {
@@ -124,7 +124,6 @@ double StatDictImpl::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* fr
         int freq = pairs_freq.second;
         auto first = static_cast<int>(code >> 32);
         auto second = static_cast<int>(code & 0xFFFFFFFFL);
-        // !!! TODO check it
         start_with[first] += freq;
         ends_with[second] += freq;
     }
@@ -146,12 +145,11 @@ double StatDictImpl::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* fr
         int samples_count = 10;
         std::vector<double> sample(dirichlet_params.size());
         for (int i = 0; i < samples_count; i++) {
-            //rng.nextDirichlet(dirichlet_params, sample);
             next_dirichlet(dirichlet_params, &sample);
             double pAB = sample[0];
             double pAY = sample[1];
             double pXB = sample[2];
-            score += freq * pAB / (pAY + pAB) * log(pAB / (pAY + pAB) / (pXB + pAB)) / samples_count;
+            score += freq * pAB / (pAY + pAB) * std::log(pAB / (pAY + pAB) / (pXB + pAB)) / samples_count;
         }
 
         StatItem item(first, second, score, freq);
@@ -230,11 +228,13 @@ int StatDictImpl::stat_items(std::vector<StatItem>* items, std::unordered_set<in
                 weightedParse(seq, symbol_freqs_, power_, &parse, excludes); //TODO doesn't work, make base_dict
                 excludes->erase(id);
                 double new_power = power_ + (parse.size() - 1) * count;
-                double code_length_without_symbol = code_length + count * log(count) - power_ * log(power_) + new_power * log(new_power);
+                double code_length_without_symbol = code_length + count * log(count) -
+                        power_ * std::log(power_) + new_power * std::log(new_power);
                 for (int next : parse) {
                     int old_freq = freq(next);
                     int new_freq = old_freq + count;
-                    code_length_without_symbol -= new_freq * log(new_freq) - (old_freq > 0 ? old_freq * log(old_freq) : 0);
+                    code_length_without_symbol -= new_freq * log(new_freq) -
+                            (old_freq > 0 ? old_freq * log(old_freq) : 0);
                 }
                 double score = code_length_without_symbol - code_length;
                 if (score > 0) {
@@ -249,35 +249,6 @@ int StatDictImpl::stat_items(std::vector<StatItem>* items, std::unordered_set<in
     return static_cast<int>(items->size());
 }
 
-//int StatDict::index_of_two_str(const IntSeq& first, const IntSeq& second, int betw, int ind) {
-//    if (ind >= 0 && ind < first.size()) {
-//        return first[ind];
-//    } else if (ind == first.size()) {
-//        return betw;
-//    } else if (ind > first.size() && ind < first.size() + 1 + second.size()) {
-//        return second[ind - first.size() - 1];
-//    } else {
-//        return -1;
-//    }
-//}
-//
-//bool StatDict::is_substring(const IntSeq& s, const IntSeq& t) {
-//    return std::search(s.begin(), s.end(), t.begin(), t.end()) != t.end();
-//}
-//
-//void StatDict::print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
-//                          const std::unordered_map<std::int64_t, int>& new_pairs) const {
-//    for (int first = 0; first < size(); first++) {
-//        for (int second = 0; second < size(); second++) {
-//            std::int64_t code = (((std::int64_t) first) << 32) | second;
-//            if (old_pairs.at(code) != new_pairs.at(code)) {
-//                std::cout << "\t" << &dict_->get(first) << "|" << &dict_->get(second) << ": " << old_pairs.at(code) <<
-//                          " -> " << new_pairs.at(code) << std::endl;
-//            }
-//        }
-//    }
-//}
-
 double StatDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
                                IntSeq* result, std::unordered_set<int>* excludes) const {
     size_t len = seq.size();
@@ -290,7 +261,7 @@ double StatDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, doubl
         int sym = search(suffix, excludes);
         do {
             auto sym_len = get(sym).size();
-            double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
+            double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - std::log(total_freq + size());
 
             if (sym_len + pos >= score.size() || sym_len + pos >= symbols.size()) {
                 std::cout << "Error in stat_dict.cc 2" << std::endl;
@@ -335,18 +306,6 @@ StatItem::StatItem(int first, int second, double score, int count) {
     score_ = score;
     count_ = count;
 }
-
-//std::string StatItem::to_string() {
-//    std::string result = "";
-//    if (first_ >= 0)
-//        result += stat_dict_.get(first_) + "|";
-//    result += *stat_dict_.get(second_);
-//    result += "->(";
-//    result += count_;
-//    result += ", " + score_;
-//    result += ")";
-//    return result;
-//}
 
 bool StatItem::equals(const StatItem& stat_item) {
     return first_ == stat_item.first_ && second_ == stat_item.second_;

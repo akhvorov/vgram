@@ -49,23 +49,16 @@ private:
     int filter_stat_items(int slots, std::vector<StatItem>* items) const;
     int stat_items(std::vector<StatItem>* items, std::unordered_set<int>* excludes) const;
 
-//    int index_of_two_str(const IntSeq& first, const IntSeq& second, int betw, int ind);
-//    bool is_substring(const IntSeq& s, const IntSeq& t);
-//    void print_pairs(const std::unordered_map<std::int64_t, int>& old_pairs,
-//                     const std::unordered_map<std::int64_t, int>& new_pairs) const ;
-
-    //TODO: remove, make base class
+    //TODO: it's copy of int_dict method
     double weightedParse(const IntSeq& seq, const IntSeq& freqs, double total_freq,
                          IntSeq* result, std::unordered_set<int>* excludes = nullptr) const;
 
     void stat_item_to_text(const StatItem& item, IntSeq* output) const;
-
 };
 
 class StatItem {
 public:
     StatItem(int first_, int second_, double score_, int count_);
-    //std::string to_string();
     bool equals(const StatItem& statItem);
     int first() const;
     int second() const;

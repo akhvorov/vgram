@@ -11,9 +11,9 @@ class SeqCoder {
 public:
     SeqCoder();
     std::vector<int> encode(const std::vector<int>& seq);
-    std::vector<int> encode(const std::vector<int>& seq) const;
+    std::vector<int> encode_immutable(const std::vector<int>& seq) const;
     void emplace_encode(std::vector<int>& seq);
-    void emplace_encode(std::vector<int>& seq) const;
+    void emplace_encode_immutable(std::vector<int>& seq) const;
     std::vector<int> decode(const std::vector<int>& seq) const;
     void emplace_decode(std::vector<int>& seq) const;
     std::string to_string() const;

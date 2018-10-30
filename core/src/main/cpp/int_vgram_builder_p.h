@@ -5,6 +5,7 @@
 #ifndef VGRAM_INT_VGRAM_BUILDER_P_H
 #define VGRAM_INT_VGRAM_BUILDER_P_H
 
+#include <cmath>
 #include <fstream>
 #include <unordered_map>
 #include "int_vgram_builder.h"
@@ -20,13 +21,10 @@ public:
   const std::shared_ptr<IntDict> alpha() const override;
   void accept(const IntSeq& seq) override;
   int result_freqs(IntSeq* freqs) override;
-//  void printPairs(const std::ofstream& ps) const;
-//  void print(const std::ofstream& file_writer) const;
   double code_length() const override;
 
 private:
   int size_;
-  // ofstream trace_;
   std::vector<IntSeq> symb_alphabet_;
   std::shared_ptr<StatDictImpl> current_;
   bool populate_ = true;

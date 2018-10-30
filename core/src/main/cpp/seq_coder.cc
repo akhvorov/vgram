@@ -25,7 +25,7 @@ std::vector<int> SeqCoder::encode(const std::vector<int>& seq) {
     return result;
 }
 
-std::vector<int> SeqCoder::encode(const std::vector<int>& seq) const {
+std::vector<int> SeqCoder::encode_immutable(const std::vector<int>& seq) const {
     std::vector<int> result;
     for (int symbol : seq) {
         if (forward_code_.count(symbol) != 0) {
@@ -46,14 +46,6 @@ void SeqCoder::emplace_encode(std::vector<int>& seq) {
     }
 }
 
-void SeqCoder::emplace_encode(std::vector<int>& seq) const {
-    for (int &i : seq) {
-        if (forward_code_.count(i) != 0) {
-            i = forward_code_.at(i);
-        }
-    }
-}
-
 std::vector<int> SeqCoder::decode(const std::vector<int>& seq) const {
     std::vector<int> result;
     result.reserve(seq.size());
@@ -61,6 +53,14 @@ std::vector<int> SeqCoder::decode(const std::vector<int>& seq) const {
         result.push_back(backward_code_.at(symbol));
     }
     return result;
+}
+
+void SeqCoder::emplace_encode_immutable(std::vector<int>& seq) const {
+    for (int &i : seq) {
+        if (forward_code_.count(i) != 0) {
+            i = forward_code_.at(i);
+        }
+    }
 }
 
 void SeqCoder::emplace_decode(std::vector<int>& seq) const {
@@ -72,7 +72,6 @@ void SeqCoder::emplace_decode(std::vector<int>& seq) const {
 std::string SeqCoder::to_string() const {
     std::vector<std::pair<int, int>> pairs;
     for (const auto& p : forward_code_) {
-        //res += std::to_string(p.first) + "\t" + std::to_string(p.second) + "\n";
         pairs.emplace_back(p);
     }
     std::sort(pairs.begin(), pairs.end(), [](const std::pair<int,int>& a, const std::pair<int,int>& b) { return a.second < b.second; });

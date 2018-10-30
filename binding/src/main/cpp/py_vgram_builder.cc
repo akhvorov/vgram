@@ -55,8 +55,6 @@ PyVGramBuilder::PyVGramBuilder(std::string filename) {
                 std::istringstream convert(tmp);
                 if (!(convert >> num)) {
                     num = 0;
-//                    std::cout << "can't convert to num in string " << k << ", !" << tmp << "! ind " << i << " : " << line.substr(
-//                            (unsigned long) std::max(i - 5, 0), (unsigned long) std::min(i + 5, (int) line.length())) << std::endl;
                     break;
                 }
                 if (line[i] == ')' || (line[i] == '\t' && freq != -1)) {
@@ -137,7 +135,7 @@ std::vector<std::string> PyVGramBuilder::transform(const std::vector<IntSeq>& se
     for (const IntSeq& seq : seqs) {
         IntSeq result;
         std::string str;
-        dict_->parse(coder_.encode(seq), freqs_, total_freqs_, &result);
+        dict_->parse(coder_.encode_immutable(seq), freqs_, total_freqs_, &result);
         for (const auto& i : result) {
             str += " " + std::to_string(i);
         }
