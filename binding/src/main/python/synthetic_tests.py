@@ -2,6 +2,7 @@ import argparse
 import os
 import random
 import re
+import csv
 import time
 from pathlib import Path
 from vgram import VGramBuilder, CharTokenizer
@@ -199,7 +200,7 @@ def format_dict_cpp_to_java(from_file, to_file, tokenizer):
 
 
 def translate_dict(directory, from_file, to_file, domain):
-    tokenizer = CharTokenizer2()
+    tokenizer = CharTokenizer()
     data = imdb_data(directory, unsup=True)
     tokenizer.fit(data)
     if domain == "cpp":
@@ -239,6 +240,26 @@ def imdb_data(directory, unsup=False):
         X.append(f.read())
         f.close()
     return X, y
+
+
+def ag_news_data(directory, unsup=False):
+    XX, yy = [], []
+    files = ["train", "test"]
+    for i in range(2):
+        X, y = [], []
+        with open(directory + "/" + files[i] + ".csv", 'r') as f:
+            rdr = csv.reader(f, delimiter=',', quotechar='"')
+            for row in rdr:
+                txt = ""
+                for s in row[1:]:
+                    txt = txt + " " + re.sub("^\s*(.-)\s*$", "%1", s).replace("\\n", "\n")
+                X.append(txt)
+                y.append(int(row[0]))
+        XX.append(X)
+        yy.append(y)
+    if unsup:
+        return XX[0] + XX[1]
+    return XX[0], yy[0], XX[1], yy[1]
 
 
 class VGramBuilderP:
@@ -313,7 +334,8 @@ def boosting(X_tr, y_tr, X_te, y_te):
         iterations=100,
         # learning_rate=0.001,
         thread_count=4,
-        custom_loss=['Accuracy']
+        custom_loss=['Accuracy'],
+        loss_function='MultiClass'
     )
     model.fit(X_tr, y_tr, use_best_model=True, eval_set=(X_te, y_te), silent=True, plot=True)
     print("Train:", np.mean(model.predict(X_tr) == np.array(y_tr)))
@@ -350,6 +372,8 @@ def get_data(dataset, unsup=False):
         y = np.array([0] * len(X_neg) + [1] * len(X_pos))
         X_tr, X_te, y_tr, y_te = train_test_split(X, y)
         return X_tr, y_tr, X_te, y_te
+    elif dataset == "agn":
+        return ag_news_data("/Users/akhvorov/data/datasets/ag_news", unsup)
     else:
         print("wrong dataset")
         return -1
@@ -360,13 +384,9 @@ def get_data(dataset, unsup=False):
 
 def vgb_pipeline(args):
     if args.restore:
-        # vgb = VGramBuilderP(filename=args.filename)
         vgb = VGramBuilder(args.dict_path)
     else:
-        # vgb = VGramBuilderP(size=int(args.size), iter=int(args.iter))
         vgb = VGramBuilder(int(args.size), int(args.iter))
-    # vgb = VGramBuilder(int(args.size), int(args.iter))
-
     vgram_features = Pipeline([
         ("tokenizer", CharTokenizer()),
         ("vgb", vgb),
@@ -375,12 +395,12 @@ def vgb_pipeline(args):
     data = get_data(args.dataset, unsup=True)
     print("texts for vgram learning:", len(data))
     vgram_features.fit(data)
-    alpha = vgram_features.named_steps["tokenizer"].decode(vgram_features.named_steps["vgb"].alphabet())
-    res = vgram_features.named_steps['vgb'].transform(vgram_features.named_steps['tokenizer'].transform(["reakableottomofthe"]))
-    print(res)
-    print([alpha[int(i)] for i in res[0].strip().split(' ')])
+    # alpha = vgram_features.named_steps["tokenizer"].decode(vgram_features.named_steps["vgb"].alphabet())
+    # res = vgram_features.named_steps['vgb'].transform(vgram_features.named_steps['tokenizer'].transform(["reakableottomofthe"]))
+    # print(res)
+    # print([alpha[int(i)] for i in res[0].strip().split(' ')])
     if not args.restore:
-        print("save in vgb_pipeline")
+        print("save dict in vgb_pipeline")
         vgram_features.named_steps['vgb'].save(args.dict_path, vgram_features.named_steps['tokenizer'])
     return vgram_features
 
@@ -434,12 +454,6 @@ def arg_parser():
 
 def main():
     args = arg_parser().parse_args()
-    vgb = None
-    # if args.mode != "w":
-    #     dict_name = "/Users/akhvorov/data/mlimlab/vgram/" + args.dataset + "_" + args.size + "_" + args.iter + "_" + args.tokenizer + ".dict2"
-    #     dict_name = "/Users/akhvorov/data/mlimlab/vgram/20ng_15000_50_1.dict"
-    #     args.filename = dict_name
-    #     print("Using dict path:", args.filename)
     start = time.time()
     X_tr, y_tr, X_te, y_te = get_data(args.dataset)
     if args.boost:
