@@ -16,7 +16,7 @@ structure. Combining extracted character v-grams with the words
 from the original text we achieved substantially better classification
 quality than on words or v-grams alone.
 
-See the CIKM paper [CIKM paper](http://delivery.acm.org/10.1145/3280000/3271789/p1343-kuralenok.pdf?ip=195.144.231.198&id=3271789&acc=OPENTOC&key=4D4702B0C3E38B35%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35%2E9F04A3A78F7D3B8D&__acm__=1540909138_d870692dbe047e22f11c87e85251b39d) for details.
+See the [CIKM paper](http://delivery.acm.org/10.1145/3280000/3271789/p1343-kuralenok.pdf?ip=195.144.231.198&id=3271789&acc=OPENTOC&key=4D4702B0C3E38B35%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35%2E9F04A3A78F7D3B8D&__acm__=1540909138_d870692dbe047e22f11c87e85251b39d) for details.
 
 ### Install
 
