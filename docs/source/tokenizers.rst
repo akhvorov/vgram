@@ -3,17 +3,80 @@
 Tokenizers
 ##########
 
-The most popular case of v-gram usage is text analysis. But VGramBuilder accept 2-d array of integers
+VGramBuilder accept 2-d array of integers but one of the most frequent usage is text analysis.
+We should use tokenizers to encode data to integer arrays.
 
-This sections demonstrates the basic features of pybind11. Before getting
-started, make sure that development environment is set up to compile the
-included set of test cases.
+CharTokenizer
+=============
 
+For experiments we use this tokenizer.
+:class:`CharTokenizer` normalize text in following way: all non alphanumeric symbols was removed, then the text was converted to lower case.
+After that text split on single chars.
 
-Compiling the test cases
-========================
+In Python, it would look like this:
 
-Linux/MacOS
------------
+.. code-block:: python
 
-On Linux  you'll need to install th
+    class CharTokenizer:
+        def __init__(self): ..
+        def fit(self, X): ..
+        def transform(self, X): ..
+        def decode(self, X): ..
+
+:class:`CharTokenizer` implements sklearn fit-transform interface.
+
+``fit(X)`` consume list of strings. Other arguments will be ignored.
+
+``transform(X)`` consume list of strings and return 2-d list of integers. Other arguments will be ignored.
+
+``decode(X)`` consume 2-d list of integers and return list of strings.
+
+This is basic example of :class:`CharTokenizer` usage.
+
+.. code-block:: python
+
+    data = ["hello world", "other text", "blablabla"]
+    tokenizer = CharTokenizer()
+    transformed_data = tokenizer.fit(data).transform(data)
+    print(transformed_data)
+
+This tokenizer give good results in experiments but for other tasks different tokenizer may be more useful.
+
+BaseTokenizer
+=============
+
+You can make your own tokenizer by inheritance from :class:`BaseTokenizer`.
+You should only define normalize and tokenize methods for one string.
+
+.. code-block:: python
+
+    def BaseTokenizer():
+        def __init__(self): ..
+        def fit(self, X): ..
+        def transform(self, X): ..
+        def decode(self, X): ..
+        def normalize(self, string): ..
+        def tokenize(self, string): ..
+
+``normalize(string)`` consume string and return normalized string. If not redefined, same string will be returned.
+
+``tokenize(string)`` consume string and return list of integers. If not redefined, list of characters will be returned.
+
+Example of WordTokenizer implementation
+
+.. code-block:: python
+
+    class WordTokenizer(BaseTokenizer):
+        def normalize(self, X):
+            return [re.sub("[^ \w\d]", "", re.sub(" +", " ", x)).lower() for x in X]
+
+        def tokenize(self, X):
+            return [x.split(" ") for x in X]
+
+:class:`BaseTokenizer` implements sklearn fit-transform interface.
+
+``fit(X)`` consume list of strings. Other arguments will be ignored.
+
+``transform(X)`` consume list of strings and return 2-d list of integers. Other arguments will be ignored.
+
+``decode(X)`` consume 2-d list of integers and return list of strings.

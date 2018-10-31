@@ -1,8 +1,11 @@
 
-.._examples:
+.. _examples:
 
 Examples
 ########
+
+Basic example
+=============
 
 Basic example of 20 news groups dataset classification
 
@@ -46,3 +49,77 @@ V-Gram is unsupervised method that's why we fit vgram to all data.
 Once fitted, vgram don't fit again and we could not trouble about doubled fitting.
 
 In last two lines shown how get dictionary alphabet and print some elements.
+
+Words and vgrams union
+======================
+
+We simply make union of features
+
+.. code-block:: python
+
+	from sklearn.pipeline import Pipeline, FeatureUnion
+
+	vgram = Pipeline([
+		("tokenizer", CharTokenizer()),
+		("vgb", VGramBuilder(10000, 10)),
+		("vect", CountVectorizer())
+	])
+	vgram.fit(data)
+
+	pipeline = Pipeline([
+		("features", FeatureUnion([("vgb", vgram), ("words", CountVectorizer())])),
+		('tfidf', TfidfTransformer(sublinear_tf=True)),
+		('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=100, random_state=42))
+	])
+
+Custom Tokenizer
+================
+
+.. code-block:: python
+
+    class WordTokenizer(BaseTokenizer):
+        def normalize(self, X):
+            return [re.sub("[^ \w\d]", "", re.sub(" +", " ", x)).lower() for x in X]
+
+        def tokenize(self, X):
+            return [x.split(" ") for x in X]
+
+    vgram = Pipeline([
+        ("tokenizer", WordTokenizer()),
+        ("vgb", VGramBuilder(10000, 10)),
+        ("vect", CountVectorizer())
+    ])
+
+Save VGramBuilder to file
+=========================
+
+.. code-block:: python
+
+    vgram = Pipeline([
+        ("tokenizer", CharTokenizer()),
+        ("vgb", VGramBuilder(10000, 10)),
+        ("vect", CountVectorizer())
+    ])
+    vgram.fit(data)
+    vgram.named_steps["vgb"].save("/path/to/file")
+
+Make VGramBuilder from file
+===========================
+
+.. code-block:: python
+
+    vgram = Pipeline([
+        ("tokenizer", CharTokenizer()),
+        ("vgb", VGramBuilder("/path/to/file")),
+        ("vect", CountVectorizer())
+    ])
+    vgram.fit(data)
+
+.. Note::
+
+    VGramBuilder fit only once and wouldn't be fitted again. Only CharTokenizer and CountVectorizer will be fitted.
+
+More examples
+=============
+
+More examples you can find `there <https://github.com/akhvorov/vgram/blob/master/binding/src/main/python/synthetic_tests.py>`_.
