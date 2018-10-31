@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/vgram/badge/?version=latest)](https://vgram.readthedocs.io/en/latest/?badge=latest)
+
 # vgram
  
 This is implementation of new method for constructing an optimal
@@ -66,5 +68,5 @@ print("First 10 alphabet elements:", alpha[:10])
 ```
 
 V-Gram is unsupervised method that's why we fit vgram to all data.
-Once fitted, vgram don't fit again and we could not trouble about doubled fitting.
-In last two lines shown how get dictionary alphabet and print some elements.
+Once fitted, vgram don't fit again and we could not trouble about doubled fitting.  
+In last two lines shown how to get dictionary alphabet and print some elements.
