@@ -35,6 +35,11 @@ std::vector<std::vector<int>> BaseTokenizer::transform(const std::vector<std::st
     return res;
 }
 
+std::vector<std::vector<int>> BaseTokenizer::fit_transform(const std::vector<std::string>& seqs, py::args args) {
+    fit(seqs, args);
+    return transform(seqs, args);
+}
+
 std::string BaseTokenizer::normalize(const std::string& s) const {
     return s;
 }

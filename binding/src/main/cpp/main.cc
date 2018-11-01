@@ -52,6 +52,7 @@ PYBIND11_MODULE(vgram, m) {
             .def(py::init<>())
             .def("fit", &BaseTokenizer::fit)
             .def("transform", &BaseTokenizer::transform)
+            .def("fit_transform", &BaseTokenizer::fit_transform)
             .def("normalize", &BaseTokenizer::normalize)
             .def("tokenize", &BaseTokenizer::tokenize)
             .def("decode", &BaseTokenizer::decode)

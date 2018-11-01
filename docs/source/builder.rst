@@ -26,6 +26,8 @@ VGramBuilder implement convenient sklearn fit-transform interface.
 
 ``VGramBuilder(size, iters)`` building new dictionary of size ``size`` and learn ``iters`` iterations.
 
+``VGramBuilder(filename)`` building dictionary from file. It works if you fit dictionary and save to file before.
+
 ``fit(X)`` consume 2-d list of integer or 2-d numpy array. Other arguments will be ignored.
 
 ``transform(X)`` consume 2-d list of integer or 2-d numpy array. Other arguments will be ignored.

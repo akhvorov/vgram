@@ -35,7 +35,7 @@ Basic example of 20 news groups dataset classification
 	pipeline = Pipeline([
 		("features", vgram),
 		('tfidf', TfidfTransformer(sublinear_tf=True)),
-		('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=100, random_state=42))
+		('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=1002))
 	])
 	pipeline.fit(train.data, train.target)
 	print("train accuracy: ", np.mean(pipeline.predict(train.data) == train.target))
@@ -69,7 +69,7 @@ We simply make union of features
 	pipeline = Pipeline([
 		("features", FeatureUnion([("vgb", vgram), ("words", CountVectorizer())])),
 		('tfidf', TfidfTransformer(sublinear_tf=True)),
-		('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=100, random_state=42))
+		('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=100))
 	])
 
 Custom Tokenizer
@@ -103,8 +103,8 @@ Save VGramBuilder to file
     vgram.fit(data)
     vgram.named_steps["vgb"].save("/path/to/file")
 
-Make VGramBuilder from file
-===========================
+Construct VGramBuilder from file
+================================
 
 .. code-block:: python
 

@@ -29,6 +29,9 @@ In Python, it would look like this:
 
 ``transform(X)`` consume list of strings and return 2-d list of integers. Other arguments will be ignored.
 
+``fit_transform(X)`` consume list of strings and return 2-d list of integers. Other arguments will be ignored.
+Combine fit and transform methods.
+
 ``decode(X)`` consume 2-d list of integers and return list of strings.
 
 This is basic example of :class:`CharTokenizer` usage.
@@ -78,5 +81,8 @@ Example of WordTokenizer implementation
 ``fit(X)`` consume list of strings. Other arguments will be ignored.
 
 ``transform(X)`` consume list of strings and return 2-d list of integers. Other arguments will be ignored.
+
+``fit_transform(X)`` consume list of strings and return 2-d list of integers. Other arguments will be ignored.
+Combine fit and transform methods.
 
 ``decode(X)`` consume 2-d list of integers and return list of strings.
