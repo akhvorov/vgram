@@ -69,15 +69,6 @@ void SeqCoder::emplace_decode(std::vector<int>& seq) const {
     }
 }
 
-std::string SeqCoder::to_string() const {
-    std::vector<std::pair<int, int>> pairs;
-    for (const auto& p : forward_code_) {
-        pairs.emplace_back(p);
-    }
-    std::sort(pairs.begin(), pairs.end(), [](const std::pair<int,int>& a, const std::pair<int,int>& b) { return a.second < b.second; });
-    std::string res;
-    for (const auto& p : pairs) {
-        res += ":" + std::to_string(p.first) + "\n";
-    }
-    return res;
+const std::unordered_map<int, int> SeqCoder::code_map() const {
+    return forward_code_;
 }

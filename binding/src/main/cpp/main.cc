@@ -44,7 +44,7 @@ PYBIND11_MODULE(vgram, m) {
             .def(py::init<int, int, int>())
             .def(py::init<std::string>())
             .def(py::init<std::string, int>())
-            .def("save", &PyVGramBuilder::save)
+            .def("save", &PyVGramBuilder::save, py::arg("filename"), py::arg("tokenizer") = nullptr)
             .def("freqs", &PyVGramBuilder::freqs)
             .def("fit", &PyVGramBuilder::fit,
                     py::call_guard<py::scoped_ostream_redirect,

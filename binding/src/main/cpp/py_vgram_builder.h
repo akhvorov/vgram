@@ -28,6 +28,7 @@ public:
     std::vector<IntSeq> alphabet() const;
 
 private:
+    int size_;
     int iter_num_;
     std::shared_ptr<IntVGramBuilder> builder_;
     std::shared_ptr<IntDict> dict_;
@@ -35,9 +36,15 @@ private:
     IntSeq freqs_;
     int total_freqs_;
     bool fitted_ = false;
+    bool freqs_computed_ = false;
     int verbose_;
+    std::string filename_;
 
-    void compute_freqs(const std::vector<IntSeq>& seqs);
+    void update_dict();
+    void recompute_freqs(const std::vector<IntSeq>& seqs);
+    json dict_to_json(BaseTokenizer* tokenizer) const;
+    json alphabet_to_json(BaseTokenizer* tokenizer) const;
+    json coder_to_json() const;
 };
 
 #endif //DICT_EXPANSION_VGRAM_H
