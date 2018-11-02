@@ -9,23 +9,25 @@
 
 constexpr double StatDictImpl::kMaxMinProbability;
 
-IntVGramBuilderImpl::IntVGramBuilderImpl(int size) {
+IntVGramBuilderImpl::IntVGramBuilderImpl(int size, int verbose) {
     size_ = size;
     symb_alphabet_ = std::vector<IntSeq>();
     current_ = std::shared_ptr<StatDictImpl>(new StatDictImpl()); // Sanitizer: indirect leak
     result_ = nullptr;
+    verbose_ = verbose;
 }
 
-IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict& alphabet, int size) {
-    init(alphabet, size);
+IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict& alphabet, int size, int verbose) {
+    init(alphabet, size, verbose);
 }
 
-IntVGramBuilderImpl::IntVGramBuilderImpl(const IntSeq& alphabet, int size) {
+IntVGramBuilderImpl::IntVGramBuilderImpl(const IntSeq& alphabet, int size, int verbose) {
     IntDictImpl int_dict(alphabet);
-    init(int_dict, size);
+    init(int_dict, size, verbose);
 }
 
-void IntVGramBuilderImpl::init(const IntDict& alphabet, int size) {
+void IntVGramBuilderImpl::init(const IntDict& alphabet, int size, int verbose) {
+    verbose_ = verbose;
     size_ = size;
     symb_alphabet_ = alphabet.alphabet();
     current_ = std::shared_ptr<StatDictImpl>(new StatDictImpl(alphabet.alphabet(), StatDictImpl::kMaxMinProbability)); // Sanitizer: indirect leak
@@ -59,7 +61,7 @@ void IntVGramBuilderImpl::update() {
         if (freq > 0)
             sum -= freq * log(freq) / log(2);
     }
-    double code_length = (sum + current_->power_ * std::log(current_->power_) / log(2)) / 8.;
+    double code_length = (sum + current_->power_ * log(current_->power_) / log(2)) / 8.;
     double compression_rate = code_length / text_length;
     if (compression_rate < best_compression_rate_) {
         best_compression_rate_ = compression_rate;
@@ -73,8 +75,10 @@ void IntVGramBuilderImpl::update() {
     IntSeq freqs;
     int alphabet_size = static_cast<int>(symb_alphabet_.size());
     if (populate_) {
-        std::cout << "Size: " << current_->size() << " rate: " << compression_rate <<
-        " minimal probability: " << current_->min_probability_ << std::endl;
+        if (verbose_ > 0) {
+            std::cout << "Size: " << current_->size() << " rate: " << compression_rate <<
+                      " minimal probability: " << current_->min_probability_ << std::endl;
+        }
         int slots;
         if (current_->size() * kExtensionFactor < 10)
             slots = size_ - alphabet_size;
@@ -134,7 +138,7 @@ double IntVGramBuilderImpl::kl(const IntSeq& freqs, const std::unordered_map<std
         double pBcondA = freq / freq_first[first];
         double pA = freqs[first] / total_freqs;
         double pB = freqs[second] / total_freqs;
-        result += freq * pBcondA * std::log(pAB / pA / pB);
+        result += freq * pBcondA * log(pAB / pA / pB);
     }
     return result;
 }

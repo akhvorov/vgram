@@ -41,9 +41,6 @@ void StatDictImpl::update_symbol(int index, int freq) {
         for (auto i = parse_freqs_.size(); i < index + 1; i++)
             parse_freqs_.push_back(0); // Sanitizer: indirect leak
     }
-    if (index >= symbol_freqs_.size() || index >= parse_freqs_.size()) {
-        std::cout << "Error in stat_dict.cc update_symbol" << std::endl;
-    }
     symbol_freqs_[index] += freq;
     parse_freqs_[index] += freq;
     power_ += freq;
@@ -84,11 +81,11 @@ double StatDictImpl::code_length_per_char() const {
         if (frequency > 0)
             sum -= frequency * log(frequency);
     }
-    return (sum + power_ * std::log(power_)) / total_chars_;
+    return (sum + power_ * log(power_)) / total_chars_;
 }
 
 bool StatDictImpl::enough(double prob_found) const {
-    return power_ > -std::log(prob_found) / min_probability_;
+    return power_ > -log(prob_found) / min_probability_;
 }
 
 int StatDictImpl::parse(const IntSeq& seq, IntSeq* parse_result) {
@@ -110,10 +107,6 @@ double StatDictImpl::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* fr
     for (const IntSeq& seq : alphabet()) {
         known.insert(seq);
         int symbol = search(seq);
-        if (symbol < 0) {
-            std::cout << "Error in stat_dict.cc expand 1";
-            std::cout << ": freq = " << freq(symbol) << std::endl;
-        }
         items.emplace_back(-1, symbol, std::numeric_limits<double>::max(), freq(symbol));
     }
     slots += alphabet().size();
@@ -149,11 +142,10 @@ double StatDictImpl::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* fr
             double pAB = sample[0];
             double pAY = sample[1];
             double pXB = sample[2];
-            score += freq * pAB / (pAY + pAB) * std::log(pAB / (pAY + pAB) / (pXB + pAB)) / samples_count;
+            score += freq * pAB / (pAY + pAB) * log(pAB / (pAY + pAB) / (pXB + pAB)) / samples_count;
         }
 
         StatItem item(first, second, score, freq);
-        // !!!
         IntSeq item_text;
         stat_item_to_text(item, &item_text);
         if (known.count(item_text) == 0) {
@@ -229,7 +221,7 @@ int StatDictImpl::stat_items(std::vector<StatItem>* items, std::unordered_set<in
                 excludes->erase(id);
                 double new_power = power_ + (parse.size() - 1) * count;
                 double code_length_without_symbol = code_length + count * log(count) -
-                        power_ * std::log(power_) + new_power * std::log(new_power);
+                        power_ * log(power_) + new_power * log(new_power);
                 for (int next : parse) {
                     int old_freq = freq(next);
                     int new_freq = old_freq + count;
@@ -261,11 +253,7 @@ double StatDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, doubl
         int sym = search(suffix, excludes);
         do {
             auto sym_len = get(sym).size();
-            double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - std::log(total_freq + size());
-
-            if (sym_len + pos >= score.size() || sym_len + pos >= symbols.size()) {
-                std::cout << "Error in stat_dict.cc 2" << std::endl;
-            }
+            double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
             if (score[sym_len + pos] < score[pos] + sym_log_prob)
             {
                 score[sym_len + pos] = score[pos] + sym_log_prob;
@@ -279,9 +267,6 @@ double StatDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, doubl
     int index = 0;
     while (pos > 0) {
         int sym = symbols[pos];
-        if (len - index - 1 >= solution.size()) {
-            std::cout << "Error in stat_dict.cc 3" << std::endl;
-        }
         solution[len - (++index)] = sym;
         pos -= get(sym).size();
     }

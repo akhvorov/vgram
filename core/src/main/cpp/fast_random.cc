@@ -13,17 +13,11 @@ void next_dirichlet(const std::vector<double>& params, std::vector<double>* out)
     std::default_random_engine generator;
     for (int i = 0; i < params.size(); ++i) {
         gamma = std::gamma_distribution<double>(params[i], 1)(generator);
-        if (i >= out->size()) {
-            std::cout << "Error in fast_random.cc 1" << std::endl;
-        }
         (*out)[i] = gamma;
         total += gamma;
     }
     double invTotal = 1.0 / total;
     for (int i = 0; i < params.size(); ++i) {
-        if (i >= out->size()) {
-            std::cout << "Error in fast_random.cc 2" << std::endl;
-        }
         (*out)[i] = (*out)[i] * invTotal;
     }
 }

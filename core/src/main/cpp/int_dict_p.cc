@@ -21,9 +21,6 @@ IntDictImpl::IntDictImpl(const std::vector<IntSeq>& seqs) {
 IntDictImpl::IntDictImpl(const IntSeq& seqs) {
     std::vector<IntSeq> vec(seqs.size(), IntSeq(1, -1));
     for (int i = 0; i < seqs.size(); i++) {
-        if (i >= vec.size()) {
-            std::cout << "Error in int_dict_p.cc 1" << std::endl;
-        }
         vec[i][0] = seqs[i];
     }
     init(vec);
@@ -84,13 +81,6 @@ double IntDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double
         do {
             auto sym_len = get(sym).size();
             double sym_log_prob = (freqs.size() > sym ? log(freqs[sym] + 1) : 0) - log(total_freq + size());
-
-            if (sym_len + pos >= score.size()) {
-                std::cout << "Error in int_dict_p.cc 2" << std::endl;
-            }
-            if (sym_len + pos >= symbols.size()) {
-                std::cout << "Error in int_dict_p.cc 3" << std::endl;
-            }
             if (score[sym_len + pos] < score[pos] + sym_log_prob) {
                 score[sym_len + pos] = score[pos] + sym_log_prob;
                 symbols[sym_len + pos] = sym;
@@ -103,9 +93,6 @@ double IntDictImpl::weightedParse(const IntSeq& seq, const IntSeq& freqs, double
     int index = 0;
     while (pos > 0) {
         int sym = symbols[pos];
-        if (len - index - 1 >= solution.size()) {
-            std::cout << "Error in int_dict_p.cc 4" << std::endl;
-        }
         solution[len - (++index)] = sym;
         pos -= get(sym).size();
     }
@@ -155,9 +142,6 @@ int IntDictImpl::parse(const IntSeq& seq, IntSeq* output, std::unordered_set<int
 }
 
 const IntSeq& IntDictImpl::get(int index) const {
-    if (index >= seqs_.size() || index < 0) {
-        std::cout << "Error in int_dict_p.cc get" << std::endl;
-    }
     return seqs_[index];
 }
 
@@ -170,9 +154,6 @@ const std::vector<IntSeq>& IntDictImpl::alphabet() const {
 }
 
 int IntDictImpl::parent(int second) const {
-    if (second >= parents_.size() || second < 0) {
-        std::cout << "Error in int_dict_p.cc parent" << std::endl;
-    }
     return parents_[second];
 }
 

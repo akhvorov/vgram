@@ -14,9 +14,9 @@
 class IntVGramBuilderImpl : public IntVGramBuilder {
 public:
 
-  explicit IntVGramBuilderImpl(int size);
-  IntVGramBuilderImpl(const IntDict& alphabet, int size);
-  IntVGramBuilderImpl(const IntSeq& alphabet, int size);
+  explicit IntVGramBuilderImpl(int size, int verbose = 0);
+  IntVGramBuilderImpl(const IntDict& alphabet, int size, int verbose = 0);
+  IntVGramBuilderImpl(const IntSeq& alphabet, int size, int verbose = 0);
   std::shared_ptr<IntDict> result() const override;
   const std::shared_ptr<IntDict> alpha() const override;
   void accept(const IntSeq& seq) override;
@@ -33,8 +33,9 @@ private:
   double prob_found_ = 0.1;
   double best_compression_rate_ = 1.0;
   int no_rate_increase_turns_ = 0;
+  int verbose_ = 0;
 
-  void init(const IntDict& alphabet, int size);
+  void init(const IntDict& alphabet, int size, int verbose);
   void update();
   double kl(const IntSeq& freqs, const std::unordered_map<std::int64_t, int>& pair_freqs) const;
 };
