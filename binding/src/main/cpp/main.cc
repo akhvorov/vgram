@@ -4,6 +4,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/iostream.h>
 #include "py_vgram_builder.h"
 #include "base_tokenizer.h"
 #include "char_tokenizer.h"
@@ -40,10 +41,19 @@ PYBIND11_MODULE(vgram, m) {
     m.doc() = "python lib for vgram features building";
     py::class_<PyVGramBuilder>(m, "VGramBuilder")
             .def(py::init<int, int>())
+            .def(py::init<int, int, int>())
             .def(py::init<std::string>())
+            .def(py::init<std::string, int>())
             .def("save", &PyVGramBuilder::save)
             .def("freqs", &PyVGramBuilder::freqs)
             .def("fit", &PyVGramBuilder::fit)
+//            .def("fit", []() {
+//                py::scoped_ostream_redirect stream(
+//                        std::cout,
+//                        py::module::import("sys").attr("stdout")
+//                );
+//                &PyVGramBuilder::fit;
+//            })
             .def("transform", &PyVGramBuilder::transform)
             .def("alphabet", &PyVGramBuilder::alphabet);
 

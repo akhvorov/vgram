@@ -13,17 +13,22 @@
 #include <cpp/int_dict_p.h>
 #include "py_vgram_builder.h"
 
-PyVGramBuilder::PyVGramBuilder(int size, int iter_num) {
-    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(size - 1));
+PyVGramBuilder::PyVGramBuilder(int size, int iter_num) : PyVGramBuilder(size, iter_num, 1) {}
+
+PyVGramBuilder::PyVGramBuilder(int size, int iter_num, int verbose) {
+    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(size - 1, verbose));
     dict_ = nullptr;
     coder_ = SeqCoder();
     freqs_ = IntSeq();
     total_freqs_ = 0;
     iter_num_ = iter_num;
     fitted_ = false;
+    verbose_ = verbose;
 }
 
-PyVGramBuilder::PyVGramBuilder(std::string filename) {
+PyVGramBuilder::PyVGramBuilder(const std::string& filename) : PyVGramBuilder(filename, 1) {}
+
+PyVGramBuilder::PyVGramBuilder(const std::string& filename, int verbose) {
     coder_ = SeqCoder();
     std::vector<IntSeq> seqs;
     std::ifstream file;
@@ -78,6 +83,7 @@ PyVGramBuilder::PyVGramBuilder(std::string filename) {
     dict_ = std::shared_ptr<IntDict>(new IntDictImpl(seqs));
     iter_num_ = 0;
     fitted_ = true;
+    verbose_ = verbose;
 }
 
 void PyVGramBuilder::save(const std::string& filename, BaseTokenizer* tokenizer) const {
@@ -99,10 +105,15 @@ PyVGramBuilder* PyVGramBuilder::fit(const std::vector<IntSeq>& seqs, py::args ar
         return this;
     }
     for (int i = 0; i < iter_num_; i++) {
-        std::cout << i << "-th iteration" << std::endl;
+        if (verbose_ > 0) {
+            std::cout << i << "-th iteration" << std::endl;
+        }
         for (int k = 0; k < seqs.size(); k++) {
             IntSeq s = coder_.encode(seqs[rand() % static_cast<int>(seqs.size())]);
             builder_->accept(s);
+            if (PyErr_CheckSignals() == -1) {
+                return nullptr;
+            }
         }
     }
     compute_freqs(seqs);
@@ -111,7 +122,9 @@ PyVGramBuilder* PyVGramBuilder::fit(const std::vector<IntSeq>& seqs, py::args ar
 }
 
 void PyVGramBuilder::compute_freqs(const std::vector<IntSeq>& seqs) {
-    std::cout << "compute freqs" << std::endl;
+    if (verbose_ > 0) {
+        std::cout << "recompute freqs" << std::endl;
+    }
     dict_ = builder_->result();
     IntSeq freqs;
     builder_->result_freqs(&freqs);
