@@ -46,14 +46,9 @@ PYBIND11_MODULE(vgram, m) {
             .def(py::init<std::string, int>())
             .def("save", &PyVGramBuilder::save)
             .def("freqs", &PyVGramBuilder::freqs)
-            .def("fit", &PyVGramBuilder::fit)
-//            .def("fit", []() {
-//                py::scoped_ostream_redirect stream(
-//                        std::cout,
-//                        py::module::import("sys").attr("stdout")
-//                );
-//                &PyVGramBuilder::fit;
-//            })
+            .def("fit", &PyVGramBuilder::fit,
+                    py::call_guard<py::scoped_ostream_redirect,
+                    py::scoped_estream_redirect>())
             .def("transform", &PyVGramBuilder::transform)
             .def("alphabet", &PyVGramBuilder::alphabet);
 

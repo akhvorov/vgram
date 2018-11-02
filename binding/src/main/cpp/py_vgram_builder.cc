@@ -139,6 +139,9 @@ void PyVGramBuilder::compute_freqs(const std::vector<IntSeq>& seqs) {
                 freqs_[symb]++;
             }
         }
+        if (PyErr_CheckSignals() == -1) {
+            return;
+        }
     }
 }
 
@@ -156,6 +159,9 @@ std::vector<std::string> PyVGramBuilder::transform(const std::vector<IntSeq>& se
             str = "-1";
         }
         res.push_back(str);
+        if (PyErr_CheckSignals() == -1) {
+            break;
+        }
     }
     return res;
 }
