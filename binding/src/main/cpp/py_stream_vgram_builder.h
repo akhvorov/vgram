@@ -29,8 +29,9 @@ public:
     void save(const std::string& filename, BaseTokenizer* tokenizer = nullptr) const;
     std::vector<IntSeq> alphabet() const;
     IntSeq freqs() const;
+    void update_dict();
 
-private:
+protected:
     int size_;
     std::shared_ptr<IntVGramBuilder> builder_;
     std::shared_ptr<IntDict> dict_;
@@ -40,10 +41,10 @@ private:
     int verbose_;
     std::string filename_;
 
-    void update_dict();
-    json dict_to_json(BaseTokenizer* tokenizer) const;
+    virtual json dict_to_json(BaseTokenizer* tokenizer) const;
     json alphabet_to_json(BaseTokenizer* tokenizer) const;
     json coder_to_json() const;
+    json read_dict(const std::string& filename);
 };
 
 #endif //DICT_EXPANSION_PY_STREAM_VGRAM_BUILDER_H

@@ -32,14 +32,9 @@ PyStreamVGramBuilder::PyStreamVGramBuilder(const std::string& filename) : PyStre
 
 PyStreamVGramBuilder::PyStreamVGramBuilder(const std::string& filename, int verbose) {
     coder_ = SeqCoder();
-    std::ifstream file(filename);
     std::vector<IntSeq> seqs;
-    json dict;
-    file >> dict;
-    file.close();
+    json dict = read_dict(filename);
     size_ = dict["size"];
-    fitted_ = dict["fitted"].get<bool>();
-    freqs_computed_ = dict["freqs_computed"].get<bool>();
     for (int n : dict["coder"]) {
         coder_.encode(std::vector<int>(1, n));
     }
@@ -48,12 +43,21 @@ PyStreamVGramBuilder::PyStreamVGramBuilder(const std::string& filename, int verb
         seqs.push_back(word_obj["vec"].get<IntSeq>());
     }
     total_freqs_ = std::accumulate(freqs_.begin(), freqs_.end(), 0);
+//    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(freqs_.size(), verbose));
     dict_ = std::shared_ptr<IntDict>(new IntDictImpl(seqs));
     verbose_ = verbose;
 }
 
+json PyStreamVGramBuilder::read_dict(const std::string& filename) {
+    std::ifstream file(filename);
+    json dict;
+    file >> dict;
+    file.close();
+    return dict;
+}
+
 void PyStreamVGramBuilder::accept(const IntSeq& seq) {
-    builder_->accept(coder_.encode_immutable(seq));
+    builder_->accept(coder_.encode(seq));
 }
 
 IntSeq PyStreamVGramBuilder::parse(const IntSeq& seq) const {
