@@ -13,7 +13,9 @@ fetch_pybind11(
 )
 
 set(SOURCE_LIB
-        src/main/cpp/main.cc
+        src/main/cpp/bind_all.cc
+        src/main/cpp/bind_vgram_builders.cc
+        src/main/cpp/bind_tokenizers.cc
         src/main/cpp/json.h
         src/main/cpp/py_vgram_builder.h
         src/main/cpp/py_vgram_builder.cc
