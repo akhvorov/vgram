@@ -19,8 +19,11 @@ class PyVGramBuilder {
 public:
     PyVGramBuilder(int size, int iter_num);
     PyVGramBuilder(int size, int iter_num, int verbose);
+    PyVGramBuilder(int size, int iter_num, const std::string& filename);
+    PyVGramBuilder(int size, int iter_num, const std::string& filename, int verbose);
     explicit PyVGramBuilder(const std::string& filename);
     PyVGramBuilder(const std::string& filename, int verbose);
+
     void save(const std::string& filename, BaseTokenizer* tokenizer = nullptr) const;
     IntSeq freqs() const;
     PyVGramBuilder* fit(const std::vector<IntSeq>& seqs, py::args args);

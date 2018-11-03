@@ -1,3 +1,5 @@
+#include <utility>
+
 //
 // Created by Aleksandr Khvorov on 29/09/2018.
 //
@@ -16,7 +18,12 @@
 
 PyVGramBuilder::PyVGramBuilder(int size, int iter_num) : PyVGramBuilder(size, iter_num, 1) {}
 
-PyVGramBuilder::PyVGramBuilder(int size, int iter_num, int verbose) {
+PyVGramBuilder::PyVGramBuilder(int size, int iter_num, int verbose) : PyVGramBuilder(size, iter_num, "", verbose) {}
+
+PyVGramBuilder::PyVGramBuilder(int size, int iter_num, const std::string& filename)
+: PyVGramBuilder(size, iter_num, filename, 1) {}
+
+PyVGramBuilder::PyVGramBuilder(int size, int iter_num, const std::string& filename, int verbose) {
     builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(size - 1, verbose));
     size_ = size;
     dict_ = nullptr;
@@ -26,6 +33,7 @@ PyVGramBuilder::PyVGramBuilder(int size, int iter_num, int verbose) {
     iter_num_ = iter_num;
     fitted_ = false;
     verbose_ = verbose;
+    filename_ = filename;
 }
 
 PyVGramBuilder::PyVGramBuilder(const std::string& filename) : PyVGramBuilder(filename, 1) {}
@@ -78,7 +86,7 @@ json PyVGramBuilder::coder_to_json() const {
 
 json PyVGramBuilder::alphabet_to_json(BaseTokenizer* tokenizer) const {
     json alpha;
-    for (std::size_t i = 0; i < dict_->alphabet().size(); i++) {
+    for (int i = 0; i < dict_->alphabet().size(); i++) {
         auto word = dict_->alphabet()[i];
         json word_obj;
         word_obj["vec"] = json(word);
@@ -91,7 +99,14 @@ json PyVGramBuilder::alphabet_to_json(BaseTokenizer* tokenizer) const {
 }
 
 void PyVGramBuilder::save(const std::string& filename, BaseTokenizer* tokenizer) const {
-    std::ofstream file(filename);
+    std::ofstream file;
+    if (filename.empty() && !filename_.empty()) {
+        file = std::ofstream(filename_);
+    } else if (!filename.empty()) {
+        file = std::ofstream(filename);
+    } else {
+        std::cout << "Error: no filename for save. Pass filename to constructor or save method" << std::endl;
+    }
     file << std::setw(2) << dict_to_json(tokenizer) << std::endl;
     file.close();
 }
@@ -120,7 +135,9 @@ PyVGramBuilder* PyVGramBuilder::fit(const std::vector<IntSeq>& seqs, py::args ar
             }
         }
         update_dict();
-        save(filename_);
+        if (!filename_.empty()) {
+            save(filename_);
+        }
     }
     fitted_ = true;
     recompute_freqs(seqs);
