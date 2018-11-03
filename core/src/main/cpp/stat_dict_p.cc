@@ -10,18 +10,17 @@
 #include "fast_random.h"
 #include "vector_hash.h"
 
-StatDictImpl::StatDictImpl() {
+StatDictImpl::StatDictImpl(double min_probability) {
     dict_ = std::shared_ptr<IntDict>(new IntDictImpl()); // Sanitizer: indirect leak
     symbol_freqs_ = IntSeq();
     parse_freqs_ = IntSeq();
     pairs_freqs_ = std::unordered_map<std::int64_t , int>(kAggPower); // Sanitizer: indirect leak
-    min_probability_ = kMaxMinProbability;
+    min_probability_ = min_probability;
 }
 
 StatDictImpl::StatDictImpl(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs) {
-    IntDictImpl int_dict(seqs);
-    dict_ = std::make_shared<IntDictImpl>(int_dict); // Sanitizer: indirect leak // replace int_dict to seqs
-    symbol_freqs_ = IntSeq(static_cast<size_t>(int_dict.size()));
+    dict_ = std::make_shared<IntDictImpl>(seqs); // Sanitizer: indirect leak // replace int_dict to seqs
+    symbol_freqs_ = IntSeq(static_cast<size_t>(seqs.size()));
     if (init_freqs == nullptr) {
         parse_freqs_ = IntSeq(static_cast<size_t>(dict_->size())); // Sanitizer: indirect leak
     } else {
@@ -171,7 +170,7 @@ double StatDictImpl::expand(int slots, std::vector<IntSeq>* new_dict, IntSeq* fr
         new_dict->push_back(item_text);
         freqs->push_back(item.count());
         if (item.first() >= 0)
-            min_prob_result = std::min(min_prob_result, item.count() / accumulated_freqs); // !!! maybe accumulated_freqs is wrong
+            min_prob_result = std::min(min_prob_result, item.count() / accumulated_freqs);
     }
     return min_prob_result;
 }

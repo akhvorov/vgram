@@ -40,6 +40,7 @@ protected:
     int total_freqs_;
     int verbose_;
     std::string filename_;
+    double min_probability_;
 
     virtual json dict_to_json(BaseTokenizer* tokenizer) const;
     json alphabet_to_json(BaseTokenizer* tokenizer) const;

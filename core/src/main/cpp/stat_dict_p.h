@@ -19,8 +19,8 @@ public:
     static constexpr double kMaxMinProbability = 0.002;
     const size_t kAggPower = 100000;
 
-    StatDictImpl();
-    StatDictImpl(const std::vector<IntSeq>& seqs, double min_prob_result, IntSeq* init_freqs = nullptr);
+    explicit StatDictImpl(double min_probability = kMaxMinProbability);
+    explicit StatDictImpl(const std::vector<IntSeq>& seqs, double min_prob_result = kMaxMinProbability, IntSeq* init_freqs = nullptr);
 
     void update_symbol(int index, int freq) override;
     int search(const IntSeq& seq, std::unordered_set<int>* excludes) const override;

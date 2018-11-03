@@ -7,8 +7,6 @@
 #import "int_vgram_builder_p.h"
 #import "int_dict_p.h"
 
-constexpr double StatDictImpl::kMaxMinProbability;
-
 IntVGramBuilderImpl::IntVGramBuilderImpl(int size, int verbose) {
     size_ = size;
     symb_alphabet_ = std::vector<IntSeq>();
@@ -26,11 +24,23 @@ IntVGramBuilderImpl::IntVGramBuilderImpl(const IntSeq& alphabet, int size, int v
     init(int_dict, size, verbose);
 }
 
+IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict& dict, const IntSeq& freqs,
+        const std::vector<IntSeq>& alphabet, double min_probability, int verbose) {
+    verbose_ = verbose;
+    size_ = dict.size();
+    IntSeq freqs_copy(freqs.begin(), freqs.end());
+    std::shared_ptr<StatDictImpl> result = std::shared_ptr<StatDictImpl>(
+            new StatDictImpl(dict.alphabet(), min_probability, &freqs_copy));
+    symb_alphabet_ = alphabet;
+    current_ = result;
+    result_ = result;
+}
+
 void IntVGramBuilderImpl::init(const IntDict& alphabet, int size, int verbose) {
     verbose_ = verbose;
     size_ = size;
     symb_alphabet_ = alphabet.alphabet();
-    current_ = std::shared_ptr<StatDictImpl>(new StatDictImpl(alphabet.alphabet(), StatDictImpl::kMaxMinProbability)); // Sanitizer: indirect leak
+    current_ = std::shared_ptr<StatDictImpl>(new StatDictImpl(alphabet.alphabet())); // Sanitizer: indirect leak
     result_ = nullptr;
 }
 
@@ -117,6 +127,10 @@ int IntVGramBuilderImpl::result_freqs(IntSeq* freqs) {
 
 double IntVGramBuilderImpl::code_length() const {
   return result_->code_length_per_char();
+}
+
+double IntVGramBuilderImpl::get_min_probability() const {
+    return result_->min_probability_;
 }
 
 double IntVGramBuilderImpl::kl(const IntSeq& freqs, const std::unordered_map<std::int64_t, int>& pair_freqs) const {

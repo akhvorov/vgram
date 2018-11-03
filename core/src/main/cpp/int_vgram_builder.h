@@ -18,6 +18,7 @@ public:
     virtual void accept(const IntSeq& seq) = 0;
     virtual int result_freqs(IntSeq* freqs) = 0;
     virtual double code_length() const = 0;
+    virtual double get_min_probability() const = 0;
 };
 
 

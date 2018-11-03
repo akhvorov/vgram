@@ -35,7 +35,10 @@ PyStreamVGramBuilder::PyStreamVGramBuilder(const std::string& filename, int verb
     std::vector<IntSeq> seqs;
     json dict = read_dict(filename);
     size_ = dict["size"];
+    min_probability_ = dict["min_prob"];
+    std::vector<IntSeq> alphabet;
     for (int n : dict["coder"]) {
+        alphabet.emplace_back(1, n);
         coder_.encode(std::vector<int>(1, n));
     }
     for (const auto& word_obj : dict["alphabet"]) {
@@ -43,8 +46,8 @@ PyStreamVGramBuilder::PyStreamVGramBuilder(const std::string& filename, int verb
         seqs.push_back(word_obj["vec"].get<IntSeq>());
     }
     total_freqs_ = std::accumulate(freqs_.begin(), freqs_.end(), 0);
-//    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(freqs_.size(), verbose));
     dict_ = std::shared_ptr<IntDict>(new IntDictImpl(seqs));
+    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(*dict_, freqs_, alphabet, min_probability_, verbose));
     verbose_ = verbose;
 }
 
@@ -67,16 +70,11 @@ IntSeq PyStreamVGramBuilder::parse(const IntSeq& seq) const {
 }
 
 void PyStreamVGramBuilder::update_dict() {
-    if (verbose_ > 0) {
-        std::cout << "update dict" << std::endl;
-    }
     if (dict_ != builder_->result()) {
-        if (verbose_ > 0) {
-            std::cout << "dict updated" << std::endl;
-        }
         dict_ = builder_->result();
         builder_->result_freqs(&freqs_);
         total_freqs_ = std::accumulate(freqs_.begin(), freqs_.end(), 0);
+        min_probability_ = builder_->get_min_probability();
     }
 }
 
@@ -96,6 +94,7 @@ void PyStreamVGramBuilder::save(const std::string& filename, BaseTokenizer* toke
 json PyStreamVGramBuilder::dict_to_json(BaseTokenizer* tokenizer) const {
     json dict;
     dict["size"] = size_;
+    dict["min_prob"] = min_probability_;
     dict["coder"] = coder_to_json();
     dict["alphabet"] = alphabet_to_json(tokenizer);
     return dict;

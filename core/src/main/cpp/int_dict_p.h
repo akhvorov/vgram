@@ -29,7 +29,6 @@ public:
 private:
     std::vector<IntSeq> seqs_;
     IntSeq parents_;
-    bool is_mutable_ = true;
 
     void init(const std::vector<IntSeq>& seqs);
     int linearParse(const IntSeq& seq, IntSeq* builder, std::unordered_set<int>* excludes);
