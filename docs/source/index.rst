@@ -27,7 +27,12 @@ that shows competitive results on standard text classification collections witho
 Combining extracted character v-grams with the words from the original text we achieved substantially better
 classification quality than on words or v-grams alone.
 
-See the CIKM '18 `paper <http://delivery.acm.org/10.1145/3280000/3271789/p1343-kuralenok.pdf?ip=195.144.231.198&id=3271789&acc=OPENTOC&key=4D4702B0C3E38B35%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35%2E9F04A3A78F7D3B8D&__acm__=1540981038_f17e4a73acd10287dc73bbfe925f3432>`_ for details.
+See the CIKM '18 `paper <https://dl.acm.org/citation.cfm?id=3271789>`_ for details.
+
+Igor Kuralenok, Natalia Starikova, Aleksandr Khvorov, and Julian Serdyuk.
+Construction of Efficient V-Gram Dictionary for Sequential Data Analysis,
+CIKM '18 Proceedings of the 27th ACM International Conference on Information and Knowledge Management,
+Pages 1343-1352
 
 Install
 =======
@@ -55,8 +60,8 @@ Contents:
 Contribute
 ==========
 
-- Source Code: github.com/akhvorov/vgram
-- Issue Tracker: github.com/akhvorov/vgram/issues
+- Source `Code <https://github.com/akhvorov/vgram>`_
+- Issue `Tracker <https://github.com/akhvorov/vgram/issues>`_
 
 License
 =======

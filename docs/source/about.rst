@@ -2,10 +2,10 @@
 .. _about:
 
 Use cases and theory
-====================
+####################
 
 Data compression
-----------------
+================
 
 V-Grams dictionary building based on minimum description length principle.
 This allow us to achieve competitive results on data compression tasks.
@@ -14,7 +14,7 @@ Comparison of v-gram algorithm with other popular compression algorithms is pres
 !Place picture here!
 
 Text classification
--------------------
+===================
 
 Dictionary of v-grams may be used as words in bag-of-words text representation.
 From the practical perspective, v-grams has at least two significant advantages over words:
@@ -33,7 +33,7 @@ Also bag-of-words methods can be applied to non textual data such as genome sequ
 text without words splitting like text in asian or arabic languages.
 
 Sequences analysis
-------------------
+==================
 
 V-Grams dictionary contains a lot of valuable information about domain.
 
