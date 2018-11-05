@@ -28,7 +28,7 @@ Basic example of 20 news groups dataset classification
 		("vgb", VGramBuilder(10000, 10)),
 		("vect", CountVectorizer())
 	])
-	# it's ok, vgram fit only once
+	# it's ok, vgb fit only once
 	vgram.fit(data)
 
 	# fit classifier and get score
@@ -50,10 +50,10 @@ Once fitted, vgram don't fit again and we could not trouble about doubled fittin
 
 In last two lines shown how get dictionary alphabet and print some elements.
 
-Words and vgrams union
-======================
+Words and v-grams union
+=======================
 
-We simply make union of features
+We simply make union of features.
 
 .. code-block:: python
 
@@ -72,10 +72,14 @@ We simply make union of features
 		('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=100))
 	])
 
+It's easy to improve your existing project by adding v-grams.
+
 Custom Tokenizer
 ================
 
 .. code-block:: python
+
+    from vgram import VGramBuilder, BaseTokenizer
 
     class WordTokenizer(BaseTokenizer):
         def normalize(self, X):
@@ -97,11 +101,12 @@ Save VGramBuilder to file
 
     vgram = Pipeline([
         ("tokenizer", CharTokenizer()),
-        ("vgb", VGramBuilder(10000, 10)),
+        ("vgb", VGramBuilder(10000, 10, 0)),  # verbose=0
         ("vect", CountVectorizer())
     ])
     vgram.fit(data)
-    vgram.named_steps["vgb"].save("/path/to/file")
+    vgram.named_steps["vgb"].save("/path/to/file")  # saving without readable words
+    # vgram.named_steps["vgb"].save("/path/to/file", vgram.named_steps["tokenizer"])  # saving with readable words
 
 Construct VGramBuilder from file
 ================================
@@ -119,7 +124,54 @@ Construct VGramBuilder from file
 
     VGramBuilder fit only once and wouldn't be fitted again. Only CharTokenizer and CountVectorizer will be fitted.
 
-More examples
-=============
+Saving intermediate dictionaries to file
+========================================
 
-More examples you can find `there <https://github.com/akhvorov/vgram/blob/master/binding/src/main/python/synthetic_tests.py>`_.
+.. code-block:: python
+
+    vgram = Pipeline([
+        ("tokenizer", CharTokenizer()),
+        ("vgb", VGramBuilder(10000, 10, "/path/to/file")),
+        ("vect", CountVectorizer())
+    ])
+    vgram.fit(data)
+
+StreamVGramBuilder
+==================
+
+.. code-block:: python
+
+    from vgram import StreamVGramBuilder
+
+    vgram = StreamVGramBuilder(5000)
+    for seq in seqs:  # some stream of sequences, maybe infinite
+        vgram.accept(seq)
+    vgram.update()  # don't forget it!
+    parsed_seq = vgram.parse(seq)
+
+StreamVGramBuilder from file
+============================
+
+Let's read existing dictionary from file, fit it more and save.
+If you have little data you can train a dictionary on a large dataset (e.g. all wikipedia articles) and save it.
+Then fit more on domain specific data for your task and get better result than if you fit only on this data.
+
+.. code-block:: python
+
+    import random
+    from vgram import StreamVGramBuilder
+
+    vgram = StreamVGramBuilder("common_dict.json", 1)  # verbose=1
+    n_times = 10
+    for iters in range(n_times):  # feed data to the model few times until convergence
+        for i in range(len(little_data)):
+            vgram.accept(little_data[random.randint(0, len(little_data) - 1])
+    vgram.update()
+    parsed_seq = vgram.parse(seq)
+    vgram.save("task_specific_dict.json")
+
+
+Our experiments
+===============
+
+You can find our experiments `there <https://github.com/akhvorov/vgram/blob/master/binding/src/main/python/synthetic_tests.py>`_.

@@ -23,10 +23,10 @@ void init_vgram_builders(py::module &m) {
                  py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>())
             .def("parse", &PyStreamVGramBuilder::parse)
+            .def("update", &PyStreamVGramBuilder::update_dict)
             .def("save", &PyStreamVGramBuilder::save, py::arg("filename") = "", py::arg("tokenizer") = nullptr)
             .def("freqs", &PyStreamVGramBuilder::freqs)
-            .def("alphabet", &PyStreamVGramBuilder::alphabet)
-            .def("update", &PyStreamVGramBuilder::update_dict);
+            .def("alphabet", &PyStreamVGramBuilder::alphabet);
 
     py::class_<PyVGramBuilder>(m, "VGramBuilder")
             .def(py::init<int, int>())
@@ -41,6 +41,11 @@ void init_vgram_builders(py::module &m) {
                  py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>())
             .def("transform", &PyVGramBuilder::transform)
+            .def("accept", &PyStreamVGramBuilder::accept,
+                 py::call_guard<py::scoped_ostream_redirect,
+                         py::scoped_estream_redirect>())
+            .def("parse", &PyStreamVGramBuilder::parse)
+            .def("update", &PyStreamVGramBuilder::update_dict)
             .def("freqs", &PyVGramBuilder::freqs)
             .def("alphabet", &PyVGramBuilder::alphabet);
 }

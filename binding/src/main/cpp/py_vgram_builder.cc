@@ -24,7 +24,7 @@ PyVGramBuilder::PyVGramBuilder(int size, int iter_num, const std::string& filena
 : PyVGramBuilder(size, iter_num, filename, 1) {}
 
 PyVGramBuilder::PyVGramBuilder(int size, int iter_num, const std::string& filename, int verbose)
-: PyStreamVGramBuilder(size, filename, 1) {
+: PyStreamVGramBuilder(size, filename, verbose) {
     iter_num_ = iter_num;
     fitted_ = false;
 }
