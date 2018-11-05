@@ -3,7 +3,7 @@
 Tokenizers
 ##########
 
-VGramBuilder accepts a 2-d array of integers but one of the most frequent usages is text analysis.
+VGramBuilder accepts a 2-d array of integers, but one of the most frequent usages is text analysis.
 We should use tokenizers to encode data to integer arrays.
 
 CharTokenizer
@@ -34,7 +34,7 @@ Combine fit and transform methods.
 
 ``decode(X)`` consume a 2-d list of integers and return list of strings.
 
-This is a basic example of :class:`CharTokenizer` usage.
+This is a primary example of :class:`CharTokenizer` usage.
 
 .. code-block:: python
 

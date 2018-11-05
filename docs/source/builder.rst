@@ -7,12 +7,12 @@ V-Gram building
 StreamVGramBuilder
 ==================
 
-Use this class for construction v-gram dictionary in common cases.
+Use this class for construction v-gram dictionary in cases where data is not text or is too large.
 It gave the universal interface for any sequences performed by a list of integer numbers.
 This can be useful in cases where data does not fit into memory or coming by a stream.
 Every sequence accepted separately and fit dictionary gradually.
 
-If it was a class in Python, it would look like this:
+If it were a class in Python, it would look like this:
 
 .. code-block:: python
 
@@ -32,7 +32,7 @@ If it was a class in Python, it would look like this:
 
 
 :class:`StreamVGramBuilder` have two constructors. One for building a new dictionary and second for using an existing one.
-For using the second constructor you should already build dictionary before and saved it.
+For using the second constructor, you should already build a dictionary before and saved it.
 It's a recommended way to use v-grams because dictionary building takes a long time.
 
 | ``StreamVGramBuilder(size, filename="", verbose=1)`` building new dictionary of size ``size``.
@@ -68,7 +68,7 @@ VGramBuilder
 For working with v-grams in simple cases use ``VGramBuilder``.
 This class implement the scikit-learn fit-transform interface and can be well embedded in the existing code.
 
-If it was a class in Python, it would look like this:
+If it were a class in Python, it would look like this:
 
 .. code-block:: python
 
@@ -94,7 +94,7 @@ Same as in ``StreamVGramBuilder`` for using the second constructor you should al
 It's a recommended way to use v-grams because dictionary building takes a long time.
 
 | ``VGramBuilder(size, iters, filename="", verbose=1)`` building new dictionary of size ``size`` and learn ``iters`` iterations.
-| Pass ``filename`` for dictionary saving after each iteration. It may be useful if you start building a dictionary with more iterations as needed and want to interrupt process without losing progress. Feel free to do so, if ``filename`` is provided, a dictionary will be saved.
+| Pass ``filename`` for dictionary saving after each iteration. It may be useful if you start building a dictionary with more iterations as needed and want to interrupt process without losing progress. Feel free to do so, and if ``filename`` is provided, a dictionary will be saved.
 | Also you can do ``save()`` without filename argument, this ``filename`` will be used.
 | ``verbose`` means a level of verbose. ``0`` not print anything, ``1`` or more print some useful information about v-gram learning process.
 
@@ -147,16 +147,15 @@ Dictionary saved as json-formatted file:
       "freqs_computed": true,
     }
 
-If ``tokenizer`` has passed to ``save`` method field ``text`` contains text of v-gram in ``alphabet`` items.
+If ``tokenizer`` has passed to ``save`` method field ``text`` contains the text of v-gram in ``alphabet`` items.
 Without ``tokenizer`` the text field will not be in the file.
 
 After v-grams construction, you can analyze the resulting dictionary.
-``alphabet`` is a list of v-gram objects
 
-``freq`` is a frequency of v-gram occurrence in data.
-``vec`` is a vector of language alphabet symbols for v-gram presentation.
-
-``coder`` is a sequence of symbols as they occur in the data.
-``size`` is a size of a dictionary
-``min_prob``, ``fitted`` and ``freqs_computed`` are inner information for a model.
-``fitted`` and ``freqs_computed`` provided only for VGramBuilder class.
+| ``alphabet`` is a list of v-gram objects
+| ``freq`` is a frequency of v-gram occurrence in data.
+| ``vec`` is a vector of language alphabet symbols for v-gram presentation.
+| ``coder`` is a sequence of symbols as they occur in the data.
+| ``size`` is a size of a dictionary
+| ``min_prob``, ``fitted`` and ``freqs_computed`` are inside information for a model.
+| ``fitted`` and ``freqs_computed`` provided only for VGramBuilder class.

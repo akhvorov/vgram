@@ -17,7 +17,7 @@ V-Gram features construction library
 About
 =====
 
-This is the implementation of the new method for constructing an optimal feature set from sequential data.
+Vgram is the implementation of the new method for constructing an optimal feature set from sequential data.
 It creates a dictionary of n-grams of variable length, based on the minimum description length principle.
 The method is a dictionary coder and works simultaneously as both a compression algorithm and as unsupervised feature extraction.
 The length of constructed v-grams is not limited by any bound and exceeds 100 characters in provided experiments.
@@ -43,7 +43,7 @@ Install vgram by running:
 
 	pip install vgram
 
-Maybe you keep some errors about not installed pybind11 but it is okay.
+Maybe you keep some errors about not installed pybind11, but it is okay.
 
 Contents:
 =========

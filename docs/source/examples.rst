@@ -7,7 +7,7 @@ Examples
 Basic example
 =============
 
-The basic example of 20 newsgroups dataset classification
+The primary example of 20 newsgroups dataset classification
 
 .. code-block:: python
 
@@ -46,14 +46,14 @@ The basic example of 20 newsgroups dataset classification
 	print("First 10 alphabet elements:", alpha[:10])
 
 V-Gram is an unsupervised method that's why we fit v-gram to all data.
-Once fitted, v-gram doesn't fit again and we could not trouble about doubled fitting.
+Once fitted, v-gram doesn't fit again, and we could not trouble about doubled fitting.
 
 In the last two lines shown how to get dictionary alphabet and print some elements.
 
 Words and v-grams union
 =======================
 
-We simply make the union of features.
+We just make the union of features.
 
 .. code-block:: python
 
@@ -153,7 +153,7 @@ StreamVGramBuilder from file
 ============================
 
 Let's read an existing dictionary from the file, fit it more and save.
-If you have little data you can train a dictionary on a large dataset (e.g. all wikipedia articles) and save it.
+If you have little data, you can train a dictionary on a large dataset (e.g., all wikipedia articles) and save it.
 Then fit more on domain-specific data for your task and get a better result than if you fit only on this data.
 
 .. code-block:: python
