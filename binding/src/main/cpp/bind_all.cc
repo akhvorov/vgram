@@ -5,8 +5,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/iostream.h>
-//#include "bind_vgram_builders.cc"
-//#include "bind_tokenizers.cc"
 
 namespace py = pybind11;
 

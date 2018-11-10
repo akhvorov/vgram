@@ -6,8 +6,6 @@
 #define DICT_EXPANSION_VGRAM_H
 
 #include <pybind11/pybind11.h>
-#include <cpp/int_vgram_builder.h>
-#include <cpp/seq_coder.h>
 #include <pybind11/pytypes.h>
 #include "json.h"
 #include "base_tokenizer.h"

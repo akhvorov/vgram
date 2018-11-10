@@ -12,6 +12,8 @@ fetch_pybind11(
         ${PROJECT_BINARY_DIR}/pybind11
 )
 
+include_directories(../core)
+
 set(SOURCE_LIB
         src/main/cpp/bind_all.cc
         src/main/cpp/bind_vgram_builders.cc

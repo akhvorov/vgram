@@ -56,9 +56,10 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
+
 setup(
     name='vgram',
-    version='0.2.5', # https://stackoverflow.com/questions/47027741/smart-way-to-cmake-a-project-using-pybind11-by-externalproject-add
+    version='0.2.8',
     author='Aleksandr Khvorov',
     author_email='khvorov.aleksandr@gmail.com',
     description='V-gram builder library',

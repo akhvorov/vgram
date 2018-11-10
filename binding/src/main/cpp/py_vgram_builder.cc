@@ -12,8 +12,8 @@
 #include <numeric>
 #include <cmath>
 #include <algorithm>
-#include <cpp/int_vgram_builder_p.h>
-#include <cpp/int_dict_p.h>
+#include <src/main/cpp/int_vgram_builder_p.h>
+#include <src/main/cpp/int_dict_p.h>
 #include "py_vgram_builder.h"
 
 PyVGramBuilder::PyVGramBuilder(int size, int iter_num) : PyVGramBuilder(size, iter_num, 1) {}
