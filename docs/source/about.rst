@@ -26,7 +26,7 @@ V-gram dictionary can be much smaller than words dictionary but demonstrate the 
 At IMDb dataset classification dictionary of only 5000 vgrams reach better score then 75000 words (15 times smaller).
 
 In our experiments, we tested v-grams on three datasets: 20 News Groups, IMDb movie reviews, AG news.
-Bag-of-words, bag-of-vgrams, and bag-of-(words&vgrams) was compared.
+Bag-of-words, bag-of-vgrams, and bag-of-(words&vgrams) were compared.
 A text was normalized in the following way: all non-alphanumeric symbols were removed, then the text was converted to lower case.
 Experiments show that even small vgram dictionary extract additional information and significantly increase the score.
 

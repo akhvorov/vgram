@@ -4,7 +4,7 @@ import sys
 import platform
 import subprocess
 
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
 
@@ -58,8 +58,8 @@ class CMakeBuild(build_ext):
 
 setup(
     name='vgram',
-    version='0.2.4',
-    author='Khvorov Aleksandr',
+    version='0.2.5', # https://stackoverflow.com/questions/47027741/smart-way-to-cmake-a-project-using-pybind11-by-externalproject-add
+    author='Aleksandr Khvorov',
     author_email='khvorov.aleksandr@gmail.com',
     description='V-gram builder library',
     long_description='Dictionary of v-gram construction',
@@ -67,4 +67,5 @@ setup(
     ext_modules=[CMakeExtension('vgram')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
+    packages=find_packages(),
 )
