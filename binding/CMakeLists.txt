@@ -6,11 +6,11 @@ set(CMAKE_CXX_STANDARD 11)
 option(WITH_PYTHON "Build with python interface" ON)
 
 # pybind11
-include(pybind11.cmake)
-fetch_pybind11(
-        ${PROJECT_SOURCE_DIR}
-        ${PROJECT_BINARY_DIR}/pybind11
-)
+#include(pybind11.cmake)
+#fetch_pybind11(
+#        ${PROJECT_SOURCE_DIR}
+#        ${PROJECT_BINARY_DIR}/pybind11
+#)
 
 set(SOURCE_LIB
         src/main/cpp/bind_all.cc

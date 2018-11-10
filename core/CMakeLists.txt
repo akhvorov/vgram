@@ -5,6 +5,8 @@ project(${project_name})
 set(CMAKE_CXX_STANDARD 11)
 option(WITH_PYTHON "Build with python interface" ON)
 
+include_directories(src/main)
+add_subdirectory(src/main)
 
 # gtest
 #include(src/test/googletest.cmake)

@@ -6,8 +6,8 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <cpp/int_dict_p.h>
-#include <cpp/int_vgram_builder_p.h>
+#include <src/main/cpp/int_dict_p.h>
+#include <src/main/cpp/int_vgram_builder_p.h>
 #include "py_stream_vgram_builder.h"
 
 PyStreamVGramBuilder::PyStreamVGramBuilder(int size) : PyStreamVGramBuilder(size, 1) {}
