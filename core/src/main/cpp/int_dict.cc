@@ -2,9 +2,8 @@
 // Created by Igor E. Kuralenok on 13.07.2018.
 //
 
-
-#include "int_dict.h"
 #include <ostream>
+#include "int_dict.h"
 
 std::ostream& operator<< (std::ostream &out, const IntSeq& seq)
 {

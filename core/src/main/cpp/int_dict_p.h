@@ -5,8 +5,8 @@
 #ifndef VGRAM_INT_DICT_P_H
 #define VGRAM_INT_DICT_P_H
 
-#include "int_dict.h"
 #include <unordered_map>
+#include "int_dict.h"
 
 class IntDictImpl : public IntDict {
 public:

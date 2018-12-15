@@ -2,12 +2,12 @@
 // Created by akhvorov on 24.07.18.
 //
 
-#include "int_dict_p.h"
 #include <limits>
 #include <numeric>
 #include <iostream>
 #include <algorithm>
 #include <cmath>
+#include "int_dict_p.h"
 
 IntDictImpl::IntDictImpl() {
     seqs_ = std::vector<IntSeq>();

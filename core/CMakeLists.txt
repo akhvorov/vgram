@@ -53,7 +53,7 @@ option(WITH_PYTHON "Build with python interface" ON)
 
 #target_link_libraries(${project_name} gtest gtest_main)
 
-#include_directories(src/main)
+include_directories(src/main)
 add_subdirectory(src/main)
 
 #include_directories(src/test)
