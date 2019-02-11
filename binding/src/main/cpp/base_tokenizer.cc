@@ -7,20 +7,10 @@
 #include "base_tokenizer.h"
 
 BaseTokenizer* BaseTokenizer::fit(const std::vector<std::string>& seqs, py::args args) {
-    int size = 0;
-    for (const std::string& seq : seqs) {
-        for (const auto& symb : tokenize(normalize(seq))) {
-            if (forward_coder_.count(symb) == 0) {
-                forward_coder_[symb] = size;
-                backward_coder_[size] = symb;
-                size++;
-            }
-        }
-    }
     return this;
 }
 
-std::vector<std::vector<int>> BaseTokenizer::transform(const std::vector<std::string>& seqs, py::args args) const {
+std::vector<std::vector<int>> BaseTokenizer::transform(const std::vector<std::string>& seqs, py::args& args) {
     std::vector<std::vector<int>> res;
     res.reserve(seqs.size());
     for (const std::string& seq : seqs) {
@@ -28,6 +18,10 @@ std::vector<std::vector<int>> BaseTokenizer::transform(const std::vector<std::st
         std::vector<int> coded_seq;
         coded_seq.reserve(tokens.size());
         for (const std::string& symb : tokens) {
+            if (forward_coder_.count(symb) == 0) {
+                forward_coder_[symb] = static_cast<int>(forward_coder_.size());
+                backward_coder_[backward_coder_.size()] = symb;
+            }
             coded_seq.push_back(forward_coder_.at(symb));
         }
         res.push_back(coded_seq);
@@ -35,8 +29,7 @@ std::vector<std::vector<int>> BaseTokenizer::transform(const std::vector<std::st
     return res;
 }
 
-std::vector<std::vector<int>> BaseTokenizer::fit_transform(const std::vector<std::string>& seqs, py::args args) {
-    fit(seqs, args);
+std::vector<std::vector<int>> BaseTokenizer::fit_transform(const std::vector<std::string>& seqs, py::args& args) {
     return transform(seqs, args);
 }
 

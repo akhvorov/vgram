@@ -16,8 +16,8 @@ class BaseTokenizer {
 public:
     virtual ~BaseTokenizer() = default;
     BaseTokenizer* fit(const std::vector<std::string>& seqs, py::args args);
-    std::vector<std::vector<int>> transform(const std::vector<std::string>& seqs, py::args args) const;
-    std::vector<std::vector<int>> fit_transform(const std::vector<std::string>& seqs, py::args args);
+    std::vector<std::vector<int>> transform(const std::vector<std::string>& seqs, py::args& args);
+    std::vector<std::vector<int>> fit_transform(const std::vector<std::string>& seqs, py::args& args);
     //std::vector<std::string> decode(const std::vector<std::string>& seqs) const;
     std::vector<std::string> decode(const std::vector<std::vector<int>>& seqs) const;
     virtual std::string normalize(const std::string& s) const;
