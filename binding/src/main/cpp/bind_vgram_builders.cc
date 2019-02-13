@@ -12,6 +12,9 @@
 namespace py = pybind11;
 
 void init_vgram_builders(py::module &m) {
+    m.def("loadStreamVGramBuilder", &PyStreamVGramBuilder::load);
+    m.def("loadVGramBuilder", &PyVGramBuilder::load);
+
     py::class_<PyStreamVGramBuilder>(m, "StreamVGramBuilder")
             .def(py::init<int>())
             .def(py::init<int, int>())

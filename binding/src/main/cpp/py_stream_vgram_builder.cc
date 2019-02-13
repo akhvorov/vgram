@@ -9,15 +9,13 @@
 #include <src/main/cpp/int_dict_p.h>
 #include <src/main/cpp/int_vgram_builder_p.h>
 #include "py_stream_vgram_builder.h"
+#include "stream_vgram_serializer.h"
 
-PyStreamVGramBuilder::PyStreamVGramBuilder(int size) : PyStreamVGramBuilder(size, 1) {}
 
-PyStreamVGramBuilder::PyStreamVGramBuilder(int size, int verbose) : PyStreamVGramBuilder(size, "", verbose) {}
+PyStreamVGramBuilder::PyStreamVGramBuilder(int size)
+        : PyStreamVGramBuilder(size, 1) {}
 
-PyStreamVGramBuilder::PyStreamVGramBuilder(int size, const std::string& filename)
-: PyStreamVGramBuilder(size, filename, 1) {}
-
-PyStreamVGramBuilder::PyStreamVGramBuilder(int size, const std::string& filename, int verbose) {
+PyStreamVGramBuilder::PyStreamVGramBuilder(int size, int verbose = 1) {
     builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(size - 1, verbose));
     size_ = size;
     dict_ = nullptr;
@@ -25,45 +23,13 @@ PyStreamVGramBuilder::PyStreamVGramBuilder(int size, const std::string& filename
     freqs_ = IntSeq();
     total_freqs_ = 0;
     verbose_ = verbose;
-    filename_ = filename;
 }
 
-PyStreamVGramBuilder::PyStreamVGramBuilder(const std::string& filename) : PyStreamVGramBuilder(filename, 1) {}
-
-PyStreamVGramBuilder::PyStreamVGramBuilder(const std::string& filename, int verbose) {
-    coder_ = SeqCoder();
-    std::vector<IntSeq> seqs;
-    json dict = read_dict(filename);
-    size_ = dict["size"];
-    min_probability_ = dict["min_prob"];
-    std::vector<IntSeq> alphabet;
-    for (int n : dict["coder"]) {
-        alphabet.emplace_back(1, n);
-        coder_.encode(std::vector<int>(1, n));
-    }
-    for (const auto& word_obj : dict["alphabet"]) {
-        freqs_.push_back(word_obj["freq"].get<int>());
-        seqs.push_back(word_obj["vec"].get<IntSeq>());
-    }
-    total_freqs_ = std::accumulate(freqs_.begin(), freqs_.end(), 0);
-    dict_ = std::shared_ptr<IntDict>(new IntDictImpl(seqs));
-    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(*dict_, freqs_, alphabet, min_probability_, verbose));
-    verbose_ = verbose;
-}
-
-json PyStreamVGramBuilder::read_dict(const std::string& filename) {
-    std::ifstream file(filename);
-    json dict;
-    file >> dict;
-    file.close();
-    return dict;
-}
-
-void PyStreamVGramBuilder::accept(const IntSeq& seq) {
+void PyStreamVGramBuilder::accept(const IntSeq &seq) {
     builder_->accept(coder_.encode(seq));
 }
 
-IntSeq PyStreamVGramBuilder::parse(const IntSeq& seq) const {
+IntSeq PyStreamVGramBuilder::parse(const IntSeq &seq) const {
     IntSeq result;
     dict_->parse(coder_.encode_immutable(seq), freqs_, total_freqs_, &result);
     return result;
@@ -78,20 +44,30 @@ void PyStreamVGramBuilder::update_dict() {
     }
 }
 
-void PyStreamVGramBuilder::save(const std::string& filename, BaseTokenizer* tokenizer) const {
+std::vector<IntSeq> PyStreamVGramBuilder::alphabet() const {
+    std::vector<IntSeq> alpha;
+    for (const auto &a : dict_->alphabet()) {
+        alpha.push_back(coder_.decode(a));
+    }
+    return alpha;
+}
+
+IntSeq PyStreamVGramBuilder::freqs() const {
+    return freqs_;
+}
+
+void PyStreamVGramBuilder::save(const std::string &filename, BaseTokenizer *tokenizer) const {
     std::ofstream file;
-    if (filename.empty() && !filename_.empty()) {
-        file = std::ofstream(filename_);
-    } else if (!filename.empty()) {
-        file = std::ofstream(filename);
-    } else {
+    if (filename.empty()) {
         std::cout << "Error: no filename for save. Pass filename to constructor or save method" << std::endl;
+    } else {
+        file = std::ofstream(filename);
     }
     file << std::setw(2) << dict_to_json(tokenizer) << std::endl;
     file.close();
 }
 
-json PyStreamVGramBuilder::dict_to_json(BaseTokenizer* tokenizer) const {
+json PyStreamVGramBuilder::dict_to_json(BaseTokenizer *tokenizer) const {
     json dict;
     dict["size"] = size_;
     dict["min_prob"] = min_probability_;
@@ -128,14 +104,13 @@ json PyStreamVGramBuilder::alphabet_to_json(BaseTokenizer* tokenizer) const {
     return alpha;
 }
 
-std::vector<IntSeq> PyStreamVGramBuilder::alphabet() const {
-    std::vector<IntSeq> alpha;
-    for (const auto &a : dict_->alphabet()) {
-        alpha.push_back(coder_.decode(a));
-    }
-    return alpha;
-}
-
-IntSeq PyStreamVGramBuilder::freqs() const {
-    return freqs_;
+PyStreamVGramBuilder::PyStreamVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &seqs,
+                                           const std::vector<IntSeq> &alphabet, int size, double min_probability) {
+    size_ = size;
+    min_probability_ = min_probability;
+    freqs_ = freqs;
+    total_freqs_ = std::accumulate(freqs.begin(), freqs.end(), 0);
+    coder_ = coder;
+    dict_ = std::make_shared<IntDict>(new IntDictImpl(seqs));
+    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(*dict_, freqs, alphabet, min_probability, 1));
 }
