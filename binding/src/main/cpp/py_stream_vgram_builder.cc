@@ -111,6 +111,6 @@ PyStreamVGramBuilder::PyStreamVGramBuilder(const SeqCoder &coder, const IntSeq &
     freqs_ = freqs;
     total_freqs_ = std::accumulate(freqs.begin(), freqs.end(), 0);
     coder_ = coder;
-    dict_ = std::make_shared<IntDict>(new IntDictImpl(seqs));
+    dict_ = std::shared_ptr<IntDict>(new IntDictImpl(seqs));
     builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(*dict_, freqs, alphabet, min_probability, 1));
 }

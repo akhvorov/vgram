@@ -18,33 +18,13 @@
 
 PyVGramBuilder::PyVGramBuilder(int size, int iter_num) : PyVGramBuilder(size, iter_num, 1) {}
 
-PyVGramBuilder::PyVGramBuilder(int size, int iter_num, int verbose) : PyVGramBuilder(size, iter_num, "", verbose) {}
-
-PyVGramBuilder::PyVGramBuilder(int size, int iter_num, const std::string& filename)
-: PyVGramBuilder(size, iter_num, filename, 1) {}
-
-PyVGramBuilder::PyVGramBuilder(int size, int iter_num, const std::string& filename, int verbose)
-: PyStreamVGramBuilder(size, filename, verbose) {
+PyVGramBuilder::PyVGramBuilder(int size, int iter_num, int verbose)
+        : PyStreamVGramBuilder(size, verbose) {
     iter_num_ = iter_num;
     fitted_ = false;
 }
 
-PyVGramBuilder::PyVGramBuilder(const std::string& filename) : PyVGramBuilder(filename, 1) {}
-
-PyVGramBuilder::PyVGramBuilder(const std::string& filename, int verbose) : PyStreamVGramBuilder(filename, verbose) {
-    json dict = read_dict(filename);
-    fitted_ = dict["fitted"].get<bool>();
-    freqs_computed_ = dict["freqs_computed"].get<bool>();
-}
-
-json PyVGramBuilder::dict_to_json(BaseTokenizer* tokenizer) const {
-    json dict = PyStreamVGramBuilder::dict_to_json(tokenizer);
-    dict["fitted"] = fitted_;
-    dict["freqs_computed"] = freqs_computed_;
-    return dict;
-}
-
-PyVGramBuilder* PyVGramBuilder::fit(const std::vector<IntSeq>& seqs, py::args args) {
+PyVGramBuilder *PyVGramBuilder::fit(const std::vector<IntSeq> &seqs, const std::string &filename, py::args args) {
     if (fitted_) {
         if (freqs_computed_) {
             return this;
@@ -64,8 +44,8 @@ PyVGramBuilder* PyVGramBuilder::fit(const std::vector<IntSeq>& seqs, py::args ar
             }
         }
         update_dict();
-        if (!filename_.empty()) {
-            save(filename_);
+        if (!filename.empty()) {
+            save(filename);
         }
     }
     fitted_ = true;
@@ -74,7 +54,7 @@ PyVGramBuilder* PyVGramBuilder::fit(const std::vector<IntSeq>& seqs, py::args ar
     return this;
 }
 
-void PyVGramBuilder::recompute_freqs(const std::vector<IntSeq>& seqs) {
+void PyVGramBuilder::recompute_freqs(const std::vector<IntSeq> &seqs) {
     if (verbose_ > 0) {
         std::cout << "recompute freqs" << std::endl;
     }
@@ -82,7 +62,7 @@ void PyVGramBuilder::recompute_freqs(const std::vector<IntSeq>& seqs) {
     builder_->result_freqs(&freqs);
     freqs_ = IntSeq(freqs.size(), 0);
     int total_freqs = std::accumulate(freqs.begin(), freqs.end(), 0);
-    for (const IntSeq& seq : seqs) {
+    for (const IntSeq &seq : seqs) {
         IntSeq result;
         dict_->parse(coder_.encode(seq), freqs, total_freqs, &result);
         for (int symb : result) {
@@ -97,13 +77,13 @@ void PyVGramBuilder::recompute_freqs(const std::vector<IntSeq>& seqs) {
     total_freqs_ = std::accumulate(freqs_.begin(), freqs_.end(), 0);
 }
 
-std::vector<std::string> PyVGramBuilder::transform(const std::vector<IntSeq>& seqs, py::args args) const {
+std::vector<std::string> PyVGramBuilder::transform(const std::vector<IntSeq> &seqs, py::args args) const {
     std::vector<std::string> res;
     res.reserve(seqs.size());
-    for (const IntSeq& seq : seqs) {
+    for (const IntSeq &seq : seqs) {
         IntSeq result = parse(seq);
         std::string str;
-        for (const auto& i : result) {
+        for (const auto &i : result) {
             str += " " + std::to_string(i);
         }
         if (str.length() == 0) {
@@ -115,4 +95,25 @@ std::vector<std::string> PyVGramBuilder::transform(const std::vector<IntSeq>& se
         }
     }
     return res;
+}
+
+json PyVGramBuilder::dict_to_json(BaseTokenizer *tokenizer) const {
+    json dict = PyStreamVGramBuilder::dict_to_json(tokenizer);
+    dict["fitted"] = fitted_;
+    dict["freqs_computed"] = freqs_computed_;
+    return dict;
+}
+
+PyVGramBuilder::PyVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &seqs,
+                               const std::vector<IntSeq> &alphabet, int size, double min_probability, bool fitted,
+                               bool freqs_computed) : PyStreamVGramBuilder(size) {
+    size_ = size;
+    min_probability_ = min_probability;
+    freqs_ = freqs;
+    total_freqs_ = std::accumulate(freqs.begin(), freqs.end(), 0);
+    coder_ = coder;
+    dict_ = std::shared_ptr<IntDict>(new IntDictImpl(seqs));
+    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(*dict_, freqs, alphabet, min_probability, 1));
+    fitted_ = fitted;
+    freqs_computed_ = freqs_computed;
 }
