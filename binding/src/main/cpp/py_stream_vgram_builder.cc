@@ -9,7 +9,6 @@
 #include <src/main/cpp/int_dict_p.h>
 #include <src/main/cpp/int_vgram_builder_p.h>
 #include "py_stream_vgram_builder.h"
-#include "stream_vgram_serializer.h"
 
 
 PyStreamVGramBuilder::PyStreamVGramBuilder(int size)

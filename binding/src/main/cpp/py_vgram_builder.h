@@ -8,7 +8,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include "json.h"
-#include "base_tokenizer.h"
+#include "tokenizers/base_tokenizer.h"
 #include "py_stream_vgram_builder.h"
 
 namespace py = pybind11;

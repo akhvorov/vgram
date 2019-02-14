@@ -5,8 +5,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/iostream.h>
-#include "base_tokenizer.h"
-#include "char_tokenizer.h"
+#include "tokenizers/base_tokenizer.h"
+#include "tokenizers/char_tokenizer.h"
 
 namespace py = pybind11;
 

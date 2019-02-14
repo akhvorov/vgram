@@ -8,10 +8,11 @@
 #include <fstream>
 #include <pybind11/pybind11.h>
 #include <src/main/cpp/int_vgram_builder.h>
-#include <src/main/cpp/seq_coder.h>
+//#include <src/main/cpp/seq_coder.h>
 #include <pybind11/pytypes.h>
 #include "json.h"
-#include "base_tokenizer.h"
+#include "tokenizers/base_tokenizer.h"
+#include "coders/seq_coder.h"
 
 namespace py = pybind11;
 using json = nlohmann::json;

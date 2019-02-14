@@ -21,10 +21,12 @@ set(SOURCE_LIB
         cpp/py_vgram_builder.cc
         cpp/py_stream_vgram_builder.h
         cpp/py_stream_vgram_builder.cc
-        cpp/base_tokenizer.h
-        cpp/base_tokenizer.cc
-        cpp/char_tokenizer.h
-        cpp/char_tokenizer.cc
+        cpp/tokenizers/base_tokenizer.h
+        cpp/tokenizers/base_tokenizer.cc
+        cpp/tokenizers/char_tokenizer.h
+        cpp/tokenizers/char_tokenizer.cc
+        cpp/coders/seq_coder.h
+        cpp/coders/seq_coder.cc
         )
 
 pybind11_add_module(${project_name} ${SOURCE_LIB})
