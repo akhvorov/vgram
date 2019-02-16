@@ -35,17 +35,6 @@ std::vector<int> SeqCoder::encode_immutable(const std::vector<int>& seq) const {
     return result;
 }
 
-void SeqCoder::emplace_encode(std::vector<int>& seq) {
-    for (int &i : seq) {
-        if (forward_code_.count(i) == 0) {
-            int size = static_cast<int>(forward_code_.size());
-            forward_code_[i] = size;
-            backward_code_[size] = i;
-        }
-        i = forward_code_[i];
-    }
-}
-
 std::vector<int> SeqCoder::decode(const std::vector<int>& seq) const {
     std::vector<int> result;
     result.reserve(seq.size());
@@ -53,20 +42,6 @@ std::vector<int> SeqCoder::decode(const std::vector<int>& seq) const {
         result.push_back(backward_code_.at(symbol));
     }
     return result;
-}
-
-void SeqCoder::emplace_encode_immutable(std::vector<int>& seq) const {
-    for (int &i : seq) {
-        if (forward_code_.count(i) != 0) {
-            i = forward_code_.at(i);
-        }
-    }
-}
-
-void SeqCoder::emplace_decode(std::vector<int>& seq) const {
-    for (int &i : seq) {
-        i = backward_code_.at(i);
-    }
 }
 
 const std::unordered_map<int, int> SeqCoder::code_map() const {

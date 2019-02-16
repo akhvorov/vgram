@@ -7,6 +7,13 @@
 #import <string>
 #include "char_tokenizer.h"
 
+CharTokenizer::CharTokenizer() = default;
+
+CharTokenizer::CharTokenizer(const std::vector<std::string> &texts, const std::vector<std::vector<int>> &seqs)
+        : BaseTokenizer(texts, seqs) {
+
+}
+
 std::string CharTokenizer::normalize(const std::string &str) const {
     std::string res;
     for (char i : str) {

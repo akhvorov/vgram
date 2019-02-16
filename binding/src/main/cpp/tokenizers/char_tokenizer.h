@@ -9,9 +9,13 @@
 
 class CharTokenizer : public BaseTokenizer {
 public:
-    CharTokenizer() = default;
-    std::string normalize(const std::string& str) const override;
-    std::vector<std::string> tokenize(const std::string& str) const override;
+    CharTokenizer();
+
+    CharTokenizer(const std::vector<std::string> &texts, const std::vector<std::vector<int>> &seqs);
+
+    std::string normalize(const std::string &str) const override;
+
+    std::vector<std::string> tokenize(const std::string &str) const override;
 };
 
 #endif //DICT_EXPANSION_SIMPLE_TOKENIZER_H
