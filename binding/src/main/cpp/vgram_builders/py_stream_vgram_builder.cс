@@ -1,0 +1,56 @@
+//
+// Created by Aleksandr Khvorov on 15/02/2019.
+//
+
+
+#include "py_stream_vgram_builder.h"
+
+
+PyStreamVGramBuilder::PyStreamVGramBuilder(int size)
+        : PyStreamVGramBuilder(size, 1) {}
+
+PyStreamVGramBuilder::PyStreamVGramBuilder(int size, int verbose = 1) :
+        stream_builder_(std::make_shared<PyIntStreamVGramBuilder>(size, verbose)),
+        tokenizer_(std::make_shared<BaseTokenizer>()) {
+//    builder_ = std::shared_ptr<PyIntStreamVGramBuilder>(new PyIntStreamVGramBuilder(size, verbose));
+}
+
+void PyStreamVGramBuilder::accept(const std::string &seq) {
+    stream_builder_->accept(tokenizer_->transform(seq));
+}
+
+std::vector<std::string> PyStreamVGramBuilder::parse(const std::string &seq) const {
+    IntSeq &intSeq = tokenizer_->transform(seq);
+    IntSeq parser_result = stream_builder_->parse(intSeq);
+    return tokenizer_->decode(parser_result);
+}
+
+void PyStreamVGramBuilder::update_dict() {
+    stream_builder_->update_dict();
+}
+
+std::vector<std::string> PyStreamVGramBuilder::alphabet() const {
+    std::vector<IntSeq> coded_alphabet = stream_builder_->alphabet();
+    return tokenizer_->decode(coded_alphabet);
+}
+
+IntSeq PyStreamVGramBuilder::freqs() const {
+    return freqs_;
+}
+
+void PyStreamVGramBuilder::save(const std::string &filename) const {
+    std::ofstream file;
+    if (filename.empty()) {
+        std::cout << "Error: no filename for save. Pass filename to constructor or save method" << std::endl;
+    } else {
+        file = std::ofstream(filename);
+    }
+    file << std::setw(2) << dict_to_json(tokenizer_.get()) << std::endl;
+    file.close();
+}
+
+PyStreamVGramBuilder::PyStreamVGramBuilder(std::shared_ptr<PyIntStreamVGramBuilder> stream_builder,
+                                           std::shared_ptr<BaseTokenizer> tokenizer) {
+    stream_builder_ = stream_builder;
+    tokenizer_ = tokenizer;
+}

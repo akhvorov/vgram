@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 set(project_name vgram_builder)
 project(${project_name})
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 option(WITH_PYTHON "Build with python interface" ON)
 
 set(SOURCE_LIB
@@ -21,8 +21,8 @@ set(SOURCE_LIB
         cpp/list_dict.cc
         cpp/list_dict.h
 
-        cpp/seq_coder.cc
-        cpp/seq_coder.h
+        ../../../binding/src/main/cpp/seq_coder.cc
+        ../../../binding/src/main/cpp/seq_coder.h
 
         cpp/stat_dict.h
         cpp/stat_dict_p.cc

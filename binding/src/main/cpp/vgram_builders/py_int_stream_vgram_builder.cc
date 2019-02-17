@@ -8,13 +8,13 @@
 #include <iomanip>
 #include <src/main/cpp/int_dict_p.h>
 #include <src/main/cpp/int_vgram_builder_p.h>
-#include "py_stream_vgram_builder.h"
+#include "py_int_stream_vgram_builder.h"
 
 
-PyStreamVGramBuilder::PyStreamVGramBuilder(int size)
-        : PyStreamVGramBuilder(size, 1) {}
+PyIntStreamVGramBuilder::PyIntStreamVGramBuilder(int size)
+        : PyIntStreamVGramBuilder(size, 1) {}
 
-PyStreamVGramBuilder::PyStreamVGramBuilder(int size, int verbose = 1) {
+PyIntStreamVGramBuilder::PyIntStreamVGramBuilder(int size, int verbose = 1) {
     builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(size - 1, verbose));
     size_ = size;
     dict_ = nullptr;
@@ -24,17 +24,17 @@ PyStreamVGramBuilder::PyStreamVGramBuilder(int size, int verbose = 1) {
     verbose_ = verbose;
 }
 
-void PyStreamVGramBuilder::accept(const IntSeq &seq) {
+void PyIntStreamVGramBuilder::accept(const IntSeq &seq) {
     builder_->accept(coder_.encode(seq));
 }
 
-IntSeq PyStreamVGramBuilder::parse(const IntSeq &seq) const {
+IntSeq PyIntStreamVGramBuilder::parse(const IntSeq &seq) const {
     IntSeq result;
     dict_->parse(coder_.encode_immutable(seq), freqs_, total_freqs_, &result);
     return result;
 }
 
-void PyStreamVGramBuilder::update_dict() {
+void PyIntStreamVGramBuilder::update_dict() {
     if (dict_ != builder_->result()) {
         dict_ = builder_->result();
         builder_->result_freqs(&freqs_);
@@ -43,7 +43,7 @@ void PyStreamVGramBuilder::update_dict() {
     }
 }
 
-std::vector<IntSeq> PyStreamVGramBuilder::alphabet() const {
+std::vector<IntSeq> PyIntStreamVGramBuilder::alphabet() const {
     std::vector<IntSeq> alpha;
     for (const auto &a : dict_->alphabet()) {
         alpha.push_back(coder_.decode(a));
@@ -51,11 +51,11 @@ std::vector<IntSeq> PyStreamVGramBuilder::alphabet() const {
     return alpha;
 }
 
-IntSeq PyStreamVGramBuilder::freqs() const {
+IntSeq PyIntStreamVGramBuilder::freqs() const {
     return freqs_;
 }
 
-void PyStreamVGramBuilder::save(const std::string &filename, BaseTokenizer *tokenizer) const {
+void PyIntStreamVGramBuilder::save(const std::string &filename, BaseTokenizer *tokenizer) const {
     std::ofstream file;
     if (filename.empty()) {
         std::cout << "Error: no filename for save. Pass filename to constructor or save method" << std::endl;
@@ -66,7 +66,7 @@ void PyStreamVGramBuilder::save(const std::string &filename, BaseTokenizer *toke
     file.close();
 }
 
-json PyStreamVGramBuilder::dict_to_json(BaseTokenizer *tokenizer) const {
+json PyIntStreamVGramBuilder::dict_to_json(BaseTokenizer *tokenizer) const {
     json dict;
     dict["size"] = size_;
     dict["min_prob"] = min_probability_;
@@ -75,36 +75,39 @@ json PyStreamVGramBuilder::dict_to_json(BaseTokenizer *tokenizer) const {
     return dict;
 }
 
-json PyStreamVGramBuilder::coder_to_json() const {
+json PyIntStreamVGramBuilder::coder_to_json() const {
     std::vector<std::pair<int, int>> pairs;
-    for (const auto& p : coder_.code_map()) {
+    for (const auto &p : coder_.code_map()) {
         pairs.emplace_back(p);
     }
-    std::sort(pairs.begin(), pairs.end(), [](const std::pair<int,int>& a, const std::pair<int,int>& b) { return a.second < b.second; });
+    std::sort(pairs.begin(), pairs.end(),
+              [](const std::pair<int, int> &a, const std::pair<int, int> &b) { return a.second < b.second; });
     std::string res;
     json coder;
-    for (const auto& p : pairs) {
+    for (const auto &p : pairs) {
         coder.push_back(p.first);
     }
     return coder;
 }
 
-json PyStreamVGramBuilder::alphabet_to_json(BaseTokenizer* tokenizer) const {
+json PyIntStreamVGramBuilder::alphabet_to_json(BaseTokenizer *tokenizer) const {
     json alpha;
     for (int i = 0; i < dict_->alphabet().size(); i++) {
-        auto word = dict_->alphabet()[i];
+        IntSeq word = dict_->alphabet()[i];
         json word_obj;
         word_obj["vec"] = json(word);
         word_obj["freq"] = freqs_[i];
         if (tokenizer != nullptr)
-            word_obj["text"] = tokenizer->decode(std::vector<std::vector<int>>(1, coder_.decode(dict_->get(i))))[0];
+            word_obj["text"] = tokenizer->decode(coder_.decode(dict_->get(i)));
         alpha.push_back(word_obj);
     }
     return alpha;
 }
 
-PyStreamVGramBuilder::PyStreamVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &seqs,
-                                           const std::vector<IntSeq> &alphabet, int size, double min_probability) {
+PyIntStreamVGramBuilder::PyIntStreamVGramBuilder(const SeqCoder &coder, const IntSeq &freqs,
+                                                 const std::vector<IntSeq> &seqs,
+                                                 const std::vector<IntSeq> &alphabet, int size,
+                                                 double min_probability) {
     size_ = size;
     min_probability_ = min_probability;
     freqs_ = freqs;

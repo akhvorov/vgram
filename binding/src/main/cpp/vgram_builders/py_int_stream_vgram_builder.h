@@ -2,37 +2,37 @@
 // Created by Aleksandr Khvorov on 03/11/2018.
 //
 
-#ifndef DICT_EXPANSION_PY_STREAM_VGRAM_BUILDER_H
-#define DICT_EXPANSION_PY_STREAM_VGRAM_BUILDER_H
+#ifndef DICT_EXPANSION_PY_INT_STREAM_VGRAM_BUILDER_H
+#define DICT_EXPANSION_PY_INT_STREAM_VGRAM_BUILDER_H
 
 #include <fstream>
 #include <pybind11/pybind11.h>
 #include <src/main/cpp/int_vgram_builder.h>
-//#include <src/main/cpp/seq_coder.h>
+#include "../seq_coder.h"
 #include <pybind11/pytypes.h>
-#include "json.h"
-#include "tokenizers/base_tokenizer.h"
-#include "coders/seq_coder.h"
+#include "../json.h"
+#include "../tokenizers/base_tokenizer.h"
+//#include "../coders/seq_coder.h"
 
 namespace py = pybind11;
 using json = nlohmann::json;
 
-class PyStreamVGramBuilder {
+class PyIntStreamVGramBuilder {
 public:
-    static std::shared_ptr<PyStreamVGramBuilder> load(const std::string &filename) {
+    static std::shared_ptr<PyIntStreamVGramBuilder> load(const std::string &filename) {
         int size;
         double min_probability;
         SeqCoder coder;
         IntSeq freqs;
         std::vector<IntSeq> seqs, alphabet;
-        json dict = read_dict(filename, coder, freqs, seqs, alphabet, size, min_probability);
-        return std::shared_ptr<PyStreamVGramBuilder>(
-                new PyStreamVGramBuilder(coder, freqs, seqs, alphabet, size, min_probability));
+        read_dict(filename, coder, freqs, seqs, alphabet, size, min_probability);
+        return std::shared_ptr<PyIntStreamVGramBuilder>(
+                new PyIntStreamVGramBuilder(coder, freqs, seqs, alphabet, size, min_probability));
     }
 
-    explicit PyStreamVGramBuilder(int size);
+    explicit PyIntStreamVGramBuilder(int size);
 
-    PyStreamVGramBuilder(int size, int verbose);
+    PyIntStreamVGramBuilder(int size, int verbose);
 
     void accept(const IntSeq &seq);
 
@@ -83,8 +83,10 @@ protected:
     }
 
 private:
-    PyStreamVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &seqs,
+//    friend class PyStreamVGramBuilder;
+
+    PyIntStreamVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &seqs,
                          const std::vector<IntSeq> &alphabet, int size, double min_probability);
 };
 
-#endif //DICT_EXPANSION_PY_STREAM_VGRAM_BUILDER_H
+#endif //DICT_EXPANSION_PY_INT_STREAM_VGRAM_BUILDER_H
