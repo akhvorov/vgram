@@ -8,11 +8,10 @@
 #include <fstream>
 #include <pybind11/pybind11.h>
 #include <src/main/cpp/int_vgram_builder.h>
-#include "../seq_coder.h"
 #include <pybind11/pytypes.h>
 #include "../json.h"
 #include "../tokenizers/base_tokenizer.h"
-//#include "../coders/seq_coder.h"
+#include "../seq_coder.h"
 
 namespace py = pybind11;
 using json = nlohmann::json;
@@ -83,7 +82,8 @@ protected:
     }
 
 private:
-//    friend class PyStreamVGramBuilder;
+    friend class PyStreamVGramBuilder;
+    friend class PyVGramBuilder;
 
     PyIntStreamVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &seqs,
                          const std::vector<IntSeq> &alphabet, int size, double min_probability);

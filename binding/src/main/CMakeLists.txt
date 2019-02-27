@@ -19,12 +19,14 @@ set(SOURCE_LIB
         cpp/bind_vgram_builders.cc
         cpp/bind_tokenizers.cc
         cpp/json.h
-        cpp/vgram_builders/py_vgram_builder.h
-        cpp/vgram_builders/py_vgram_builder.cc
+        cpp/vgram_builders/py_int_vgram_builder.h
+        cpp/vgram_builders/py_int_vgram_builder.cc
         cpp/vgram_builders/py_int_stream_vgram_builder.h
         cpp/vgram_builders/py_int_stream_vgram_builder.cc
         cpp/vgram_builders/py_stream_vgram_builder.h
-        cpp/vgram_builders/py_stream_vgram_builder.cс
+        cpp/vgram_builders/py_stream_vgram_builder.cc
+        cpp/vgram_builders/py_vgram_builder.h
+        cpp/vgram_builders/py_vgram_builder.cc
         cpp/tokenizers/base_tokenizer.h
         cpp/tokenizers/base_tokenizer.cc
         cpp/tokenizers/char_tokenizer.h

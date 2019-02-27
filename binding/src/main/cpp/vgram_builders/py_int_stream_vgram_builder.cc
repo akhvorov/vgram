@@ -57,11 +57,7 @@ IntSeq PyIntStreamVGramBuilder::freqs() const {
 
 void PyIntStreamVGramBuilder::save(const std::string &filename, BaseTokenizer *tokenizer) const {
     std::ofstream file;
-    if (filename.empty()) {
-        std::cout << "Error: no filename for save. Pass filename to constructor or save method" << std::endl;
-    } else {
-        file = std::ofstream(filename);
-    }
+    file = std::ofstream(filename);
     file << std::setw(2) << dict_to_json(tokenizer) << std::endl;
     file.close();
 }
