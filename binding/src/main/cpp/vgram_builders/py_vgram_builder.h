@@ -1,66 +1,43 @@
 //
-// Created by Aleksandr Khvorov on 29/09/2018.
+// Created by Aleksandr Khvorov on 25/02/2019.
 //
 
-#ifndef DICT_EXPANSION_VGRAM_H
-#define DICT_EXPANSION_VGRAM_H
+#ifndef DICT_EXPANSION_PY_VGRAM_BUILDER_H
+#define DICT_EXPANSION_PY_VGRAM_BUILDER_H
 
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
-#include "../json.h"
-#include "../tokenizers/base_tokenizer.h"
-#include "py_int_stream_vgram_builder.h"
+#include "../tokenizers/char_tokenizer.h"
+#include "py_int_vgram_builder.h"
+#include "py_stream_vgram_builder.h"
 
-namespace py = pybind11;
-using json = nlohmann::json;
-
-class PyVGramBuilder : public PyIntStreamVGramBuilder {
+class PyVGramBuilder {
 public:
     static std::shared_ptr<PyVGramBuilder> load(const std::string &filename) {
-        int size;
-        double min_probability;
-        SeqCoder coder;
-        IntSeq freqs;
-        std::vector<IntSeq> seqs, alphabet;
-        bool fitted, freqs_computed;
-        json dict = read_dict(filename, coder, freqs, seqs, alphabet, size, min_probability, fitted, freqs_computed);
-        return std::shared_ptr<PyVGramBuilder>(
-                new PyVGramBuilder(coder, freqs, seqs, alphabet, size, min_probability, fitted,
-                                   freqs_computed));
+        std::shared_ptr<PyIntVGramBuilder> int_builder = PyIntVGramBuilder::load(filename);
+        std::shared_ptr<CharTokenizer> tokenizer = PyStreamVGramBuilder::loadTokenizer(filename, int_builder->coder_);
+//        return std::make_shared<PyVGramBuilder>(int_builder, tokenizer);
+        return std::shared_ptr<PyVGramBuilder>(new PyVGramBuilder(int_builder, tokenizer));
     }
 
     PyVGramBuilder(int size, int iter_num);
 
     PyVGramBuilder(int size, int iter_num, int verbose);
 
-    PyVGramBuilder *fit(const std::vector<IntSeq> &seqs, /*const std::string &filename,*/ py::args args);
+    PyVGramBuilder *fit(const std::vector<std::string> &seqs, /*const std::string &filename,*/ py::args &args);
 
-    PyVGramBuilder *fit(const std::vector<std::string> &seqs, /*const std::string &filename,*/ py::args args);
+    std::vector<std::string> transform(const std::vector<std::string> &seqs, py::args &args) const;
 
-    std::vector<std::string> transform(const std::vector<IntSeq> &seqs, py::args args) const;
+    void save(const std::string &filename) const;
 
-protected:
-    int iter_num_;
-    bool fitted_ = false;
-    bool freqs_computed_ = false;
+    IntSeq freqs() const;
 
-    void recompute_freqs(const std::vector<IntSeq> &seqs);
-
-    json dict_to_json(BaseTokenizer *tokenizer) const override;
-
-    static json read_dict(const std::string &filename, SeqCoder &coder, IntSeq &freqs, std::vector<IntSeq> &seqs,
-                          std::vector<IntSeq> &alphabet, int &size, double &min_probability, bool &fitted,
-                          bool &freqs_computed) {
-        json dict = PyIntStreamVGramBuilder::read_dict(filename, coder, freqs, seqs, alphabet, size, min_probability);
-        fitted = dict["fitted"].get<bool>();
-        freqs_computed = dict["freqs_computed"].get<bool>();
-        return dict;
-    }
+    std::vector<std::string> alphabet() const;
 
 private:
-    PyVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &seqs,
-                   const std::vector<IntSeq> &alphabet, int size, double min_probability, bool fitted,
-                   bool freqs_computed);
+    std::shared_ptr<PyIntVGramBuilder> int_builder_;
+    std::shared_ptr<CharTokenizer> tokenizer_;
+
+    PyVGramBuilder(std::shared_ptr<PyIntVGramBuilder> int_builder,
+                   std::shared_ptr<CharTokenizer> tokenizer);
 };
 
-#endif //DICT_EXPANSION_VGRAM_H
+#endif //DICT_EXPANSION_PY_VGRAM_BUILDER_H

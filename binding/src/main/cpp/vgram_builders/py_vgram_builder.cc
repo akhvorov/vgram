@@ -1,130 +1,50 @@
-#include <utility>
 
 //
-// Created by Aleksandr Khvorov on 29/09/2018.
+// Created by Aleksandr Khvorov on 25/02/2019.
 //
 
-#include <algorithm>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
-#include <numeric>
-#include <cmath>
-#include <algorithm>
-#include <src/main/cpp/int_vgram_builder_p.h>
-#include <src/main/cpp/int_dict_p.h>
 #include "py_vgram_builder.h"
 
 PyVGramBuilder::PyVGramBuilder(int size, int iter_num) : PyVGramBuilder(size, iter_num, 1) {}
 
 PyVGramBuilder::PyVGramBuilder(int size, int iter_num, int verbose)
-        : PyIntStreamVGramBuilder(size, verbose) {
-    iter_num_ = iter_num;
-    fitted_ = false;
-}
+        : int_builder_(std::make_shared<PyIntVGramBuilder>(size, iter_num, verbose)),
+          tokenizer_(std::make_shared<CharTokenizer>()) {}
 
-PyVGramBuilder *PyVGramBuilder::fit(const std::vector<IntSeq> &seqs, /*const std::string &filename,*/ py::args args) {
-    std::cout << "fit for vector<IntSeq>" << std::endl;
-    if (fitted_) {
-        if (freqs_computed_) {
-            return this;
-        }
-        recompute_freqs(seqs);
-        freqs_computed_ = true;
-        return this;
-    }
-    for (int i = 0; i < iter_num_; i++) {
-        if (verbose_ > 0) {
-            std::cout << i << "-th iteration" << std::endl;
-        }
-        for (int k = 0; k < seqs.size(); k++) {
-            accept(seqs[rand() % static_cast<int>(seqs.size())]);
-            if (PyErr_CheckSignals() == -1) {
-                return nullptr;
-            }
-        }
-        std::cout << "before update dict" << std::endl;
-        update_dict();
-        std::cout << "after update dict" << std::endl;
-        //TODO: return it!
-//        if (!filename.empty()) {
-//            save(filename);
-//        }
-    }
-    std::cout << "end of loop" << std::endl;
-    fitted_ = true;
-    recompute_freqs(seqs);
-    std::cout << "freqs recomputed" << std::endl;
-    freqs_computed_ = true;
+PyVGramBuilder *PyVGramBuilder::fit(const std::vector<std::string> &seqs, py::args &args) {
+    int_builder_->fit(tokenizer_->transform(seqs, args), args);
     return this;
 }
 
-PyVGramBuilder *PyVGramBuilder::fit(const std::vector<std::string> &seqs, /*const std::string &filename,*/ py::args args) {
-    std::cout << "fit for vector<string>:" << seqs[0][0] << "!" << seqs[1][0] << std::endl;
-    return this;
-}
-
-void PyVGramBuilder::recompute_freqs(const std::vector<IntSeq> &seqs) {
-    if (verbose_ > 0) {
-        std::cout << "recompute freqs" << std::endl;
-    }
-    IntSeq freqs;
-    builder_->result_freqs(&freqs);
-    freqs_ = IntSeq(freqs.size(), 0);
-    int total_freqs = std::accumulate(freqs.begin(), freqs.end(), 0);
-    for (const IntSeq &seq : seqs) {
-        IntSeq result;
-        dict_->parse(coder_.encode(seq), freqs, total_freqs, &result);
-        for (int symb : result) {
-            if (symb >= 0) {
-                freqs_[symb]++;
+std::vector<std::string> PyVGramBuilder::transform(const std::vector<std::string> &seqs, py::args &args) const {
+    std::vector<IntSeq> coded_texts_by_token_ids = int_builder_->transform(tokenizer_->transform(seqs, args));
+    std::vector<std::string> decoded_texts;
+    std::vector<IntSeq> alphabet = int_builder_->alphabet();
+    for (const IntSeq& coded_text_by_token_ids : coded_texts_by_token_ids) {
+        std::string decoded_words;
+        for (int word_id : coded_text_by_token_ids) {
+            if (!decoded_words.empty()) {
+                decoded_words += " ";
             }
+            decoded_words += tokenizer_->decode(alphabet[word_id]);
         }
-        if (PyErr_CheckSignals() == -1) {
-            return;
-        }
+        decoded_texts.push_back(decoded_words);
     }
-    total_freqs_ = std::accumulate(freqs_.begin(), freqs_.end(), 0);
+    return decoded_texts;
 }
 
-std::vector<std::string> PyVGramBuilder::transform(const std::vector<IntSeq> &seqs, py::args args) const {
-    std::vector<std::string> res;
-    res.reserve(seqs.size());
-    for (const IntSeq &seq : seqs) {
-        IntSeq result = parse(seq);
-        std::string str;
-        for (const auto &i : result) {
-            str += " " + std::to_string(i);
-        }
-        if (str.length() == 0) {
-            str = "-1";
-        }
-        res.push_back(str);
-        if (PyErr_CheckSignals() == -1) {
-            break;
-        }
-    }
-    return res;
+void PyVGramBuilder::save(const std::string &filename) const {
+    int_builder_->save(filename, tokenizer_.get());
 }
 
-json PyVGramBuilder::dict_to_json(BaseTokenizer *tokenizer) const {
-    json dict = PyIntStreamVGramBuilder::dict_to_json(tokenizer);
-    dict["fitted"] = fitted_;
-    dict["freqs_computed"] = freqs_computed_;
-    return dict;
+IntSeq PyVGramBuilder::freqs() const {
+    return int_builder_->freqs();
 }
 
-PyVGramBuilder::PyVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &seqs,
-                               const std::vector<IntSeq> &alphabet, int size, double min_probability, bool fitted,
-                               bool freqs_computed) : PyIntStreamVGramBuilder(size) {
-    size_ = size;
-    min_probability_ = min_probability;
-    freqs_ = freqs;
-    total_freqs_ = std::accumulate(freqs.begin(), freqs.end(), 0);
-    coder_ = coder;
-    dict_ = std::shared_ptr<IntDict>(new IntDictImpl(seqs));
-    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(*dict_, freqs, alphabet, min_probability, 1));
-    fitted_ = fitted;
-    freqs_computed_ = freqs_computed;
+std::vector<std::string> PyVGramBuilder::alphabet() const {
+    return tokenizer_->decode(int_builder_->alphabet());
 }
+
+PyVGramBuilder::PyVGramBuilder(std::shared_ptr<PyIntVGramBuilder> int_builder,
+                               std::shared_ptr<CharTokenizer> tokenizer)
+        : int_builder_(std::move(int_builder)), tokenizer_(std::move(tokenizer)) {}
