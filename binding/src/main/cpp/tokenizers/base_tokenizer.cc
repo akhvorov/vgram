@@ -6,15 +6,11 @@
 #import <regex>
 #include "base_tokenizer.h"
 
-BaseTokenizer::BaseTokenizer(const std::vector<std::string> &texts, const std::vector<std::vector<int>> &seqs) {
-    for (int i = 0; i < seqs.size(); i++) {
-        std::vector<int> seq = seqs[i];
-        std::string text = texts[i];
-        for (int j = 0; j < seqs.size(); j++) {
-            std::string symbol = std::string(1, text[j]);
-            forward_coder_[symbol] = seq[j];
-            backward_coder_[seq[j]] = symbol;
-        }
+
+BaseTokenizer::BaseTokenizer(const std::unordered_map<std::string, int> &forward_map) {
+    forward_coder_ = forward_map;
+    for (const auto &pair : forward_map) {
+        backward_coder_[pair.second] = pair.first;
     }
 }
 

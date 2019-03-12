@@ -2,17 +2,13 @@
 // Created by Aleksandr Khvorov on 19/10/2018.
 //
 
-//#import <regex>
 #import <algorithm>
 #import <string>
 #include "char_tokenizer.h"
 
 CharTokenizer::CharTokenizer() = default;
 
-CharTokenizer::CharTokenizer(const std::vector<std::string> &texts, const std::vector<std::vector<int>> &seqs)
-        : BaseTokenizer(texts, seqs) {
-
-}
+CharTokenizer::CharTokenizer(const std::unordered_map<std::string, int> &forward_map) : BaseTokenizer(forward_map) {}
 
 std::string CharTokenizer::normalize(const std::string &str) const {
     std::string res;

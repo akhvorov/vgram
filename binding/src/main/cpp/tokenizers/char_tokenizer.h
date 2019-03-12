@@ -11,7 +11,7 @@ class CharTokenizer : public BaseTokenizer {
 public:
     CharTokenizer();
 
-    CharTokenizer(const std::vector<std::string> &texts, const std::vector<std::vector<int>> &seqs);
+    explicit CharTokenizer(const std::unordered_map<std::string, int> &forward_map);
 
     std::string normalize(const std::string &str) const override;
 

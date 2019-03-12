@@ -16,7 +16,7 @@ class BaseTokenizer {
 public:
     BaseTokenizer() = default;
 
-    BaseTokenizer(const std::vector<std::string> &texts, const std::vector<std::vector<int>> &seqs);
+    explicit BaseTokenizer(const std::unordered_map<std::string, int> &forward_map);
 
     virtual ~BaseTokenizer() = default;
 
