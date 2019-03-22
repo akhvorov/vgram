@@ -23,7 +23,8 @@ PyIntVGramBuilder::PyIntVGramBuilder(int size, int iter_num, int verbose)
     fitted_ = false;
 }
 
-PyIntVGramBuilder *PyIntVGramBuilder::fit(const std::vector<IntSeq> &seqs, /*const std::string &filename,*/ py::args& args) {
+PyIntVGramBuilder *
+PyIntVGramBuilder::fit(const std::vector<IntSeq> &seqs, /*const std::string &filename,*/ py::args &args) {
     if (fitted_) {
         if (freqs_computed_) {
             return this;
@@ -77,10 +78,10 @@ void PyIntVGramBuilder::recompute_freqs(const std::vector<IntSeq> &seqs) {
     total_freqs_ = std::accumulate(freqs_.begin(), freqs_.end(), 0);
 }
 
-std::vector<std::string> PyIntVGramBuilder::transform_to_string(const std::vector<IntSeq> &seqs, py::args& args) const {
+std::vector<std::string> PyIntVGramBuilder::transform_to_string(const std::vector<IntSeq> &seqs, py::args &args) const {
     std::vector<std::string> res;
     res.reserve(seqs.size());
-    for (const IntSeq& seq : transform(seqs)) {
+    for (const IntSeq &seq : transform(seqs)) {
         std::string str;
         for (const auto &i : seq) {
             str += " " + std::to_string(i);
@@ -116,16 +117,16 @@ json PyIntVGramBuilder::dict_to_json(BaseTokenizer *tokenizer) const {
     return dict;
 }
 
-PyIntVGramBuilder::PyIntVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &seqs,
-                               const std::vector<IntSeq> &alphabet, int size, double min_probability, bool fitted,
-                               bool freqs_computed) : PyIntStreamVGramBuilder(size) {
+PyIntVGramBuilder::PyIntVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &alphabet,
+                                     int size, double min_probability, bool fitted, bool freqs_computed)
+        : PyIntStreamVGramBuilder(size) {
     size_ = size;
     min_probability_ = min_probability;
     freqs_ = freqs;
     total_freqs_ = std::accumulate(freqs.begin(), freqs.end(), 0);
     coder_ = coder;
-    dict_ = std::shared_ptr<IntDict>(new IntDictImpl(seqs));
-    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(*dict_, freqs, alphabet, min_probability, 1));
+    dict_ = std::make_shared<IntDictImpl>(alphabet);
+    builder_ = std::make_shared<IntVGramBuilderImpl>(*dict_, freqs, alphabet, min_probability, 1);
     fitted_ = fitted;
     freqs_computed_ = freqs_computed;
 }

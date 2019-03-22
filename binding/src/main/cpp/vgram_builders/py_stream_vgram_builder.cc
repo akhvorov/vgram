@@ -19,7 +19,6 @@ void PyStreamVGramBuilder::accept(const std::string &seq) {
     stream_builder_->accept(tokenizer_->transform(seq));
 }
 
-//TODO: check it
 std::vector<std::string> PyStreamVGramBuilder::parse(const std::string &seq) const {
     IntSeq intSeq = tokenizer_->transform(seq);
     IntSeq tokens_ids = stream_builder_->parse(intSeq);
@@ -48,7 +47,7 @@ void PyStreamVGramBuilder::save(const std::string &filename) const {
     stream_builder_->save(filename, tokenizer_.get());
 }
 
-PyStreamVGramBuilder::PyStreamVGramBuilder(const std::shared_ptr<PyIntStreamVGramBuilder> &stream_builder,
+PyStreamVGramBuilder::PyStreamVGramBuilder(PyIntStreamVGramBuilder *stream_builder,
                                            const std::shared_ptr<BaseTokenizer> &tokenizer)
-                                           : stream_builder_(stream_builder), tokenizer_(tokenizer) {
+        : stream_builder_(stream_builder), tokenizer_(tokenizer) {
 }

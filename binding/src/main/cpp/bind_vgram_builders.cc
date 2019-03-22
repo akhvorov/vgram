@@ -17,7 +17,7 @@ void init_vgram_builders(py::module &m) {
     m.def("loadIntVGram", &PyIntVGramBuilder::load);
     m.def("loadVGram", &PyVGramBuilder::load);
 
-    py::class_<PyIntStreamVGramBuilder>(m, "StreamIntVGram")
+    py::class_<PyIntStreamVGramBuilder>(m, "IntStreamVGram")
             .def(py::init<int>())
             .def(py::init<int, int>())
             .def("accept", &PyIntStreamVGramBuilder::accept,
@@ -51,11 +51,6 @@ void init_vgram_builders(py::module &m) {
                          py::scoped_estream_redirect>())
 
             .def("transform", &PyIntVGramBuilder::transform_to_string)
-//            .def("accept", &PyIntStreamVGramBuilder::accept,
-//                 py::call_guard<py::scoped_ostream_redirect,
-//                         py::scoped_estream_redirect>())
-//            .def("parse", &PyIntStreamVGramBuilder::parse)
-//            .def("update", &PyIntStreamVGramBuilder::update_dict)
             .def("freqs", &PyIntVGramBuilder::freqs)
             .def("alphabet", &PyIntVGramBuilder::alphabet);
 
@@ -67,13 +62,7 @@ void init_vgram_builders(py::module &m) {
             .def("fit", &PyVGramBuilder::fit,
                  py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>())
-
             .def("transform", &PyVGramBuilder::transform)
-//            .def("accept", &PyIntStreamVGramBuilder::accept,
-//                 py::call_guard<py::scoped_ostream_redirect,
-//                         py::scoped_estream_redirect>())
-//            .def("parse", &PyIntStreamVGramBuilder::parse)
-//            .def("update", &PyIntStreamVGramBuilder::update_dict)
             .def("freqs", &PyVGramBuilder::freqs)
             .def("alphabet", &PyVGramBuilder::alphabet);
 }

@@ -16,25 +16,27 @@ using json = nlohmann::json;
 
 class PyIntVGramBuilder : public PyIntStreamVGramBuilder {
 public:
-    static std::shared_ptr<PyIntVGramBuilder> load(const std::string &filename) {
+    static PyIntVGramBuilder *load(const std::string &filename) {
         int size;
         double min_probability;
         SeqCoder coder;
         IntSeq freqs;
-        std::vector<IntSeq> seqs, alphabet;
+        std::vector<IntSeq> alphabet;
         bool fitted, freqs_computed;
-        json dict = read_dict(filename, coder, freqs, seqs, alphabet, size, min_probability, fitted, freqs_computed);
-        return std::shared_ptr<PyIntVGramBuilder>(new PyIntVGramBuilder(coder, freqs, seqs, alphabet, size,
-                min_probability, fitted, freqs_computed));
+        json dict = read_dict(filename, coder, freqs, alphabet, size, min_probability, fitted, freqs_computed);
+//        std::shared_ptr<PyIntVGramBuilder> builder = std::shared_ptr<PyIntVGramBuilder>(new PyIntVGramBuilder(
+//                coder, freqs, alphabet, size,  min_probability, fitted, freqs_computed));
+//        return new PyIntVGramBuilder(coder, freqs, seqs, alphabet, size, min_probability, fitted, freqs_computed);
+        return new PyIntVGramBuilder(coder, freqs, alphabet, size, min_probability, fitted, freqs_computed);
     }
 
     PyIntVGramBuilder(int size, int iter_num);
 
     PyIntVGramBuilder(int size, int iter_num, int verbose);
 
-    PyIntVGramBuilder *fit(const std::vector<IntSeq> &seqs, /*const std::string &filename,*/ py::args& args);
+    PyIntVGramBuilder *fit(const std::vector<IntSeq> &seqs, /*const std::string &filename,*/ py::args &args);
 
-    std::vector<std::string> transform_to_string(const std::vector<IntSeq> &seqs, py::args& args) const;
+    std::vector<std::string> transform_to_string(const std::vector<IntSeq> &seqs, py::args &args) const;
 
     std::vector<IntSeq> transform(const std::vector<IntSeq> &seqs) const;
 
@@ -47,19 +49,17 @@ protected:
 
     json dict_to_json(BaseTokenizer *tokenizer) const override;
 
-    static json read_dict(const std::string &filename, SeqCoder &coder, IntSeq &freqs, std::vector<IntSeq> &seqs,
-                          std::vector<IntSeq> &alphabet, int &size, double &min_probability, bool &fitted,
-                          bool &freqs_computed) {
-        json dict = PyIntStreamVGramBuilder::read_dict(filename, coder, freqs, seqs, alphabet, size, min_probability);
+    static json read_dict(const std::string &filename, SeqCoder &coder, IntSeq &freqs, std::vector<IntSeq> &alphabet,
+                          int &size, double &min_probability, bool &fitted, bool &freqs_computed) {
+        json dict = PyIntStreamVGramBuilder::read_dict(filename, coder, freqs, alphabet, size, min_probability);
         fitted = dict["fitted"].get<bool>();
         freqs_computed = dict["freqs_computed"].get<bool>();
         return dict;
     }
 
 private:
-    PyIntVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &seqs,
-                   const std::vector<IntSeq> &alphabet, int size, double min_probability, bool fitted,
-                   bool freqs_computed);
+    PyIntVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &alphabet,
+                      int size, double min_probability, bool fitted, bool freqs_computed);
 };
 
 #endif //DICT_EXPANSION_VGRAM_H

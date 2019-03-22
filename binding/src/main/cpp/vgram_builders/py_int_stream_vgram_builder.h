@@ -18,15 +18,16 @@ using json = nlohmann::json;
 
 class PyIntStreamVGramBuilder {
 public:
-    static std::shared_ptr<PyIntStreamVGramBuilder> load(const std::string &filename) {
+    static PyIntStreamVGramBuilder *load(const std::string &filename) {
         int size;
         double min_probability;
         SeqCoder coder;
         IntSeq freqs;
-        std::vector<IntSeq> seqs, alphabet;
-        read_dict(filename, coder, freqs, seqs, alphabet, size, min_probability);
-        return std::shared_ptr<PyIntStreamVGramBuilder>(
-                new PyIntStreamVGramBuilder(coder, freqs, seqs, alphabet, size, min_probability));
+        std::vector<IntSeq> alphabet;
+        read_dict(filename, coder, freqs, alphabet, size, min_probability);
+//        return std::shared_ptr<PyIntStreamVGramBuilder>(
+//                new PyIntStreamVGramBuilder(coder, freqs, alphabet, size, min_probability));
+        return new PyIntStreamVGramBuilder(coder, freqs, alphabet, size, min_probability);
     }
 
     explicit PyIntStreamVGramBuilder(int size);
@@ -61,8 +62,8 @@ protected:
 
     json alphabet_to_json(BaseTokenizer *tokenizer) const;
 
-    static json read_dict(const std::string &filename, SeqCoder &coder, IntSeq &freqs, std::vector<IntSeq> &seqs,
-                          std::vector<IntSeq> &alphabet, int &size, double &min_probability) {
+    static json read_dict(const std::string &filename, SeqCoder &coder, IntSeq &freqs, std::vector<IntSeq> &alphabet,
+                          int &size, double &min_probability) {
         std::ifstream file(filename);
         json dict;
         file >> dict;
@@ -71,22 +72,22 @@ protected:
         size = dict["size"];
         min_probability = dict["min_prob"];
         for (int n : dict["coder"]) {
-            alphabet.emplace_back(1, n);
             coder.encode(std::vector<int>(1, n));
         }
         for (const auto &word_obj : dict["alphabet"]) {
             freqs.push_back(word_obj["freq"].get<int>());
-            seqs.push_back(word_obj["vec"].get<IntSeq>());
+            alphabet.push_back(word_obj["vec"].get<IntSeq>());
         }
         return dict;
     }
 
 private:
     friend class PyStreamVGramBuilder;
+
     friend class PyVGramBuilder;
 
-    PyIntStreamVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &seqs,
-                         const std::vector<IntSeq> &alphabet, int size, double min_probability);
+    PyIntStreamVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &alphabet,
+                            int size, double min_probability);
 };
 
 #endif //DICT_EXPANSION_PY_INT_STREAM_VGRAM_BUILDER_H

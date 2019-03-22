@@ -13,11 +13,12 @@ using json = nlohmann::json;
 
 class PyStreamVGramBuilder {
 public:
-    static std::shared_ptr<PyStreamVGramBuilder> load(const std::string &filename) {
-        std::shared_ptr<PyIntStreamVGramBuilder> stream_builder = PyIntStreamVGramBuilder::load(filename);
+    static PyStreamVGramBuilder *load(const std::string &filename) {
+        PyIntStreamVGramBuilder *stream_builder = PyIntStreamVGramBuilder::load(filename);
         std::shared_ptr<BaseTokenizer> tokenizer = loadTokenizer(filename, stream_builder->coder_);
 //        return std::make_shared<PyStreamVGramBuilder>(stream_builder, tokenizer);
-        return std::shared_ptr<PyStreamVGramBuilder>(new PyStreamVGramBuilder(stream_builder, tokenizer));
+//        return std::shared_ptr<PyStreamVGramBuilder>(new PyStreamVGramBuilder(stream_builder, tokenizer));
+        return new PyStreamVGramBuilder(stream_builder, tokenizer);
     }
 
     explicit PyStreamVGramBuilder(int size);
@@ -36,26 +37,29 @@ public:
 
     void update_dict();
 
-    static std::shared_ptr<CharTokenizer> loadTokenizer(const std::string &filename, const SeqCoder &coder) {
+    static std::shared_ptr<BaseTokenizer> loadTokenizer(const std::string &filename, const SeqCoder &coder) {
         std::ifstream file(filename);
         json dict;
         file >> dict;
         file.close();
         std::vector<IntSeq> seqs;
         std::vector<std::string> texts;
+        std::unordered_map<std::string, int> forward_map;
         for (const auto &word_obj : dict["alphabet"]) {
-            seqs.push_back(coder.decode(word_obj["vec"].get<IntSeq>()));
-            texts.push_back(word_obj["text"].get<std::string>());
+            const std::vector<int> vec = coder.decode(word_obj["vec"].get<IntSeq>());
+            if (vec.size() == 1) {
+                std::string key = word_obj["text"].get<std::string>();
+                forward_map[key] = vec[0];
+            }
         }
-        return std::make_shared<CharTokenizer>(texts, seqs);
+        return std::make_shared<BaseTokenizer>(forward_map);
     }
 
 protected:
     std::shared_ptr<PyIntStreamVGramBuilder> stream_builder_;
     std::shared_ptr<BaseTokenizer> tokenizer_;
 
-    PyStreamVGramBuilder(const std::shared_ptr<PyIntStreamVGramBuilder> &stream_builder,
-                         const std::shared_ptr<BaseTokenizer> &tokenizer);
+    PyStreamVGramBuilder(PyIntStreamVGramBuilder *stream_builder, const std::shared_ptr<BaseTokenizer> &tokenizer);
 };
 
 

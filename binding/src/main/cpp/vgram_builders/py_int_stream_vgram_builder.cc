@@ -3,7 +3,6 @@
 //
 
 #include <algorithm>
-#include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <src/main/cpp/int_dict_p.h>
@@ -88,8 +87,9 @@ json PyIntStreamVGramBuilder::coder_to_json() const {
 
 json PyIntStreamVGramBuilder::alphabet_to_json(BaseTokenizer *tokenizer) const {
     json alpha;
-    for (int i = 0; i < dict_->alphabet().size(); i++) {
-        IntSeq word = dict_->alphabet()[i];
+    std::vector<IntSeq> alphabet = dict_->alphabet();
+    for (int i = 0; i < alphabet.size(); i++) {
+        IntSeq word = alphabet[i];
         json word_obj;
         word_obj["vec"] = json(word);
         word_obj["freq"] = freqs_[i];
@@ -101,7 +101,6 @@ json PyIntStreamVGramBuilder::alphabet_to_json(BaseTokenizer *tokenizer) const {
 }
 
 PyIntStreamVGramBuilder::PyIntStreamVGramBuilder(const SeqCoder &coder, const IntSeq &freqs,
-                                                 const std::vector<IntSeq> &seqs,
                                                  const std::vector<IntSeq> &alphabet, int size,
                                                  double min_probability) {
     size_ = size;
@@ -109,6 +108,6 @@ PyIntStreamVGramBuilder::PyIntStreamVGramBuilder(const SeqCoder &coder, const In
     freqs_ = freqs;
     total_freqs_ = std::accumulate(freqs.begin(), freqs.end(), 0);
     coder_ = coder;
-    dict_ = std::shared_ptr<IntDict>(new IntDictImpl(seqs));
-    builder_ = std::shared_ptr<IntVGramBuilder>(new IntVGramBuilderImpl(*dict_, freqs, alphabet, min_probability, 1));
+    dict_ = std::make_shared<IntDictImpl>(alphabet);
+    builder_ = std::make_shared<IntVGramBuilderImpl>(*dict_, freqs, alphabet, min_probability, 1);
 }

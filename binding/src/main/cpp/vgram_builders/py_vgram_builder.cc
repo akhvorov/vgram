@@ -20,7 +20,7 @@ std::vector<std::string> PyVGramBuilder::transform(const std::vector<std::string
     std::vector<IntSeq> coded_texts_by_token_ids = int_builder_->transform(tokenizer_->transform(seqs, args));
     std::vector<std::string> decoded_texts;
     std::vector<IntSeq> alphabet = int_builder_->alphabet();
-    for (const IntSeq& coded_text_by_token_ids : coded_texts_by_token_ids) {
+    for (const IntSeq &coded_text_by_token_ids : coded_texts_by_token_ids) {
         std::string decoded_words;
         for (int word_id : coded_text_by_token_ids) {
             if (!decoded_words.empty()) {
@@ -45,6 +45,5 @@ std::vector<std::string> PyVGramBuilder::alphabet() const {
     return tokenizer_->decode(int_builder_->alphabet());
 }
 
-PyVGramBuilder::PyVGramBuilder(std::shared_ptr<PyIntVGramBuilder> int_builder,
-                               std::shared_ptr<CharTokenizer> tokenizer)
-        : int_builder_(std::move(int_builder)), tokenizer_(std::move(tokenizer)) {}
+PyVGramBuilder::PyVGramBuilder(PyIntVGramBuilder *int_builder, std::shared_ptr<BaseTokenizer> tokenizer)
+        : int_builder_(int_builder), tokenizer_(std::move(tokenizer)) {}
