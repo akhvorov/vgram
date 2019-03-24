@@ -69,4 +69,5 @@ setup(
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
     packages=find_packages(),
+    install_requires=['numpy', 'scikit-learn']
 )
