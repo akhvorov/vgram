@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.linear_model import SGDClassifier
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.pipeline import Pipeline
-from vgram import VGram, loadVGram
+from vgram import VGram, IntVGram, loadVGram, loadIntVGram, CharTokenizer
 
 
 def get_data():
@@ -85,11 +85,51 @@ def test_save_vgram_small():
     ])
     pipeline2.fit(train.data, train.target)
 
-    assert np.mean(pipeline1.predict(train.data) == train.target) == np.mean(pipeline2.predict(train.data) == train.target)
-    assert np.mean(pipeline1.predict(test.data) == test.target) == np.mean(pipeline2.predict(test.data) == test.target)
+    print(np.mean(pipeline1.predict(train.data) == train.target), np.mean(pipeline2.predict(train.data) == train.target))
+    print(np.mean(pipeline1.predict(test.data) == test.target), np.mean(pipeline2.predict(test.data) == test.target))
+
+    assert abs(np.mean(pipeline1.predict(train.data) == train.target) - np.mean(pipeline2.predict(train.data) == train.target)) < 0.001
+    assert abs(np.mean(pipeline1.predict(test.data) == test.target) - np.mean(pipeline2.predict(test.data) == test.target)) < 0.001
+
+
+def test_save_int_vgram_small():
+    path = "test_dict.json"
+    train, test = get_data()
+    data = train.data + test.data
+    data = data[:1000]
+    vgram = Pipeline([
+        ("tok", CharTokenizer()),
+        ("ivg", IntVGram(500, 1))
+    ])
+    vgram.fit(data)
+    vgram.named_steps["ivg"].save(path)
+
+    pipeline1 = Pipeline([
+        ("features", vgram),
+        ("vect", CountVectorizer()),
+        ('tfidf', TfidfTransformer(sublinear_tf=True)),
+        ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=50, random_state=3))
+    ])
+    pipeline1.fit(train.data, train.target)
+
+    pipeline2 = Pipeline([
+        ("tok", CharTokenizer()),
+        ("features", loadIntVGram(path)),
+        ("vect", CountVectorizer()),
+        ('tfidf', TfidfTransformer(sublinear_tf=True)),
+        ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=50, random_state=3))
+    ])
+    pipeline2.fit(train.data, train.target)
+
+    print(np.mean(pipeline1.predict(train.data) == train.target), np.mean(pipeline2.predict(train.data) == train.target))
+    print(np.mean(pipeline1.predict(test.data) == test.target), np.mean(pipeline2.predict(test.data) == test.target))
+
+    assert abs(np.mean(pipeline1.predict(train.data) == train.target) - np.mean(pipeline2.predict(train.data) == train.target)) < 0.001
+    assert abs(np.mean(pipeline1.predict(test.data) == test.target) - np.mean(pipeline2.predict(test.data) == test.target)) < 0.001
 
 
 if __name__ == "__main__":
     test_vgram_svm()
     test_vgram_svm_small()
     test_save_vgram_small()
+    test_save_int_vgram_small()

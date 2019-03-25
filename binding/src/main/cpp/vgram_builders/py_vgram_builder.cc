@@ -45,5 +45,5 @@ std::vector<std::string> PyVGramBuilder::alphabet() const {
     return tokenizer_->decode(int_builder_->alphabet());
 }
 
-PyVGramBuilder::PyVGramBuilder(PyIntVGramBuilder *int_builder, std::shared_ptr<BaseTokenizer> tokenizer)
+PyVGramBuilder::PyVGramBuilder(PyIntVGramBuilder *int_builder, std::shared_ptr<CharTokenizer> tokenizer)
         : int_builder_(int_builder), tokenizer_(std::move(tokenizer)) {}

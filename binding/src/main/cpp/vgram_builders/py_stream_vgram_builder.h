@@ -15,7 +15,7 @@ class PyStreamVGramBuilder {
 public:
     static PyStreamVGramBuilder *load(const std::string &filename) {
         PyIntStreamVGramBuilder *stream_builder = PyIntStreamVGramBuilder::load(filename);
-        std::shared_ptr<BaseTokenizer> tokenizer = loadTokenizer(filename, stream_builder->coder_);
+        std::shared_ptr<CharTokenizer> tokenizer = loadTokenizer(filename, stream_builder->coder_);
 //        return std::make_shared<PyStreamVGramBuilder>(stream_builder, tokenizer);
 //        return std::shared_ptr<PyStreamVGramBuilder>(new PyStreamVGramBuilder(stream_builder, tokenizer));
         return new PyStreamVGramBuilder(stream_builder, tokenizer);
@@ -37,7 +37,7 @@ public:
 
     void update_dict();
 
-    static std::shared_ptr<BaseTokenizer> loadTokenizer(const std::string &filename, const SeqCoder &coder) {
+    static std::shared_ptr<CharTokenizer> loadTokenizer(const std::string &filename, const SeqCoder &coder) {
         std::ifstream file(filename);
         json dict;
         file >> dict;
@@ -52,7 +52,7 @@ public:
                 forward_map[key] = vec[0];
             }
         }
-        return std::make_shared<BaseTokenizer>(forward_map);
+        return std::make_shared<CharTokenizer>(forward_map);
     }
 
 protected:
