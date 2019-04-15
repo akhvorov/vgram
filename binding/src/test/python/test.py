@@ -129,7 +129,7 @@ def test_save_int_vgram_small():
 
 
 if __name__ == "__main__":
-    test_vgram_svm()
-    test_vgram_svm_small()
+    # test_vgram_svm()
+    # test_vgram_svm_small()
     test_save_vgram_small()
-    test_save_int_vgram_small()
+    # test_save_int_vgram_small()

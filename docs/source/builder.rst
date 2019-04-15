@@ -4,8 +4,8 @@
 V-Gram building
 ###############
 
-StreamVGramBuilder
-==================
+StreamVGram
+===========
 
 Use this class for construction v-gram dictionary in cases where data is not text or is too large.
 It gave the universal interface for any sequences performed by a list of integer numbers.
@@ -16,7 +16,7 @@ If it were a class in Python, it would look like this:
 
 .. code-block:: python
 
-    class StreamVGramBuilder:
+    class StreamVGram:
         def __init__(self, size): .. # filename="", verbose=1
         def __init__(self, size, filename): .. # verbose=1
         def __init__(self, size, verbose): .. # filename=""
@@ -31,16 +31,16 @@ If it were a class in Python, it would look like this:
         def freqs(self): ..
 
 
-:class:`StreamVGramBuilder` have two constructors. One for building a new dictionary and second for using an existing one.
+:class:`StreamVGram` have two constructors. One for building a new dictionary and second for using an existing one.
 For using the second constructor, you should already build a dictionary before and saved it.
 It's a recommended way to use v-grams because dictionary building takes a long time.
 
-| ``StreamVGramBuilder(size, filename="", verbose=1)`` building new dictionary of size ``size``.
+| ``StreamVGram(size, filename="", verbose=1)`` building new dictionary of size ``size``.
 | Pass ``filename`` for dictionary saving dictionary by method ``save``.
 | Also you can do ``save()`` without filename argument, this ``filename`` will be used.
 | ``verbose`` means a level of verbose. ``0`` not print anything, ``1`` or more print some useful information about v-gram learning process.
 
-``StreamVGramBuilder(filename, verbose=1)`` building dictionary from file. It works if you fit dictionary and save to file before.
+``StreamVGram(filename, verbose=1)`` building dictionary from file. It works if you fit dictionary and save to file before.
 
 ``accept(seq)`` consume a 1-d list of integer or 1-d numpy array.
 For fitting dictionary make ``accept`` of data items enough times. If ``verbose=1`` some information will be printed.
@@ -61,18 +61,18 @@ See subsection below about the save format of the dictionary.
 
 See :ref:`examples` for details.
 
-VGramBuilder
-============
+VGram
+=====
 
-:class:`VGramBuilder` is a child class of :class:`StreamVGramBuilder`.
-For working with v-grams in simple cases use ``VGramBuilder``.
+:class:`VGram` is a child class of :class:`StreamVGram`.
+For working with v-grams in simple cases use ``VGram``.
 This class implement the scikit-learn fit-transform interface and can be well embedded in the existing code.
 
 If it were a class in Python, it would look like this:
 
 .. code-block:: python
 
-    class VGramBuilder(StreamVGramBuilder):
+    class VGram(StreamVGram):
         def __init__(self, size, iters): .. # filename="", verbose=1
         def __init__(self, size, iters, filename): .. # verbose=1
         def __init__(self, size, iters, verbose): .. # filename=""
@@ -88,17 +88,17 @@ If it were a class in Python, it would look like this:
         def alphabet(self): ..
         def freqs(self): ..
 
-Constructors are the same as :class:`StreamVGramBuilder` but ``iters`` is added because dictionary learned only once by passing data to algorithm ``iters`` time.
+Constructors are the same as :class:`StreamVGram` but ``iters`` is added because dictionary learned only once by passing data to algorithm ``iters`` time.
 If dictionary constructs from a file, it's already fitted and doesn't need ``iters``.
-Same as in ``StreamVGramBuilder`` for using the second constructor you should already build dictionary before and saved it.
+Same as in ``StreamVGram`` for using the second constructor you should already build dictionary before and saved it.
 It's a recommended way to use v-grams because dictionary building takes a long time.
 
-| ``VGramBuilder(size, iters, filename="", verbose=1)`` building new dictionary of size ``size`` and learn ``iters`` iterations.
+| ``VGram(size, iters, filename="", verbose=1)`` building new dictionary of size ``size`` and learn ``iters`` iterations.
 | Pass ``filename`` for dictionary saving after each iteration. It may be useful if you start building a dictionary with more iterations as needed and want to interrupt process without losing progress. Feel free to do so, and if ``filename`` is provided, a dictionary will be saved.
 | Also you can do ``save()`` without filename argument, this ``filename`` will be used.
 | ``verbose`` means a level of verbose. ``0`` not print anything, ``1`` or more print some useful information about v-gram learning process.
 
-``VGramBuilder(filename, verbose=1)`` building dictionary from file. It works if you fit dictionary and save to file before.
+``VGram(filename, verbose=1)`` building dictionary from file. It works if you fit dictionary and save to file before.
 
 ``fit(X)`` consume a 2-d list of integer or 2-d numpy array. Other arguments will be ignored.
 Make ``iters`` iterations on all data to fit dictionary better. One iteration often is not enough.
@@ -107,7 +107,7 @@ Make ``iters`` iterations on all data to fit dictionary better. One iteration of
 Return a 1-d list of strings, where each string is integers joined by space, where every integer is v-gram index in the alphabet.
 It's good for pipeline where CountVectorizer follows VGramBuilder (see :ref:`examples`).
 
-``accept(seq)``, ``parse(X)`` and ``update()`` works same as in :class:`StreamVGramBuilder`.
+``accept(seq)``, ``parse(X)`` and ``update()`` works same as in :class:`StreamVGram`.
 You can fit dictionary by ``fit()`` and continue fitting by ``accept``.
 It's not recommended way but may be useful in specific cases.
 

@@ -13,17 +13,20 @@ using json = nlohmann::json;
 
 class PyStreamVGramBuilder {
 public:
-    static PyStreamVGramBuilder *load(const std::string &filename) {
-        PyIntStreamVGramBuilder *stream_builder = PyIntStreamVGramBuilder::load(filename);
+    static std::shared_ptr<PyStreamVGramBuilder> load(const std::string &filename) {
+        std::shared_ptr<PyIntStreamVGramBuilder> stream_builder = PyIntStreamVGramBuilder::load(filename);
         std::shared_ptr<CharTokenizer> tokenizer = loadTokenizer(filename, stream_builder->coder_);
-//        return std::make_shared<PyStreamVGramBuilder>(stream_builder, tokenizer);
+        return std::make_shared<PyStreamVGramBuilder>(stream_builder, tokenizer);
 //        return std::shared_ptr<PyStreamVGramBuilder>(new PyStreamVGramBuilder(stream_builder, tokenizer));
-        return new PyStreamVGramBuilder(stream_builder, tokenizer);
+//        return new PyStreamVGramBuilder(stream_builder, tokenizer);
     }
 
     explicit PyStreamVGramBuilder(int size);
 
     PyStreamVGramBuilder(int size, int verbose);
+
+    PyStreamVGramBuilder(std::shared_ptr<PyIntStreamVGramBuilder> stream_builder,
+            std::shared_ptr<CharTokenizer> &tokenizer);
 
     void accept(const std::string &seq);
 
@@ -57,9 +60,7 @@ public:
 
 protected:
     std::shared_ptr<PyIntStreamVGramBuilder> stream_builder_;
-    std::shared_ptr<BaseTokenizer> tokenizer_;
-
-    PyStreamVGramBuilder(PyIntStreamVGramBuilder *stream_builder, const std::shared_ptr<BaseTokenizer> &tokenizer);
+    std::shared_ptr<CharTokenizer> tokenizer_;
 };
 
 

@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <utility>
 #include "py_stream_vgram_builder.h"
 
 
@@ -12,7 +13,12 @@ PyStreamVGramBuilder::PyStreamVGramBuilder(int size)
 
 PyStreamVGramBuilder::PyStreamVGramBuilder(int size, int verbose = 1) :
         stream_builder_(std::make_shared<PyIntStreamVGramBuilder>(size, verbose)),
-        tokenizer_(std::make_shared<BaseTokenizer>()) {
+        tokenizer_(std::make_shared<CharTokenizer>()) {
+}
+
+PyStreamVGramBuilder::PyStreamVGramBuilder(std::shared_ptr<PyIntStreamVGramBuilder> stream_builder,
+                                           std::shared_ptr<CharTokenizer> &tokenizer)
+        : stream_builder_(std::move(stream_builder)), std::move(tokenizer_(tokenizer)) {
 }
 
 void PyStreamVGramBuilder::accept(const std::string &seq) {
@@ -45,9 +51,4 @@ IntSeq PyStreamVGramBuilder::freqs() const {
 
 void PyStreamVGramBuilder::save(const std::string &filename) const {
     stream_builder_->save(filename, tokenizer_.get());
-}
-
-PyStreamVGramBuilder::PyStreamVGramBuilder(PyIntStreamVGramBuilder *stream_builder,
-                                           const std::shared_ptr<BaseTokenizer> &tokenizer)
-        : stream_builder_(stream_builder), tokenizer_(tokenizer) {
 }

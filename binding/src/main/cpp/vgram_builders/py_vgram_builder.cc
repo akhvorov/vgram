@@ -3,6 +3,7 @@
 // Created by Aleksandr Khvorov on 25/02/2019.
 //
 
+#include <utility>
 #include "py_vgram_builder.h"
 
 PyVGramBuilder::PyVGramBuilder(int size, int iter_num) : PyVGramBuilder(size, iter_num, 1) {}
@@ -45,5 +46,5 @@ std::vector<std::string> PyVGramBuilder::alphabet() const {
     return tokenizer_->decode(int_builder_->alphabet());
 }
 
-PyVGramBuilder::PyVGramBuilder(PyIntVGramBuilder *int_builder, std::shared_ptr<CharTokenizer> tokenizer)
-        : int_builder_(int_builder), tokenizer_(std::move(tokenizer)) {}
+PyVGramBuilder::PyVGramBuilder(std::shared_ptr<PyIntVGramBuilder> int_builder, std::shared_ptr<CharTokenizer> tokenizer)
+        : int_builder_(std::move(int_builder)), tokenizer_(std::move(tokenizer)) {}

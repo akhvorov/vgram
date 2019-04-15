@@ -18,16 +18,16 @@ using json = nlohmann::json;
 
 class PyIntStreamVGramBuilder {
 public:
-    static PyIntStreamVGramBuilder *load(const std::string &filename) {
+    static std::shared_ptr<PyIntStreamVGramBuilder> load(const std::string &filename) {
         int size;
         double min_probability;
         SeqCoder coder;
         IntSeq freqs;
         std::vector<IntSeq> alphabet;
         read_dict(filename, coder, freqs, alphabet, size, min_probability);
-//        return std::shared_ptr<PyIntStreamVGramBuilder>(
-//                new PyIntStreamVGramBuilder(coder, freqs, alphabet, size, min_probability));
-        return new PyIntStreamVGramBuilder(coder, freqs, alphabet, size, min_probability);
+        return std::shared_ptr<PyIntStreamVGramBuilder>(
+                new PyIntStreamVGramBuilder(coder, freqs, alphabet, size, min_probability));
+//        return new PyIntStreamVGramBuilder(coder, freqs, alphabet, size, min_probability);
     }
 
     explicit PyIntStreamVGramBuilder(int size);

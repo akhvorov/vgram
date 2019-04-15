@@ -11,16 +11,18 @@
 
 class PyVGramBuilder {
 public:
-    static PyVGramBuilder *load(const std::string &filename) {
-        PyIntVGramBuilder *int_builder = PyIntVGramBuilder::load(filename);
+    static std::shared_ptr<PyVGramBuilder> load(const std::string &filename) {
+        std::shared_ptr<PyIntVGramBuilder> int_builder = PyIntVGramBuilder::load(filename);
         std::shared_ptr<CharTokenizer> tokenizer = PyStreamVGramBuilder::loadTokenizer(filename, int_builder->coder_);
-//        return std::make_shared<PyVGramBuilder>(int_builder, tokenizer);
-        return new PyVGramBuilder(int_builder, tokenizer);
+        return std::make_shared<PyVGramBuilder>(int_builder, tokenizer);
+//        return new PyVGramBuilder(int_builder, tokenizer);
     }
 
     PyVGramBuilder(int size, int iter_num);
 
     PyVGramBuilder(int size, int iter_num, int verbose);
+
+    PyVGramBuilder(std::shared_ptr<PyIntVGramBuilder> int_builder, std::shared_ptr<CharTokenizer> tokenizer);
 
     PyVGramBuilder *fit(const std::vector<std::string> &seqs, /*const std::string &filename,*/ py::args &args);
 
@@ -35,8 +37,6 @@ public:
 private:
     std::shared_ptr<PyIntVGramBuilder> int_builder_;
     std::shared_ptr<CharTokenizer> tokenizer_;
-
-    PyVGramBuilder(PyIntVGramBuilder *int_builder, std::shared_ptr<CharTokenizer> tokenizer);
 };
 
 #endif //DICT_EXPANSION_PY_VGRAM_BUILDER_H

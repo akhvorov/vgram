@@ -16,7 +16,7 @@ using json = nlohmann::json;
 
 class PyIntVGramBuilder : public PyIntStreamVGramBuilder {
 public:
-    static PyIntVGramBuilder *load(const std::string &filename) {
+    static std::shared_ptr<PyIntVGramBuilder> load(const std::string &filename) {
         int size;
         double min_probability;
         SeqCoder coder;
@@ -27,7 +27,8 @@ public:
 //        std::shared_ptr<PyIntVGramBuilder> builder = std::shared_ptr<PyIntVGramBuilder>(new PyIntVGramBuilder(
 //                coder, freqs, alphabet, size,  min_probability, fitted, freqs_computed));
 //        return new PyIntVGramBuilder(coder, freqs, seqs, alphabet, size, min_probability, fitted, freqs_computed);
-        return new PyIntVGramBuilder(coder, freqs, alphabet, size, min_probability, fitted, freqs_computed);
+//        return new PyIntVGramBuilder(coder, freqs, alphabet, size, min_probability, fitted, freqs_computed);
+        return std::shared_ptr<PyIntVGramBuilder>(new PyIntVGramBuilder(coder, freqs, alphabet, size, min_probability, fitted, freqs_computed));
     }
 
     PyIntVGramBuilder(int size, int iter_num);
