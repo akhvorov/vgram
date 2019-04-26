@@ -19,16 +19,13 @@ public:
     static std::shared_ptr<PyIntVGramBuilder> load(const std::string &filename) {
         int size;
         double min_probability;
-        SeqCoder coder;
+        std::shared_ptr<SeqCoder> coder;
         IntSeq freqs;
         std::vector<IntSeq> alphabet;
         bool fitted, freqs_computed;
         json dict = read_dict(filename, coder, freqs, alphabet, size, min_probability, fitted, freqs_computed);
-//        std::shared_ptr<PyIntVGramBuilder> builder = std::shared_ptr<PyIntVGramBuilder>(new PyIntVGramBuilder(
-//                coder, freqs, alphabet, size,  min_probability, fitted, freqs_computed));
-//        return new PyIntVGramBuilder(coder, freqs, seqs, alphabet, size, min_probability, fitted, freqs_computed);
-//        return new PyIntVGramBuilder(coder, freqs, alphabet, size, min_probability, fitted, freqs_computed);
-        return std::shared_ptr<PyIntVGramBuilder>(new PyIntVGramBuilder(coder, freqs, alphabet, size, min_probability, fitted, freqs_computed));
+        return std::shared_ptr<PyIntVGramBuilder>(
+                new PyIntVGramBuilder(coder, freqs, alphabet, size, min_probability, fitted, freqs_computed));
     }
 
     PyIntVGramBuilder(int size, int iter_num);
@@ -48,10 +45,11 @@ protected:
 
     void recompute_freqs(const std::vector<IntSeq> &seqs);
 
-    json dict_to_json(BaseTokenizer *tokenizer) const override;
+    json dict_to_json(std::shared_ptr<BaseTokenizer> tokenizer) const override;
 
-    static json read_dict(const std::string &filename, SeqCoder &coder, IntSeq &freqs, std::vector<IntSeq> &alphabet,
-                          int &size, double &min_probability, bool &fitted, bool &freqs_computed) {
+    static json read_dict(const std::string &filename, const std::shared_ptr<SeqCoder> &coder, IntSeq &freqs,
+                          std::vector<IntSeq> &alphabet, int &size, double &min_probability, bool &fitted,
+                          bool &freqs_computed) {
         json dict = PyIntStreamVGramBuilder::read_dict(filename, coder, freqs, alphabet, size, min_probability);
         fitted = dict["fitted"].get<bool>();
         freqs_computed = dict["freqs_computed"].get<bool>();
@@ -59,7 +57,7 @@ protected:
     }
 
 private:
-    PyIntVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &alphabet,
+    PyIntVGramBuilder(std::shared_ptr<SeqCoder> coder, const IntSeq &freqs, const std::vector<IntSeq> &alphabet,
                       int size, double min_probability, bool fitted, bool freqs_computed);
 };
 

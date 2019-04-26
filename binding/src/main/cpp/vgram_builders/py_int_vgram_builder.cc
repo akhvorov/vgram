@@ -65,7 +65,7 @@ void PyIntVGramBuilder::recompute_freqs(const std::vector<IntSeq> &seqs) {
     int total_freqs = std::accumulate(freqs.begin(), freqs.end(), 0);
     for (const IntSeq &seq : seqs) {
         IntSeq result;
-        dict_->parse(coder_.encode(seq), freqs, total_freqs, &result);
+        dict_->parse(coder_->encode(seq), freqs, total_freqs, &result);
         for (int symb : result) {
             if (symb >= 0) {
                 freqs_[symb]++;
@@ -110,15 +110,16 @@ std::vector<IntSeq> PyIntVGramBuilder::transform(const std::vector<IntSeq> &seqs
     return res;
 }
 
-json PyIntVGramBuilder::dict_to_json(BaseTokenizer *tokenizer) const {
+json PyIntVGramBuilder::dict_to_json(std::shared_ptr<BaseTokenizer> tokenizer) const {
     json dict = PyIntStreamVGramBuilder::dict_to_json(tokenizer);
     dict["fitted"] = fitted_;
     dict["freqs_computed"] = freqs_computed_;
     return dict;
 }
 
-PyIntVGramBuilder::PyIntVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &alphabet,
-                                     int size, double min_probability, bool fitted, bool freqs_computed)
+PyIntVGramBuilder::PyIntVGramBuilder(std::shared_ptr<SeqCoder> coder, const IntSeq &freqs,
+                                     const std::vector<IntSeq> &alphabet, int size, double min_probability,
+                                     bool fitted, bool freqs_computed)
         : PyIntStreamVGramBuilder(size) {
     size_ = size;
     min_probability_ = min_probability;

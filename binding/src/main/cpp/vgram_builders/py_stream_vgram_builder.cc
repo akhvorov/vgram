@@ -17,8 +17,8 @@ PyStreamVGramBuilder::PyStreamVGramBuilder(int size, int verbose = 1) :
 }
 
 PyStreamVGramBuilder::PyStreamVGramBuilder(std::shared_ptr<PyIntStreamVGramBuilder> stream_builder,
-                                           std::shared_ptr<CharTokenizer> &tokenizer)
-        : stream_builder_(std::move(stream_builder)), std::move(tokenizer_(tokenizer)) {
+                                           std::shared_ptr<BaseTokenizer> tokenizer)
+        : stream_builder_(std::move(stream_builder)), tokenizer_(std::move(tokenizer)) {
 }
 
 void PyStreamVGramBuilder::accept(const std::string &seq) {
@@ -30,8 +30,8 @@ std::vector<std::string> PyStreamVGramBuilder::parse(const std::string &seq) con
     IntSeq tokens_ids = stream_builder_->parse(intSeq);
     std::vector<std::string> token_words;
     for (int token_id : tokens_ids) {
-        std::vector<int> token_raw_representation = stream_builder_->dict_->alphabet()[token_id];
-        std::vector<int> token_int_representation = stream_builder_->coder_.decode(token_raw_representation);
+        std::vector<int> token_raw_representation = stream_builder_->get_dict()->alphabet()[token_id];
+        std::vector<int> token_int_representation = stream_builder_->get_coder()->decode(token_raw_representation);
         token_words.push_back(tokenizer_->decode(token_int_representation));
     }
     return token_words;
@@ -46,9 +46,9 @@ std::vector<std::string> PyStreamVGramBuilder::alphabet() const {
 }
 
 IntSeq PyStreamVGramBuilder::freqs() const {
-    return stream_builder_->freqs_;
+    return stream_builder_->freqs();
 }
 
 void PyStreamVGramBuilder::save(const std::string &filename) const {
-    stream_builder_->save(filename, tokenizer_.get());
+    stream_builder_->save(filename, tokenizer_);
 }

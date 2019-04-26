@@ -15,10 +15,8 @@ class PyStreamVGramBuilder {
 public:
     static std::shared_ptr<PyStreamVGramBuilder> load(const std::string &filename) {
         std::shared_ptr<PyIntStreamVGramBuilder> stream_builder = PyIntStreamVGramBuilder::load(filename);
-        std::shared_ptr<CharTokenizer> tokenizer = loadTokenizer(filename, stream_builder->coder_);
+        std::shared_ptr<BaseTokenizer> tokenizer = loadTokenizer(filename, stream_builder->get_coder());
         return std::make_shared<PyStreamVGramBuilder>(stream_builder, tokenizer);
-//        return std::shared_ptr<PyStreamVGramBuilder>(new PyStreamVGramBuilder(stream_builder, tokenizer));
-//        return new PyStreamVGramBuilder(stream_builder, tokenizer);
     }
 
     explicit PyStreamVGramBuilder(int size);
@@ -26,7 +24,7 @@ public:
     PyStreamVGramBuilder(int size, int verbose);
 
     PyStreamVGramBuilder(std::shared_ptr<PyIntStreamVGramBuilder> stream_builder,
-            std::shared_ptr<CharTokenizer> &tokenizer);
+                         std::shared_ptr<BaseTokenizer> tokenizer);
 
     void accept(const std::string &seq);
 
@@ -40,7 +38,8 @@ public:
 
     void update_dict();
 
-    static std::shared_ptr<CharTokenizer> loadTokenizer(const std::string &filename, const SeqCoder &coder) {
+    static std::shared_ptr<BaseTokenizer>
+    loadTokenizer(const std::string &filename, const std::shared_ptr<SeqCoder> &coder) {
         std::ifstream file(filename);
         json dict;
         file >> dict;
@@ -49,7 +48,7 @@ public:
         std::vector<std::string> texts;
         std::unordered_map<std::string, int> forward_map;
         for (const auto &word_obj : dict["alphabet"]) {
-            const std::vector<int> vec = coder.decode(word_obj["vec"].get<IntSeq>());
+            const std::vector<int> vec = coder->decode(word_obj["vec"].get<IntSeq>());
             if (vec.size() == 1) {
                 std::string key = word_obj["text"].get<std::string>();
                 forward_map[key] = vec[0];
@@ -60,7 +59,7 @@ public:
 
 protected:
     std::shared_ptr<PyIntStreamVGramBuilder> stream_builder_;
-    std::shared_ptr<CharTokenizer> tokenizer_;
+    std::shared_ptr<BaseTokenizer> tokenizer_;
 };
 
 

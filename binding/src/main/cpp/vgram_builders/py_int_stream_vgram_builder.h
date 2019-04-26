@@ -21,24 +21,25 @@ public:
     static std::shared_ptr<PyIntStreamVGramBuilder> load(const std::string &filename) {
         int size;
         double min_probability;
-        SeqCoder coder;
+        std::shared_ptr<SeqCoder> coder;
         IntSeq freqs;
         std::vector<IntSeq> alphabet;
         read_dict(filename, coder, freqs, alphabet, size, min_probability);
-        return std::shared_ptr<PyIntStreamVGramBuilder>(
-                new PyIntStreamVGramBuilder(coder, freqs, alphabet, size, min_probability));
-//        return new PyIntStreamVGramBuilder(coder, freqs, alphabet, size, min_probability);
+        return std::make_shared<PyIntStreamVGramBuilder>(coder, freqs, alphabet, size, min_probability);
     }
 
     explicit PyIntStreamVGramBuilder(int size);
 
     PyIntStreamVGramBuilder(int size, int verbose);
 
+    PyIntStreamVGramBuilder(std::shared_ptr<SeqCoder> coder, const IntSeq &freqs, const std::vector<IntSeq> &alphabet,
+                            int size, double min_probability);
+
     void accept(const IntSeq &seq);
 
     IntSeq parse(const IntSeq &seq) const;
 
-    void save(const std::string &filename, BaseTokenizer *tokenizer = nullptr) const;
+    void save(const std::string &filename, std::shared_ptr<BaseTokenizer> tokenizer = nullptr) const;
 
     std::vector<IntSeq> alphabet() const;
 
@@ -46,24 +47,28 @@ public:
 
     void update_dict();
 
+    std::shared_ptr<SeqCoder> get_coder();
+
+    std::shared_ptr<IntDict> get_dict();
+
 protected:
     int size_;
     std::shared_ptr<IntVGramBuilder> builder_;
     std::shared_ptr<IntDict> dict_;
-    SeqCoder coder_;
+    std::shared_ptr<SeqCoder> coder_;
     IntSeq freqs_;
     int total_freqs_;
     double min_probability_;
     int verbose_;
 
-    virtual json dict_to_json(BaseTokenizer *tokenizer) const;
+    virtual json dict_to_json(std::shared_ptr<BaseTokenizer> tokenizer) const;
 
     json coder_to_json() const;
 
-    json alphabet_to_json(BaseTokenizer *tokenizer) const;
+    json alphabet_to_json(std::shared_ptr<BaseTokenizer> tokenizer) const;
 
-    static json read_dict(const std::string &filename, SeqCoder &coder, IntSeq &freqs, std::vector<IntSeq> &alphabet,
-                          int &size, double &min_probability) {
+    static json read_dict(const std::string &filename, const std::shared_ptr<SeqCoder> &coder, IntSeq &freqs,
+                          std::vector<IntSeq> &alphabet, int &size, double &min_probability) {
         std::ifstream file(filename);
         json dict;
         file >> dict;
@@ -72,7 +77,7 @@ protected:
         size = dict["size"];
         min_probability = dict["min_prob"];
         for (int n : dict["coder"]) {
-            coder.encode(std::vector<int>(1, n));
+            coder->encode(std::vector<int>(1, n));
         }
         for (const auto &word_obj : dict["alphabet"]) {
             freqs.push_back(word_obj["freq"].get<int>());
@@ -80,14 +85,6 @@ protected:
         }
         return dict;
     }
-
-private:
-    friend class PyStreamVGramBuilder;
-
-    friend class PyVGramBuilder;
-
-    PyIntStreamVGramBuilder(const SeqCoder &coder, const IntSeq &freqs, const std::vector<IntSeq> &alphabet,
-                            int size, double min_probability);
 };
 
 #endif //DICT_EXPANSION_PY_INT_STREAM_VGRAM_BUILDER_H

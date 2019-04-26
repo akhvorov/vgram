@@ -35,7 +35,7 @@ std::vector<std::string> PyVGramBuilder::transform(const std::vector<std::string
 }
 
 void PyVGramBuilder::save(const std::string &filename) const {
-    int_builder_->save(filename, tokenizer_.get());
+    int_builder_->save(filename, tokenizer_);
 }
 
 IntSeq PyVGramBuilder::freqs() const {
@@ -46,5 +46,5 @@ std::vector<std::string> PyVGramBuilder::alphabet() const {
     return tokenizer_->decode(int_builder_->alphabet());
 }
 
-PyVGramBuilder::PyVGramBuilder(std::shared_ptr<PyIntVGramBuilder> int_builder, std::shared_ptr<CharTokenizer> tokenizer)
+PyVGramBuilder::PyVGramBuilder(std::shared_ptr<PyIntVGramBuilder> int_builder, std::shared_ptr<BaseTokenizer> tokenizer)
         : int_builder_(std::move(int_builder)), tokenizer_(std::move(tokenizer)) {}
