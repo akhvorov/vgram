@@ -59,7 +59,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name='vgram',
-    version='0.3.2',
+    version='0.4.1',
     author='Aleksandr Khvorov',
     author_email='khvorov.aleksandr@gmail.com',
     description='V-gram builder library',
