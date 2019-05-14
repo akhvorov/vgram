@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <utility>
 #include <src/main/cpp/int_dict_p.h>
 #include <src/main/cpp/int_vgram_builder_p.h>
 #include "py_int_stream_vgram_builder.h"
@@ -28,8 +29,20 @@ void PyIntStreamVGramBuilder::accept(const IntSeq &seq) {
 }
 
 IntSeq PyIntStreamVGramBuilder::parse(const IntSeq &seq) const {
+//    std::cout << "in parse" << std::endl;
     IntSeq result;
+//    if (dict_) {
+//        std::cout << "dict is true" << std::endl;
+//    }
+//    std::cout << "after if" << std::endl;
+    coder_->encode_immutable(seq);
+//    std::cout << "before coder call" << std::endl;
+    builder_->alpha();
+//    std::cout << "before builder call" << std::endl;
+//    std::cout << "Size " << dict_->size() << "!" << std::endl;
+//    std::cout << "before parse" << std::endl;
     dict_->parse(coder_->encode_immutable(seq), freqs_, total_freqs_, &result);
+//    std::cout << "out parse" << std::endl;
     return result;
 }
 
@@ -57,7 +70,8 @@ IntSeq PyIntStreamVGramBuilder::freqs() const {
 void PyIntStreamVGramBuilder::save(const std::string &filename, std::shared_ptr<BaseTokenizer> tokenizer) const {
     std::ofstream file;
     file = std::ofstream(filename);
-    file << std::setw(2) << dict_to_json(tokenizer) << std::endl;
+//    std::cout << "in save" << std::endl;
+    file << std::setw(2) << dict_to_json(std::move(tokenizer)) << std::endl;
     file.close();
 }
 
@@ -74,7 +88,7 @@ json PyIntStreamVGramBuilder::dict_to_json(std::shared_ptr<BaseTokenizer> tokeni
     dict["size"] = size_;
     dict["min_prob"] = min_probability_;
     dict["coder"] = coder_to_json();
-    dict["alphabet"] = alphabet_to_json(tokenizer);
+    dict["alphabet"] = alphabet_to_json(std::move(tokenizer));
     return dict;
 }
 
@@ -111,11 +125,15 @@ json PyIntStreamVGramBuilder::alphabet_to_json(std::shared_ptr<BaseTokenizer> to
 PyIntStreamVGramBuilder::PyIntStreamVGramBuilder(const std::shared_ptr<SeqCoder> coder, const IntSeq &freqs,
                                                  const std::vector<IntSeq> &alphabet, int size,
                                                  double min_probability) {
+//    std::cout << "in ctor" << std::endl;
     size_ = size;
     min_probability_ = min_probability;
     freqs_ = freqs;
     total_freqs_ = std::accumulate(freqs.begin(), freqs.end(), 0);
     coder_ = coder;
     dict_ = std::make_shared<IntDictImpl>(alphabet);
+//    std::cout << "dict_ inited" << std::endl;
+//    std::cout << "Size " << dict_->size() << "!" << std::endl;
     builder_ = std::make_shared<IntVGramBuilderImpl>(*dict_, freqs, alphabet, min_probability, 1);
+//    std::cout << "out ctor" << std::endl;
 }

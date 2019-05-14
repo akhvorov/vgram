@@ -6,6 +6,7 @@
 #define DICT_EXPANSION_PY_INT_STREAM_VGRAM_BUILDER_H
 
 #include <fstream>
+//#include <iostream>
 #include <pybind11/pybind11.h>
 #include <src/main/cpp/int_vgram_builder.h>
 #include <pybind11/pytypes.h>
@@ -21,7 +22,7 @@ public:
     static std::shared_ptr<PyIntStreamVGramBuilder> load(const std::string &filename) {
         int size;
         double min_probability;
-        std::shared_ptr<SeqCoder> coder;
+        std::shared_ptr<SeqCoder> coder = std::make_shared<SeqCoder>();
         IntSeq freqs;
         std::vector<IntSeq> alphabet;
         read_dict(filename, coder, freqs, alphabet, size, min_probability);
@@ -69,6 +70,7 @@ protected:
 
     static json read_dict(const std::string &filename, const std::shared_ptr<SeqCoder> &coder, IntSeq &freqs,
                           std::vector<IntSeq> &alphabet, int &size, double &min_probability) {
+//        std::cout << "in read_dict" << std::endl;
         std::ifstream file(filename);
         json dict;
         file >> dict;
@@ -76,13 +78,16 @@ protected:
 
         size = dict["size"];
         min_probability = dict["min_prob"];
+//        std::cout << "first loop" << std::endl;
         for (int n : dict["coder"]) {
             coder->encode(std::vector<int>(1, n));
         }
+//        std::cout << "between" << std::endl;
         for (const auto &word_obj : dict["alphabet"]) {
             freqs.push_back(word_obj["freq"].get<int>());
             alphabet.push_back(word_obj["vec"].get<IntSeq>());
         }
+//        std::cout << "out read_dict" << std::endl;
         return dict;
     }
 };

@@ -19,7 +19,7 @@ public:
     static std::shared_ptr<PyIntVGramBuilder> load(const std::string &filename) {
         int size;
         double min_probability;
-        std::shared_ptr<SeqCoder> coder;
+        std::shared_ptr<SeqCoder> coder = std::make_shared<SeqCoder>();
         IntSeq freqs;
         std::vector<IntSeq> alphabet;
         bool fitted, freqs_computed;

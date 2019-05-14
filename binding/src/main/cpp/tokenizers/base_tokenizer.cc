@@ -45,8 +45,17 @@ std::vector<std::vector<int>> BaseTokenizer::fit_transform(const std::vector<std
     return transform(seqs, args);
 }
 
-std::string BaseTokenizer::normalize(const std::string &s) const {
-    return s;
+std::string BaseTokenizer::normalize(const std::string &str) const {
+//    std::string res;
+//    for (char symb : str) {
+//        if (symb == ' ') {
+////            res += "\u2581";
+//            res += '_';
+//        } else {
+//            res += symb;
+//        }
+//    }
+    return str;
 }
 
 std::vector<std::string> BaseTokenizer::tokenize(const std::string &str) const {

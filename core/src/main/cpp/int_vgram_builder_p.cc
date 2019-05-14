@@ -10,37 +10,37 @@
 IntVGramBuilderImpl::IntVGramBuilderImpl(int size, int verbose) {
     size_ = size;
     symb_alphabet_ = std::vector<IntSeq>();
-    current_ = std::shared_ptr<StatDictImpl>(new StatDictImpl()); // Sanitizer: indirect leak
+    current_ = std::make_shared<StatDictImpl>();
     result_ = nullptr;
     verbose_ = verbose;
 }
 
-IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict& alphabet, int size, int verbose) {
+IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict &alphabet, int size, int verbose) {
     init(alphabet, size, verbose);
 }
 
-IntVGramBuilderImpl::IntVGramBuilderImpl(const IntSeq& alphabet, int size, int verbose) {
+IntVGramBuilderImpl::IntVGramBuilderImpl(const IntSeq &alphabet, int size, int verbose) {
     IntDictImpl int_dict(alphabet);
     init(int_dict, size, verbose);
 }
 
-IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict& dict, const IntSeq& freqs,
-        const std::vector<IntSeq>& alphabet, double min_probability, int verbose) {
+IntVGramBuilderImpl::IntVGramBuilderImpl(const IntDict &dict, const IntSeq &freqs,
+                                         const std::vector<IntSeq> &alphabet, double min_probability, int verbose) {
     verbose_ = verbose;
     size_ = dict.size();
     IntSeq freqs_copy(freqs.begin(), freqs.end());
-    std::shared_ptr<StatDictImpl> result = std::shared_ptr<StatDictImpl>(
-            new StatDictImpl(dict.alphabet(), min_probability, &freqs_copy));
+    std::shared_ptr<StatDictImpl> result = std::make_shared<StatDictImpl>(dict.alphabet(), min_probability,
+                                                                          &freqs_copy);
     symb_alphabet_ = alphabet;
     current_ = result;
     result_ = result;
 }
 
-void IntVGramBuilderImpl::init(const IntDict& alphabet, int size, int verbose) {
+void IntVGramBuilderImpl::init(const IntDict &alphabet, int size, int verbose) {
     verbose_ = verbose;
     size_ = size;
     symb_alphabet_ = alphabet.alphabet();
-    current_ = std::shared_ptr<StatDictImpl>(new StatDictImpl(alphabet.alphabet())); // Sanitizer: indirect leak
+    current_ = std::make_shared<StatDictImpl>(alphabet.alphabet());
     result_ = nullptr;
 }
 
@@ -49,10 +49,10 @@ std::shared_ptr<IntDict> IntVGramBuilderImpl::result() const {
 }
 
 const std::shared_ptr<IntDict> IntVGramBuilderImpl::alpha() const {
-    return std::shared_ptr<IntDict>(new IntDictImpl(result_->alphabet()));
+    return std::make_shared<IntDictImpl>(result_->alphabet());
 }
 
-void IntVGramBuilderImpl::accept(const IntSeq& seq) {
+void IntVGramBuilderImpl::accept(const IntSeq &seq) {
     IntSeq result;
     current_->parse(seq, &result);
     if (current_->enough(prob_found_) || current_->power_ > kMaxPower) {
@@ -95,11 +95,10 @@ void IntVGramBuilderImpl::update() {
         else
             slots = static_cast<int>(current_->size() * kExtensionFactor);
         double min_prob_result = current_->expand(slots, &new_dict, &freqs);
-        result = std::shared_ptr<StatDictImpl>(new StatDictImpl(new_dict, min_prob_result, &freqs));
-    }
-    else {
+        result = std::make_shared<StatDictImpl>(new_dict, min_prob_result, &freqs);
+    } else {
         double min_prob_result = current_->reduce(size_ - alphabet_size, &new_dict, &freqs);
-        result = std::shared_ptr<StatDictImpl>(new StatDictImpl(new_dict, min_prob_result, &freqs));
+        result = std::make_shared<StatDictImpl>(new_dict, min_prob_result, &freqs);
         result_ = result;
     }
     current_ = result;
@@ -115,7 +114,7 @@ void IntVGramBuilderImpl::update() {
     populate_ = !populate_;
 }
 
-int IntVGramBuilderImpl::result_freqs(IntSeq* freqs) {
+int IntVGramBuilderImpl::result_freqs(IntSeq *freqs) {
     if (result_->size() > result_->symbol_freqs_.size())
         for (auto i = result_->symbol_freqs_.size(); i < result_->size(); i++)
             result_->symbol_freqs_.push_back(0);
@@ -126,19 +125,19 @@ int IntVGramBuilderImpl::result_freqs(IntSeq* freqs) {
 }
 
 double IntVGramBuilderImpl::code_length() const {
-  return result_->code_length_per_char();
+    return result_->code_length_per_char();
 }
 
 double IntVGramBuilderImpl::get_min_probability() const {
     return result_->min_probability_;
 }
 
-double IntVGramBuilderImpl::kl(const IntSeq& freqs, const std::unordered_map<std::int64_t, int>& pair_freqs) const {
+double IntVGramBuilderImpl::kl(const IntSeq &freqs, const std::unordered_map<std::int64_t, int> &pair_freqs) const {
     std::vector<double> freq_first(freqs.size());
     for (auto &e : pair_freqs) {
         std::int64_t code = e.first;
         int freq = e.second;
-        freq_first[(int)(code >> 32)] = freq;
+        freq_first[(int) (code >> 32)] = freq;
     }
     double total_pair_freqs = std::accumulate(freq_first.begin(), freq_first.end(), 0.0);
     double total_freqs = std::accumulate(freqs.begin(), freqs.end(), 0.0);

@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.linear_model import SGDClassifier
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.pipeline import Pipeline
-from vgram import VGram, IntVGram, loadVGram, loadIntVGram, CharTokenizer
+from vgram import *
 
 
 def get_data():
@@ -67,7 +67,9 @@ def test_save_vgram_small():
     data = data[:1000]
     vgram = VGram(500, 1)
     vgram.fit(data)
+    print("fit")
     vgram.save(path)
+    print("save")
 
     pipeline1 = Pipeline([
         ("features", vgram),
@@ -76,6 +78,7 @@ def test_save_vgram_small():
         ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=100, random_state=3))
     ])
     pipeline1.fit(train.data, train.target)
+    print("fit 1 pip")
 
     pipeline2 = Pipeline([
         ("features", loadVGram(path)),
@@ -83,13 +86,15 @@ def test_save_vgram_small():
         ('tfidf', TfidfTransformer(sublinear_tf=True)),
         ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=100, random_state=3))
     ])
+    print("load 2")
     pipeline2.fit(train.data, train.target)
+    print("fit 2 pip")
 
     print(np.mean(pipeline1.predict(train.data) == train.target), np.mean(pipeline2.predict(train.data) == train.target))
     print(np.mean(pipeline1.predict(test.data) == test.target), np.mean(pipeline2.predict(test.data) == test.target))
 
-    assert abs(np.mean(pipeline1.predict(train.data) == train.target) - np.mean(pipeline2.predict(train.data) == train.target)) < 0.001
-    assert abs(np.mean(pipeline1.predict(test.data) == test.target) - np.mean(pipeline2.predict(test.data) == test.target)) < 0.001
+    assert abs(np.mean(pipeline1.predict(train.data) == train.target) - np.mean(pipeline2.predict(train.data) == train.target)) < 1e-5
+    assert abs(np.mean(pipeline1.predict(test.data) == test.target) - np.mean(pipeline2.predict(test.data) == test.target)) < 1e-5
 
 
 def test_save_int_vgram_small():
@@ -124,12 +129,54 @@ def test_save_int_vgram_small():
     print(np.mean(pipeline1.predict(train.data) == train.target), np.mean(pipeline2.predict(train.data) == train.target))
     print(np.mean(pipeline1.predict(test.data) == test.target), np.mean(pipeline2.predict(test.data) == test.target))
 
-    assert abs(np.mean(pipeline1.predict(train.data) == train.target) - np.mean(pipeline2.predict(train.data) == train.target)) < 0.001
-    assert abs(np.mean(pipeline1.predict(test.data) == test.target) - np.mean(pipeline2.predict(test.data) == test.target)) < 0.001
+    assert abs(np.mean(pipeline1.predict(train.data) == train.target) - np.mean(pipeline2.predict(train.data) == train.target)) < 1e-5
+    assert abs(np.mean(pipeline1.predict(test.data) == test.target) - np.mean(pipeline2.predict(test.data) == test.target)) < 1e-5
+
+
+def test_save_int_stream_vgram():
+    path = "test_int_stream_dict.json"
+    train, test = get_data()
+    data = train.data + test.data
+    data = data[:1000]
+    tokenizer = CharTokenizer()
+    vgram = IntStreamVGram(500)
+    for seq in tokenizer.transform(data):
+        vgram.accept(seq)
+    vgram.update()
+    print("fit")
+    vgram.save(path)
+    print("save")
+    loadedVgram = loadIntStreamVGram(path)
+    print("load int stream vgram")
+    print(loadedVgram)
+    print("print loaded vgram")
+    print(loadedVgram.parse(tokenizer.transform(data)[0]))
+    print("parsed")
+
+
+def test_save_stream_vgram():
+    path = "test_int_stream_dict.json"
+    train, test = get_data()
+    data = train.data + test.data
+    data = data[:1000]
+    vgram = StreamVGram(500)
+    for seq in data:
+        vgram.accept(seq)
+    vgram.update()
+    print("fit")
+    vgram.save(path)
+    print("save")
+    loadedVgram = loadStreamVGram(path)
+    print("load stream vgram")
+    print(loadedVgram.parse(data[0]))
+    print("parsed")
 
 
 if __name__ == "__main__":
-    # test_vgram_svm()
+    test_vgram_svm()
     # test_vgram_svm_small()
-    test_save_vgram_small()
+    # test_save_vgram_small()
     # test_save_int_vgram_small()
+
+    # test_save_int_stream_vgram()
+    # test_save_stream_vgram()
