@@ -21,5 +21,4 @@ public:
     virtual double get_min_probability() const = 0;
 };
 
-
 #endif //VGRAM_INT_VGRAM_BUILDER_H

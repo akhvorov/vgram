@@ -53,8 +53,11 @@ option(WITH_PYTHON "Build with python interface" ON)
 
 #target_link_libraries(${project_name} gtest gtest_main)
 
-include_directories(src/main)
-add_subdirectory(src/main)
+include_directories(src/main/cpp/algorithm)
+add_subdirectory(src/main/cpp/algorithm)
+
+include_directories(src/main/cpp/interfaces)
+add_subdirectory(src/main/cpp/interfaces)
 
 #include_directories(src/test)
 #add_subdirectory(src/test)
