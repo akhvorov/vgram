@@ -18,22 +18,14 @@ set(SOURCE_LIB
         cpp/bind_all.cc
         cpp/bind_vgram_builders.cc
         cpp/bind_tokenizers.cc
-        cpp/json.h
-        cpp/vgram_builders/py_int_vgram_builder.h
-        cpp/vgram_builders/py_int_vgram_builder.cc
-        cpp/vgram_builders/py_int_stream_vgram_builder.h
-        cpp/vgram_builders/py_int_stream_vgram_builder.cc
-        cpp/vgram_builders/py_stream_vgram_builder.h
-        cpp/vgram_builders/py_stream_vgram_builder.cc
-        cpp/vgram_builders/py_vgram_builder.h
-        cpp/vgram_builders/py_vgram_builder.cc
-        cpp/tokenizers/base_tokenizer.h
-        cpp/tokenizers/base_tokenizer.cc
-        cpp/tokenizers/char_tokenizer.h
-        cpp/tokenizers/char_tokenizer.cc
-        cpp/seq_coder.h
-        cpp/seq_coder.cc
+        cpp/py_int_vgram_builder.h
+        cpp/py_vgram_builder.h
+        cpp/base_tokenizer.h
+#        cpp/test.cc
         )
 
 pybind11_add_module(${project_name} ${SOURCE_LIB})
-target_link_libraries(${project_name} PRIVATE vgram_builder)
+target_link_libraries(${project_name} PRIVATE vgram_interfaces)
+
+#add_executable(${project_name} ${SOURCE_LIB})
+#pybind11_add_module(test_cpp ${SOURCE_LIB})
