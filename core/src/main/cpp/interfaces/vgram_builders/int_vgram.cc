@@ -135,4 +135,5 @@ IntVGram::IntVGram(std::shared_ptr<SeqCoder> coder, const IntSeq &freqs,
     builder_ = std::make_shared<IntVGramBuilderImpl>(*dict_, freqs, alphabet, min_probability, 1);
     fitted_ = fitted;
     freqs_computed_ = freqs_computed;
+    iter_num_ = 0;
 }

@@ -12,14 +12,8 @@ namespace py = pybind11;
 
 class StringVGram : public vgram_core::StringVGram {
 public:
-//    static std::shared_ptr<StringVGram> load(const std::string &filename) {
-//        std::shared_ptr<IntVGram> int_builder = IntVGram::load(filename);
-//        std::shared_ptr<BaseTokenizer> tokenizer = StringStreamVGram::loadTokenizer(filename, int_builder->get_coder());
-//        return std::make_shared<StringVGram>(int_builder, tokenizer);
-//    }
-
-    static std::shared_ptr<StringVGram> load(const std::string &filename) {
-        return std::shared_ptr<StringVGram>(dynamic_cast<StringVGram *>(vgram_core::StringVGram::load(filename).get()));
+    static StringVGram *load(const std::string &filename) {
+        return static_cast<StringVGram *>(vgram_core::StringVGram::load(filename));
     }
 
     StringVGram(int size, int iter_num) : vgram_core::StringVGram(size, iter_num) {}

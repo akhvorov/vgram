@@ -14,7 +14,7 @@ using json = nlohmann::json;
 namespace vgram_core {
     class IntVGram : public IntStreamVGram {
     public:
-        static std::shared_ptr<IntVGram> load(const std::string &filename) {
+        static IntVGram *load(const std::string &filename) {
             int size;
             double min_probability;
             std::shared_ptr<SeqCoder> coder = std::make_shared<SeqCoder>();
@@ -22,8 +22,9 @@ namespace vgram_core {
             std::vector<IntSeq> alphabet;
             bool fitted, freqs_computed;
             json dict = read_dict(filename, coder, freqs, alphabet, size, min_probability, fitted, freqs_computed);
-            return std::shared_ptr<IntVGram>(
-                    new IntVGram(coder, freqs, alphabet, size, min_probability, fitted, freqs_computed));
+//            return std::shared_ptr<IntVGram>(
+//                    new IntVGram(coder, freqs, alphabet, size, min_probability, fitted, freqs_computed));
+            return new IntVGram(coder, freqs, alphabet, size, min_probability, fitted, freqs_computed);
         }
 
         IntVGram(int size, int iter_num);

@@ -52,12 +52,43 @@ def test_vgram_svm_small():
         ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=100, random_state=3))
     ])
     pipeline.fit(train.data, train.target)
-    assert np.mean(pipeline.predict(train.data) == train.target) > 0.75
-    assert np.mean(pipeline.predict(test.data) == test.target) > 0.56
     print("train:", np.mean(pipeline.predict(train.data) == train.target))
     print("test:", np.mean(pipeline.predict(test.data) == test.target))
+    assert np.mean(pipeline.predict(train.data) == train.target) > 0.75
+    assert np.mean(pipeline.predict(test.data) == test.target) > 0.56
     alpha = vgram.named_steps["vgb"].alphabet()
+    print(alpha[:10])
     assert alpha[:10] == ['f', 'from', 'for', 'forthe', 'fa', 'fe', 'fer', 'fi', 'find', 'r']
+    print("finish")
+
+
+def test_int_vgram_svm_small():
+    train, test = get_data()
+    data = train.data + test.data
+    data = data[:1000]
+    tokenizer = CharTokenizer()
+    vgram = Pipeline([
+        ("vgb", VGram(500, 1, tokenizer)),
+        ("vect", CountVectorizer())
+    ])
+    vgram.fit(data)
+
+    pipeline = Pipeline([
+        ("features", vgram),
+        ('tfidf', TfidfTransformer(sublinear_tf=True)),
+        ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=100, random_state=3))
+    ])
+    pipeline.fit(train.data, train.target)
+    train_accuracy = np.mean(pipeline.predict(train.data) == train.target)
+    test_accuracy = np.mean(pipeline.predict(test.data) == test.target)
+    print("train:", train_accuracy)
+    print("test:", test_accuracy)
+    assert train_accuracy > 0.76
+    assert test_accuracy > 0.57
+    alpha = vgram.named_steps["vgb"].alphabet()
+    print(alpha[:10])
+    assert alpha[:10] == ['f', 'from', 'for', 'forthe', 'fa', 'fe', 'fer', 'fi', 'find', 'r']
+    print("finish")
 
 
 def test_save_vgram_small():
@@ -172,9 +203,39 @@ def test_save_stream_vgram():
     print("parsed")
 
 
+def test_custom_tokenizer():
+    def test():
+        data = ["aaaaaababababaaaaba", "aaaaaaaab"]
+        tokenizer = CharTokenizer()
+        vgram = VGram(5, 1000, tokenizer, 0)
+        vgram.fit(data)
+        print(vgram.alphabet())
+        print("finish")
+    test()
+    print("done")
+
+
+def test_load():
+    def load():
+        data = ["aaaaaababababaaaaba", "aaaaaaaab"]
+        vgram = VGram(5, 1000, 0)
+        vgram = vgram.fit(data)
+        vgram.save("small_vgram.json")
+        vgram2 = loadVGram("small_vgram.json")
+        assert vgram.alphabet() == vgram2.alphabet()
+
+    load()
+    print("done")
+
+
 if __name__ == "__main__":
-    test_vgram_svm()
+    test_load()
+    # print("in main")
+
+    # test_vgram_svm()
     # test_vgram_svm_small()
+    # test_int_vgram_svm_small()
+
     # test_save_vgram_small()
     # test_save_int_vgram_small()
 

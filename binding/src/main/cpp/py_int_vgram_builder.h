@@ -12,20 +12,8 @@ namespace py = pybind11;
 
 class IntVGram : public vgram_core::IntVGram {
 public:
-//    static std::shared_ptr<IntVGram> load(const std::string &filename) {
-//        int size;
-//        double min_probability;
-//        std::shared_ptr<SeqCoder> coder = std::make_shared<SeqCoder>();
-//        IntSeq freqs;
-//        std::vector<IntSeq> alphabet;
-//        bool fitted, freqs_computed;
-//        json dict = read_dict(filename, coder, freqs, alphabet, size, min_probability, fitted, freqs_computed);
-//        return std::shared_ptr<IntVGram>(
-//                new IntVGram(coder, freqs, alphabet, size, min_probability, fitted, freqs_computed));
-//    }
-
-    static std::shared_ptr<IntVGram> load(const std::string &filename) {
-        return std::shared_ptr<IntVGram>(dynamic_cast<IntVGram *>(vgram_core::IntVGram::load(filename).get()));
+    static IntVGram *load(const std::string &filename) {
+        return static_cast<IntVGram*>(vgram_core::IntVGram::load(filename));
     }
 
     IntVGram(int size, int iter_num) : vgram_core::IntVGram(size, iter_num) {}
