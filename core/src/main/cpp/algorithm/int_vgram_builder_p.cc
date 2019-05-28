@@ -45,10 +45,13 @@ void IntVGramBuilderImpl::init(const IntDict &alphabet, int size, int verbose) {
 }
 
 std::shared_ptr<IntDict> IntVGramBuilderImpl::result() const {
-    return result_ != nullptr ? result_->dict_ : nullptr;
+    return result_ != nullptr ? result_->dict_ : current_->dict_;
 }
 
 const std::shared_ptr<IntDict> IntVGramBuilderImpl::alpha() const {
+    if (result_ == nullptr) {
+        return std::make_shared<IntDictImpl>(current_->alphabet());
+    }
     return std::make_shared<IntDictImpl>(result_->alphabet());
 }
 
@@ -114,14 +117,23 @@ void IntVGramBuilderImpl::update() {
     populate_ = !populate_;
 }
 
-int IntVGramBuilderImpl::result_freqs(IntSeq *freqs) {
-    if (result_->size() > result_->symbol_freqs_.size())
-        for (auto i = result_->symbol_freqs_.size(); i < result_->size(); i++)
-            result_->symbol_freqs_.push_back(0);
-    for (int symbol_freq : result_->symbol_freqs_) {
+int IntVGramBuilderImpl::result_freqs(std::shared_ptr<StatDictImpl> stat_dict, IntSeq *freqs) {
+    if (stat_dict->size() > stat_dict->symbol_freqs_.size()) {
+        for (auto i = stat_dict->symbol_freqs_.size(); i < stat_dict->size(); ++i) {
+            stat_dict->symbol_freqs_.push_back(0);
+        }
+    }
+    for (int symbol_freq : stat_dict->symbol_freqs_) {
         freqs->push_back(symbol_freq);
     }
     return static_cast<int>(freqs->size());
+}
+
+int IntVGramBuilderImpl::result_freqs(IntSeq *freqs) {
+    if (result_ == nullptr) {
+        return result_freqs(current_, freqs);
+    }
+    return result_freqs(result_, freqs);
 }
 
 double IntVGramBuilderImpl::code_length() const {
@@ -129,29 +141,5 @@ double IntVGramBuilderImpl::code_length() const {
 }
 
 double IntVGramBuilderImpl::get_min_probability() const {
-    return result_->min_probability_;
-}
-
-double IntVGramBuilderImpl::kl(const IntSeq &freqs, const std::unordered_map<std::int64_t, int> &pair_freqs) const {
-    std::vector<double> freq_first(freqs.size());
-    for (auto &e : pair_freqs) {
-        std::int64_t code = e.first;
-        int freq = e.second;
-        freq_first[(int) (code >> 32)] = freq;
-    }
-    double total_pair_freqs = std::accumulate(freq_first.begin(), freq_first.end(), 0.0);
-    double total_freqs = std::accumulate(freqs.begin(), freqs.end(), 0.0);
-    double result = 0;
-    for (auto &e : pair_freqs) {
-        std::int64_t code = e.first;
-        double freq = e.second;
-        double first = (int) (code >> 32);
-        double second = (int) (code & 0xFFFFFFFFL);
-        double pAB = freq / total_pair_freqs;
-        double pBcondA = freq / freq_first[first];
-        double pA = freqs[first] / total_freqs;
-        double pB = freqs[second] / total_freqs;
-        result += freq * pBcondA * log(pAB / pA / pB);
-    }
-    return result;
+    return result_ != nullptr ? result_->min_probability_ : -1.0;
 }

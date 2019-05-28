@@ -21,9 +21,6 @@ set(SOURCE_LIB
         list_dict.cc
         list_dict.h
 
-        ../../../../../binding/src/main/cpp/seq_coder.cc
-        ../../../../../binding/src/main/cpp/seq_coder.h
-
         stat_dict.h
         stat_dict_p.cc
         stat_dict_p.h
