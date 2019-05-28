@@ -6,7 +6,7 @@
 #include <random>
 #include "cpp/int_vgram_builder_p.h"
 #include "cpp/int_dict_p.h"
-#include "common.h"
+#include "src/test/cpp/algorithm/common.h"
 #include "cpp/vector_hash.h"
 
 TEST(IntVgramBuilderTests, EmptyTest) {

@@ -2,8 +2,8 @@
 // Created by Aleksandr Khvorov on 15/02/2019.
 //
 
-#ifndef DICT_EXPANSION_STRING_STREAM_VGRAM_H
-#define DICT_EXPANSION_STRING_STREAM_VGRAM_H
+#ifndef VGRAM_INTERFACES_STRING_STREAM_VGRAM_H
+#define VGRAM_INTERFACES_STRING_STREAM_VGRAM_H
 
 #include "../tokenizers/char_tokenizer.h"
 #include "int_stream_vgram.h"
@@ -23,7 +23,9 @@ namespace vgram_core {
 
         StringStreamVGram(int size, int verbose);
 
-        StringStreamVGram(int size, std::shared_ptr<BaseTokenizer> tokenizer, int verbose);
+        StringStreamVGram(int size, BaseTokenizer *tokenizer);
+
+        StringStreamVGram(int size, BaseTokenizer *tokenizer, int verbose);
 
         StringStreamVGram(std::shared_ptr<IntStreamVGram> stream_builder,
                           std::shared_ptr<BaseTokenizer> tokenizer);
@@ -65,4 +67,4 @@ namespace vgram_core {
     };
 }
 
-#endif //DICT_EXPANSION_STRING_STREAM_VGRAM_H
+#endif //VGRAM_INTERFACES_STRING_STREAM_VGRAM_H

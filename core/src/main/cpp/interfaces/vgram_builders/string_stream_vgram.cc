@@ -12,13 +12,17 @@ using namespace vgram_core;
 StringStreamVGram::StringStreamVGram(int size) : StringStreamVGram(size, 1) {}
 
 StringStreamVGram::StringStreamVGram(int size, int verbose = 1)
-        : StringStreamVGram(size, std::make_shared<CharTokenizer>(), verbose) {}
+        : stream_builder_(std::make_shared<IntStreamVGram>(size, verbose)),
+          tokenizer_(std::make_shared<CharTokenizer>()) {}
 
-StringStreamVGram::StringStreamVGram(int size, std::shared_ptr<BaseTokenizer> tokenizer, int verbose = 1)
-        : StringStreamVGram(std::make_shared<IntStreamVGram>(size, verbose), std::move(tokenizer)) {}
+StringStreamVGram::StringStreamVGram(int size, BaseTokenizer *tokenizer)
+        : stream_builder_(std::make_shared<IntStreamVGram>(size, 1)), tokenizer_(tokenizer) {}
+
+StringStreamVGram::StringStreamVGram(int size, BaseTokenizer *tokenizer, int verbose = 1)
+        : stream_builder_(std::make_shared<IntStreamVGram>(size, verbose)), tokenizer_(tokenizer) {}
 
 StringStreamVGram::StringStreamVGram(std::shared_ptr<IntStreamVGram> stream_builder,
-                                           std::shared_ptr<BaseTokenizer> tokenizer)
+                                     std::shared_ptr<BaseTokenizer> tokenizer)
         : stream_builder_(std::move(stream_builder)), tokenizer_(std::move(tokenizer)) {
 }
 

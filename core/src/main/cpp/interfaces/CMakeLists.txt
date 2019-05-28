@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-set(project_name vgram_interface)
+set(project_name vgram_interfaces)
 project(${project_name})
 
 set(CMAKE_CXX_STANDARD 14)
@@ -22,6 +22,9 @@ set(SOURCE_LIB
         seq_coder.cc
         )
 
+include_directories(../algorithm)
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(${project_name} STATIC ${SOURCE_LIB})
-target_link_libraries(${project_name} PRIVATE vgram_builder)
+target_link_libraries(${project_name} vgram_builder)
+#target_include_directories(${project_name} ../algorithm)

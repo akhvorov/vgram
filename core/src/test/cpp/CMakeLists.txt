@@ -18,14 +18,16 @@ enable_testing()
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -g -O1")
 
 set(TEST_LIB
-        cpp/common.h
-        cpp/common.cc
-        cpp/int_dict_test.cc
-        cpp/stat_dict_test.cc
-        cpp/int_vgram_builder_test.cpp
+#        algorithm/common.h
+#        algorithm/common.cc
+#        algorithm/int_dict_test.cc
+#        algorithm/stat_dict_test.cc
+#        algorithm/int_vgram_builder_test.cpp
+
+        interfaces/string_vgram_test.cpp
         )
 
 # tests
 add_executable(${project_name} ${TEST_LIB})
 #target_link_libraries(${project_name} vgram_builder)
-target_link_libraries(${project_name} vgram_builder gtest gtest_main)
+target_link_libraries(${project_name} vgram_builder vgram_interfaces gtest gtest_main)

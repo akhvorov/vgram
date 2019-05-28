@@ -2,8 +2,8 @@
 // Created by Aleksandr Khvorov on 29/09/2018.
 //
 
-#ifndef DICT_EXPANSION_INT_VGRAM_H
-#define DICT_EXPANSION_INT_VGRAM_H
+#ifndef VGRAM_INTERFACES_INT_VGRAM_H
+#define VGRAM_INTERFACES_INT_VGRAM_H
 
 #include "../json.h"
 #include "../tokenizers/base_tokenizer.h"
@@ -30,6 +30,11 @@ namespace vgram_core {
 
         IntVGram(int size, int iter_num, int verbose);
 
+        IntVGram(std::shared_ptr<SeqCoder> coder, const IntSeq &freqs, const std::vector<IntSeq> &alphabet,
+                 int size, double min_probability, bool fitted, bool freqs_computed);
+
+        virtual ~IntVGram() = default;
+
         IntVGram *fit(const std::vector<IntSeq> &seqs/*, const std::string &filename,*/);
 
         std::vector<std::string> transform_to_string(const std::vector<IntSeq> &seqs) const;
@@ -54,12 +59,8 @@ namespace vgram_core {
             return dict;
         }
 
-        bool isTerminated() const;
-
-    private:
-        IntVGram(std::shared_ptr<SeqCoder> coder, const IntSeq &freqs, const std::vector<IntSeq> &alphabet,
-                 int size, double min_probability, bool fitted, bool freqs_computed);
+        virtual bool isTerminated() const;
     };
 }
 
-#endif //DICT_EXPANSION_INT_VGRAM_H
+#endif //VGRAM_INTERFACES_INT_VGRAM_H

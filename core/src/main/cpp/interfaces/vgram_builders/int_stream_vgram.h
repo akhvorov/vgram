@@ -2,12 +2,13 @@
 // Created by Aleksandr Khvorov on 03/11/2018.
 //
 
-#ifndef DICT_EXPANSION_INT_STREAM_VGRAM_H
-#define DICT_EXPANSION_INT_STREAM_VGRAM_H
+#ifndef VGRAM_INTERFACES_INT_STREAM_VGRAM_H
+#define VGRAM_INTERFACES_INT_STREAM_VGRAM_H
 
 #include <fstream>
 //#include <iostream>
-#include <int_vgram_builder.h>
+//#include <int_vgram_builder.h>
+#include "../../algorithm/int_vgram_builder.h"
 #include "../json.h"
 #include "../tokenizers/base_tokenizer.h"
 #include "../seq_coder.h"
@@ -91,4 +92,4 @@ namespace vgram_core {
     };
 }
 
-#endif //DICT_EXPANSION_INT_STREAM_VGRAM_H
+#endif //VGRAM_INTERFACES_INT_STREAM_VGRAM_H

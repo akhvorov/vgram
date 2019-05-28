@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include "cpp/int_dict_p.h"
 #include "cpp/vector_hash.h"
-#include "common.h"
+#include "src/test/cpp/algorithm/common.h"
 
 TEST(IntDictTests, EmptyTest) {
     ASSERT_TRUE(true);

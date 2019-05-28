@@ -3,9 +3,9 @@
 //
 
 #include <gtest/gtest.h>
-#include "cpp/stat_dict_p.h"
-#include "cpp/vector_hash.h"
-#include "common.h"
+#include "cpp/algorithm/stat_dict_p.h"
+#include "cpp/algorithm/vector_hash.h"
+#include "src/test/cpp/algorithm/common.h"
 
 TEST(StatDictImplTests, EmptyTest) {
     ASSERT_TRUE(true);

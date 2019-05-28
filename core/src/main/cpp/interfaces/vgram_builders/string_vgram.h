@@ -2,8 +2,8 @@
 // Created by Aleksandr Khvorov on 25/02/2019.
 //
 
-#ifndef DICT_EXPANSION_STRING_VGRAM_H
-#define DICT_EXPANSION_STRING_VGRAM_H
+#ifndef VGRAM_INTERFACES_STRING_VGRAM_H
+#define VGRAM_INTERFACES_STRING_VGRAM_H
 
 #include "../tokenizers/char_tokenizer.h"
 #include "int_vgram.h"
@@ -14,8 +14,8 @@ namespace vgram_core {
     public:
         static std::shared_ptr<StringVGram> load(const std::string &filename) {
             std::shared_ptr<IntVGram> int_builder = IntVGram::load(filename);
-            std::shared_ptr<BaseTokenizer> tokenizer = StringStreamVGram::loadTokenizer(filename,
-                                                                                        int_builder->get_coder());
+            std::shared_ptr<BaseTokenizer> tokenizer =
+                    StringStreamVGram::loadTokenizer(filename, int_builder->get_coder());
             return std::make_shared<StringVGram>(int_builder, tokenizer);
         }
 
@@ -28,6 +28,8 @@ namespace vgram_core {
         StringVGram(int size, int iter_num, BaseTokenizer *tokenizer, int verbose);
 
         StringVGram(std::shared_ptr<IntVGram> int_builder, std::shared_ptr<BaseTokenizer> tokenizer);
+
+        virtual ~StringVGram() = default;
 
         StringVGram *fit(const std::vector<std::string> &seqs/*, const std::string &filename,*/);
 
@@ -45,4 +47,4 @@ namespace vgram_core {
     };
 }
 
-#endif //DICT_EXPANSION_STRING_VGRAM_H
+#endif //VGRAM_INTERFACES_STRING_VGRAM_H

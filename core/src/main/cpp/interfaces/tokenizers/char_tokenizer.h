@@ -2,8 +2,8 @@
 // Created by Aleksandr Khvorov on 01/10/2018.
 //
 
-#ifndef DICT_EXPANSION_SIMPLE_TOKENIZER_H
-#define DICT_EXPANSION_SIMPLE_TOKENIZER_H
+#ifndef VGRAM_INTERFACES_CHAR_TOKENIZER_H
+#define VGRAM_INTERFACES_CHAR_TOKENIZER_H
 
 #import "base_tokenizer.h"
 
@@ -20,4 +20,4 @@ namespace vgram_core {
     };
 }
 
-#endif //DICT_EXPANSION_SIMPLE_TOKENIZER_H
+#endif //VGRAM_INTERFACES_CHAR_TOKENIZER_H

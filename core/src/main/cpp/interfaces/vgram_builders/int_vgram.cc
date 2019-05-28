@@ -25,8 +25,7 @@ IntVGram::IntVGram(int size, int iter_num, int verbose)
     fitted_ = false;
 }
 
-IntVGram *
-IntVGram::fit(const std::vector<IntSeq> &seqs/*, const std::string &filename,*/) {
+IntVGram *IntVGram::fit(const std::vector<IntSeq> &seqs/*, const std::string &filename,*/) {
     if (fitted_) {
         if (freqs_computed_) {
             return this;
