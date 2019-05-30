@@ -8,11 +8,11 @@
 
 namespace py = pybind11;
 
-void init_vgram_builders(py::module &);
 void init_tokenizers(py::module &);
+void init_vgram_builders(py::module &);
 
 PYBIND11_MODULE(vgram, m) {
     m.doc() = "python lib for vgram features building";
-    init_vgram_builders(m);
     init_tokenizers(m);
+    init_vgram_builders(m);
 }

@@ -7,9 +7,9 @@
 #include <pybind11/stl.h>
 #include <pybind11/iostream.h>
 #include <src/main/cpp/interfaces/vgram_builders/string_stream_vgram.h>
-#include "base_tokenizer.h"
 #include "py_int_vgram_builder.h"
 #include "py_vgram_builder.h"
+#include "py_tokenizers.h"
 
 namespace py = pybind11;
 
@@ -20,8 +20,7 @@ void init_vgram_builders(py::module &m) {
     m.def("loadVGram", &StringVGram::load);
 
     py::class_<vgram_core::IntStreamVGram>(m, "IntStreamVGram")
-            .def(py::init<int>())
-            .def(py::init<int, int>())
+            .def(py::init<int, int>(), py::arg("size") = 10000, py::arg("verbose") = 0)
             .def("accept", &vgram_core::IntStreamVGram::accept,
                  py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>())
@@ -31,11 +30,10 @@ void init_vgram_builders(py::module &m) {
             .def("freqs", &vgram_core::IntStreamVGram::freqs)
             .def("alphabet", &vgram_core::IntStreamVGram::alphabet);
 
-    py::class_<vgram_core::StringStreamVGram>(m, "StringStreamVGram")
-            .def(py::init<int>())
-            .def(py::init<int, int>())
-            .def(py::init<int, BaseTokenizer*>())
-            .def(py::init<int, BaseTokenizer*, int>())
+    py::class_<vgram_core::StringStreamVGram>(m, "StreamVGram")
+            .def(py::init<int, int>(), py::arg("size") = 10000, py::arg("verbose") = 0)
+            .def(py::init<int, BaseTokenizer*, int>(), py::keep_alive<1, 3>(),
+                 py::arg("size") = 10000, py::arg_v("arg", PyCharTokenizer(), "CharTokenizer()"), py::arg("verbose") = 0)
             .def("accept", &vgram_core::StringStreamVGram::accept,
                  py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>())
@@ -46,11 +44,10 @@ void init_vgram_builders(py::module &m) {
             .def("alphabet", &vgram_core::StringStreamVGram::alphabet);
 
     py::class_<IntVGram>(m, "IntVGram")
-            .def(py::init<int, int>())
-            .def(py::init<int, int, int>())
+            .def(py::init<int, int, int>(), py::arg("size") = 10000, py::arg("iter_num") = 20, py::arg("verbose") = 0)
             .def("save", &IntVGram::save, py::arg("filename") = "", py::arg("tokenizer") = nullptr)
             .def("freqs", &IntVGram::freqs)
-            .def("fit", &IntVGram::fit,
+            .def("fit", &IntVGram::fit, py::return_value_policy::reference,
                  py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>())
 
@@ -59,13 +56,13 @@ void init_vgram_builders(py::module &m) {
             .def("alphabet", &IntVGram::alphabet);
 
     py::class_<StringVGram>(m, "VGram")
-            .def(py::init<int, int>())
-            .def(py::init<int, int, int>())
-            .def(py::init<int, int, BaseTokenizer*>())
-            .def(py::init<int, int, BaseTokenizer*, int>())
+            .def(py::init<int, int, int>(), py::arg("size") = 10000, py::arg("iter_num") = 20, py::arg("verbose") = 0)
+            .def(py::init<int, int, BaseTokenizer*, int>(), py::keep_alive<1, 4>(),
+                    py::arg("size") = 10000, py::arg("iter_num") = 20,
+                    py::arg_v("arg", PyCharTokenizer(), "CharTokenizer()"), py::arg("verbose") = 0)
             .def("save", &StringVGram::save)
             .def("freqs", &StringVGram::freqs)
-            .def("fit", &StringVGram::fit,
+            .def("fit", &StringVGram::fit, py::return_value_policy::reference,
                  py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>())
             .def("transform", &StringVGram::transform)

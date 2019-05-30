@@ -21,6 +21,7 @@ set(SOURCE_LIB
         cpp/py_int_vgram_builder.h
         cpp/py_vgram_builder.h
         cpp/base_tokenizer.h
+        cpp/py_tokenizers.h
 #        cpp/test.cc
         )
 
