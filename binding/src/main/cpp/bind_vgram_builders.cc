@@ -26,7 +26,7 @@ void init_vgram_builders(py::module &m) {
                          py::scoped_estream_redirect>())
             .def("parse", &vgram_core::IntStreamVGram::parse)
             .def("update", &vgram_core::IntStreamVGram::update_dict)
-            .def("save", &vgram_core::IntStreamVGram::save, py::arg("filename") = "", py::arg("tokenizer") = nullptr)
+            .def("save", &vgram_core::IntStreamVGram::save, py::arg("filename") = "vgram_dict.json", py::arg("tokenizer") = nullptr)
             .def("freqs", &vgram_core::IntStreamVGram::freqs)
             .def("alphabet", &vgram_core::IntStreamVGram::alphabet);
 
@@ -39,19 +39,18 @@ void init_vgram_builders(py::module &m) {
                          py::scoped_estream_redirect>())
             .def("parse", &vgram_core::StringStreamVGram::parse)
             .def("update", &vgram_core::StringStreamVGram::update_dict)
-            .def("save", &vgram_core::StringStreamVGram::save)
+            .def("save", &vgram_core::StringStreamVGram::save, py::arg("filename") = "vgram_dict.json")
             .def("freqs", &vgram_core::StringStreamVGram::freqs)
             .def("alphabet", &vgram_core::StringStreamVGram::alphabet);
 
     py::class_<IntVGram>(m, "IntVGram")
             .def(py::init<int, int, int>(), py::arg("size") = 10000, py::arg("iter_num") = 20, py::arg("verbose") = 0)
-            .def("save", &IntVGram::save, py::arg("filename") = "", py::arg("tokenizer") = nullptr)
-            .def("freqs", &IntVGram::freqs)
             .def("fit", &IntVGram::fit, py::return_value_policy::reference,
                  py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>())
 
             .def("transform", &IntVGram::transform_to_string)
+            .def("save", &IntVGram::save, py::arg("filename") = "vgram_dict.json", py::arg("tokenizer") = nullptr)
             .def("freqs", &IntVGram::freqs)
             .def("alphabet", &IntVGram::alphabet);
 
@@ -60,12 +59,11 @@ void init_vgram_builders(py::module &m) {
             .def(py::init<int, int, BaseTokenizer*, int>(), py::keep_alive<1, 4>(),
                     py::arg("size") = 10000, py::arg("iter_num") = 20,
                     py::arg_v("arg", PyCharTokenizer(), "CharTokenizer()"), py::arg("verbose") = 0)
-            .def("save", &StringVGram::save)
-            .def("freqs", &StringVGram::freqs)
             .def("fit", &StringVGram::fit, py::return_value_policy::reference,
                  py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>())
             .def("transform", &StringVGram::transform)
+            .def("save", &StringVGram::save, py::arg("filename") = "vgram_dict.json")
             .def("freqs", &StringVGram::freqs)
             .def("alphabet", &StringVGram::alphabet);
 }
