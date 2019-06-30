@@ -15,13 +15,9 @@ fetch_pybind11(
 )
 
 set(SOURCE_LIB
-        cpp/bind_all.cc
-        cpp/bind_vgram_builders.cc
-        cpp/bind_tokenizers.cc
+        cpp/bind_vgram.cc
         cpp/py_int_vgram_builder.h
         cpp/py_vgram_builder.h
-        cpp/base_tokenizer.h
-        cpp/py_tokenizers.h
 #        cpp/test.cc
         )
 

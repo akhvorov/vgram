@@ -18,6 +18,8 @@ set(SOURCE_LIB
         tokenizers/base_tokenizer.cc
         tokenizers/char_tokenizer.h
         tokenizers/char_tokenizer.cc
+        tokenizers/word_tokenizer.h
+        tokenizers/word_tokenizer.cc
         seq_coder.h
         seq_coder.cc
         )

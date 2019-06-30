@@ -6,20 +6,19 @@
 #import <regex>
 #include "base_tokenizer.h"
 
+using namespace std;
 using namespace vgram_core;
 
-BaseTokenizer::BaseTokenizer(const std::unordered_map<std::string, int> &forward_map) {
+const std::string BaseTokenizer::kSpace = "\u2581";
+
+BaseTokenizer::BaseTokenizer(const unordered_map<string, int> &forward_map) {
     forward_coder_ = forward_map;
     for (const auto &pair : forward_map) {
         backward_coder_[pair.second] = pair.first;
     }
 }
 
-BaseTokenizer *BaseTokenizer::fit(const std::vector<std::string> &seqs) {
-    return this;
-}
-
-std::vector<std::vector<int>> BaseTokenizer::transform(const std::vector<std::string> &seqs) {
+vector<vector<int>> BaseTokenizer::transform(const vector<string> &seqs) {
     std::vector<std::vector<int>> res;
     res.reserve(seqs.size());
     for (const std::string &seq : seqs) {
@@ -28,7 +27,7 @@ std::vector<std::vector<int>> BaseTokenizer::transform(const std::vector<std::st
     return res;
 }
 
-std::vector<int> BaseTokenizer::transform(const std::string &seq) {
+vector<int> BaseTokenizer::transform(const string &seq) {
     std::vector<std::string> tokens = tokenize(normalize(seq));
     std::vector<int> coded_seq;
     coded_seq.reserve(tokens.size());
@@ -42,42 +41,21 @@ std::vector<int> BaseTokenizer::transform(const std::string &seq) {
     return coded_seq;
 }
 
-std::vector<std::vector<int>> BaseTokenizer::fit_transform(const std::vector<std::string> &seqs) {
-    return transform(seqs);
-}
-
-std::string BaseTokenizer::normalize(const std::string &str) const {
-//    std::string res;
-//    for (char symb : str) {
-//        if (symb == ' ') {
-////            res += "\u2581";
-//            res += '_';
-//        } else {
-//            res += symb;
-//        }
-//    }
+string BaseTokenizer::normalize(const string &str) const {
     return str;
 }
 
-std::vector<std::string> BaseTokenizer::tokenize(const std::string &str) const {
-    std::vector<std::string> tokens;
-    for (char i : str) {
-        tokens.emplace_back(1, i);
-    }
-    return tokens;
-}
-
-std::vector<std::string> BaseTokenizer::decode(const std::vector<std::vector<int>> &seqs) const {
-    std::vector<std::string> res;
+vector<string> BaseTokenizer::decode(const vector<vector<int>> &seqs) const {
+    vector<string> res;
     res.reserve(seqs.size());
-    for (const std::vector<int> &seq : seqs) {
+    for (auto &seq : seqs) {
         res.push_back(decode(seq));
     }
     return res;
 }
 
-std::string BaseTokenizer::decode(const std::vector<int> &seq) const {
-    std::string decoded_seq;
+string BaseTokenizer::decode(const vector<int> &seq) const {
+    string decoded_seq;
     for (auto i : seq) {
         if (backward_coder_.count(i) > 0) {
             decoded_seq += backward_coder_.at(i);

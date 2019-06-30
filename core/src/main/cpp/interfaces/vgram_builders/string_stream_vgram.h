@@ -19,16 +19,15 @@ namespace vgram_core {
             return std::make_shared<StringStreamVGram>(stream_builder, tokenizer);
         }
 
-        explicit StringStreamVGram(int size);
 
-        StringStreamVGram(int size, int verbose);
-
-        StringStreamVGram(int size, BaseTokenizer *tokenizer);
-
-        StringStreamVGram(int size, BaseTokenizer *tokenizer, int verbose);
+        StringStreamVGram(int size, int verbose
+                //                          bool inner_words_split, bool words_are_tokens
+        );
 
         StringStreamVGram(std::shared_ptr<IntStreamVGram> stream_builder,
-                          std::shared_ptr<BaseTokenizer> tokenizer);
+                          std::shared_ptr<BaseTokenizer> tokenizer
+//                          bool inner_words_split, bool words_are_tokens
+        );
 
         void accept(const std::string &seq);
 
@@ -64,6 +63,8 @@ namespace vgram_core {
     protected:
         std::shared_ptr<IntStreamVGram> stream_builder_;
         std::shared_ptr<BaseTokenizer> tokenizer_;
+//        bool words_are_tokens = false;
+//        bool inner_words_split = false;
     };
 }
 

@@ -6,26 +6,27 @@
 #import <string>
 #include "char_tokenizer.h"
 
+using namespace std;
 using namespace vgram_core;
 
 CharTokenizer::CharTokenizer() = default;
 
-CharTokenizer::CharTokenizer(const std::unordered_map<std::string, int> &forward_map) : BaseTokenizer(forward_map) {}
+CharTokenizer::CharTokenizer(const unordered_map<string, int> &forward_map) : BaseTokenizer(forward_map) {}
 
-std::string CharTokenizer::normalize(const std::string &str) const {
-    std::string res;
-    for (char i : str) {
-        if (isalnum(i)) {
-            res += i;
+string CharTokenizer::normalize(const string &str) const {
+    string res;
+    for (auto &c : str) {
+        if (c == ' ') {
+            res += BaseTokenizer::kSpace;
+        } else {
+            res += c;
         }
     }
-    std::transform(res.begin(), res.end(), res.begin(), ::tolower);
     return res;
-    // return regex_replace(str, std::regex("[^\\w\\d]"), "");
 }
 
-std::vector<std::string> CharTokenizer::tokenize(const std::string &str) const {
-    std::vector<std::string> tokens;
+vector<string> CharTokenizer::tokenize(const string &str) const {
+    vector<string> tokens;
     for (char i : str) {
         tokens.emplace_back(1, i);
     }

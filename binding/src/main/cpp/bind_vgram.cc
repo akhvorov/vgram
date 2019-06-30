@@ -1,6 +1,5 @@
-
 //
-// Created by Aleksandr Khvorov on 03/11/2018.
+// Created by Aleksandr Khvorov on 26.08.18.
 //
 
 #include <pybind11/pybind11.h>
@@ -9,11 +8,12 @@
 #include <src/main/cpp/interfaces/vgram_builders/string_stream_vgram.h>
 #include "py_int_vgram_builder.h"
 #include "py_vgram_builder.h"
-#include "py_tokenizers.h"
 
 namespace py = pybind11;
 
-void init_vgram_builders(py::module &m) {
+PYBIND11_MODULE(vgram, m) {
+    m.doc() = "python lib for vgram features building";
+
     m.def("loadIntStreamVGram", &vgram_core::IntStreamVGram::load);
     m.def("loadStreamVGram", &vgram_core::StringStreamVGram::load);
     m.def("loadIntVGram", &IntVGram::load);
@@ -32,8 +32,6 @@ void init_vgram_builders(py::module &m) {
 
     py::class_<vgram_core::StringStreamVGram>(m, "StreamVGram")
             .def(py::init<int, int>(), py::arg("size") = 10000, py::arg("verbose") = 0)
-            .def(py::init<int, BaseTokenizer*, int>(), py::keep_alive<1, 3>(),
-                 py::arg("size") = 10000, py::arg_v("arg", PyCharTokenizer(), "CharTokenizer()"), py::arg("verbose") = 0)
             .def("accept", &vgram_core::StringStreamVGram::accept,
                  py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>())
@@ -56,9 +54,6 @@ void init_vgram_builders(py::module &m) {
 
     py::class_<StringVGram>(m, "VGram")
             .def(py::init<int, int, int>(), py::arg("size") = 10000, py::arg("iter_num") = 20, py::arg("verbose") = 0)
-            .def(py::init<int, int, BaseTokenizer*, int>(), py::keep_alive<1, 4>(),
-                    py::arg("size") = 10000, py::arg("iter_num") = 20,
-                    py::arg_v("arg", PyCharTokenizer(), "CharTokenizer()"), py::arg("verbose") = 0)
             .def("fit", &StringVGram::fit, py::return_value_policy::reference,
                  py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>())
