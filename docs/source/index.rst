@@ -52,7 +52,9 @@ Contents:
     :maxdepth: 2
 
     about
-    builder
+    vgram_builder
+    stream_builder
+    save
     tokenizers
     examples
 

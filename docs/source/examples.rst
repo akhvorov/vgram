@@ -7,6 +7,56 @@ Examples
 Basic example
 =============
 
+This function accept list of strings, fit v-gram dictionary and transform to v-gram representation.
+
+.. code-block:: python
+
+    from vgram import VGram
+
+    def split_text_on_vgram(tests):
+        vgram = VGram(10000, 10)
+        vgram.fit(texts)
+        return vgram.transform(texts)
+
+Save dictionary
+===============
+
+Save fitted dictionary to file and restore them
+
+.. code-block:: python
+
+    from vgram import VGram, loadVGram
+
+    vgram = VGram(5000, 10)
+    vgram.fit(texts)
+    vgram.save("my_dict.json")
+    vgram = loadVGram("my_dict.json")
+
+Include in scikit-learn pipeline
+================================
+
+VGram can be embedded to sklearn pipeline as text preprocessing.
+
+.. code-block:: python
+
+    from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer\
+    from sklearn.linear_model import SGDClassifier
+    from sklearn.pipeline import Pipeline
+    from vgram import VGram, loadVGram
+
+    def classification_on_vgrams(texts, labels):
+        pipeline = Pipeline([
+            ("vgram", VGram(10000, 10)),
+            ("vect", CountVectorizer())
+            ('tfidf', TfidfTransformer()),
+            ('clf', SGDClassifier())
+        ])
+        pipeline.fit(texts, labels)
+        print("train accuracy: ", np.mean(pipeline.predict(texts) == labels))
+
+Real example
+============
+
 The primary example of 20 newsgroups dataset classification
 
 .. code-block:: python
@@ -43,7 +93,7 @@ The primary example of 20 newsgroups dataset classification
 	print("First 10 alphabet elements:", alpha[:10])
 
 V-Gram is an unsupervised method that's why we fit v-gram to all data.
-Once fitted, v-gram doesn't fit again, and we could not trouble about doubled fitting.
+Once fitted, v-gram doesn't fit again, and we could not trouble about double fitting.
 
 In the last two lines shown how to get dictionary alphabet and print some elements.
 
@@ -70,126 +120,72 @@ We just make the union of features.
 
 It's easy to improve your existing project by adding v-grams.
 
-Build vgrams on int sequences
-=============================
+Build v-grams on int sequences
+==============================
 
-IntVGram helps you to work with int seqs. If default tokenizer is not good for your task,
-you can create your own (see below) and use it.
-This example show is equivalent to usage of VGram cause of CharTokenizer is default tokenizer for VGram.
+IntVGram helps you to work with int sequences.
+Standard fit-transform return list of strings for usage in sklearn text pipeline (see `IntVGram in text pipeline`_).
+Apply `split()` to make integer lists.
+
+.. code-block:: python
+
+	from vgram import IntVGram
+
+    int_seqs = [[1, 1, 1, 2], [1, 2, 1, 2]] # 2-d int list or numpy array
+	vgram = IntVGram(3, 1000)
+	vgram.fit(int_seqs)
+	text_vgrams = vgram.transform(int_seqs) # strings like "0 1 0 1"
+	int_vgrams = [s.split() for s in text_vgrams] # [[0, 0, 0, 1], [0, 1, 0, 1]]
+
+IntVGram in text pipeline
+=========================
+
+This example is equivalent to usage of VGram but uses integer streams instead strings.
 
 .. code-block:: python
 
 	from sklearn.pipeline import Pipeline, FeatureUnion
-	from vgram import IntVGram, CharTokenizer
-
-	vgram = Pipeline([
-	    ("tokenizer", CharTokenizer()),
-		("vgb", IntVGram(10000, 10))
-	])
-	vgram.fit(data)
+	from vgram import IntVGram
 
 	pipeline = Pipeline([
-		("vgram", vgram),
+		("vgram", IntVGram(10000, 10)),
 		("vect", CountVectorizer()),
 		('tfidf', TfidfTransformer(sublinear_tf=True)),
 		('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-4, max_iter=100))
 	])
+	pipeline.fit(int_seqs, labels)
 
-
-Custom Tokenizer
-================
-
-You should override only two methods in BaseTokenizer for creation custom tokenizer.
-
-.. code-block:: python
-
-    from vgram import VGramBuilder, BaseTokenizer
-
-    class WordTokenizer(BaseTokenizer):
-        def normalize(self, X):
-            return [re.sub("[^ \w\d]", "", re.sub(" +", " ", x)).lower() for x in X]
-
-        def tokenize(self, X):
-            return [x.split(" ") for x in X]
-
-    vgram = Pipeline([
-        ("tokenizer", WordTokenizer()),
-        ("vgb", VGramBuilder(10000, 10)),
-        ("vect", CountVectorizer())
-    ])
-
-More Custom Tokenizer
+Save and load v-grams
 =====================
 
-If BaseTokenizer doesn't fit your task, you can create your own tokenizer.
+Yo can fit any v-gram dictionary and save to file. Then it can be restored by load methods.
 
 .. code-block:: python
 
-    class Tokenizer:
-        def __init__(self):
-            self.forward = {}
-            self.backward = {}
+    from vgram import VGram, loadVGram
 
-        def fit(self, X):
-            return self
+    vgram = VGram(5000, 10)
+    vgram.fit(data)
+    vgram.save("my_dict.json")
+    vgram2 = loadVGram("my_dict.json")
+    vgram2.transform(data)
+    alphabet = vgram2.alphabet()
 
-        def transform(self, X):
-            res = []
-            for x in X:
-                s = []
-                for c in x.lower():
-                    if c.isalnum():
-                        if c not in self.forward:
-                            self.forward[c] = len(self.forward)
-                            self.backward[self.forward[c]] = c
-                        s.append(self.forward[c])
-                res.append(s)
-            return res
-
-        def decode(self, X):
-            res = []
-            for x in X:
-                res.append([self.backward[c] for c in x if c in self.backward])
-            return res
-
-        def fit_transform(self, X):
-            return self.fit(X).transform(X)
-
-    tok = Tokenizer()
-    tok_texts = tok.fit_transform(texts)
-    vgram = IntVGram(10000, 10)
-    vgram.fit(tok_texts)
-    print("Alphabet:", tok.decode(vgram.alphabet())
-
-Save VGram to file
-==================
+Construct VGram from file
+=========================
 
 .. code-block:: python
 
-    vgram = Pipeline([
-        ("tokenizer", CharTokenizer()),
-        ("vgb", IntVGram(10000, 10, 0)),  # verbose=0
+    vgram = loadVGram("/path/to/file")
+    vgram_pipeline = Pipeline([
+        ("vgb", vgram),
         ("vect", CountVectorizer())
     ])
-    vgram.fit(data)
-    vgram.named_steps["vgb"].save("/path/to/file")  # saving without readable words
-    # vgram.named_steps["vgb"].save("/path/to/file", vgram.named_steps["tokenizer"])  # saving with readable words
-
-Construct VGramBuilder from file
-================================
-
-.. code-block:: python
-
-    vgram = Pipeline([
-        ("tokenizer", CharTokenizer()),
-        ("vgb", VGramBuilder("/path/to/file")),
-        ("vect", CountVectorizer())
-    ])
-    vgram.fit(data)
+    vgram_pipeline.fit(data)
 
 .. Note::
 
-    VGramBuilder fit only once and wouldn't be fitted again. Only CharTokenizer and CountVectorizer will be fitted.
+    VGram fit only once and wouldn't be fitted again. Only CountVectorizer will be fitted.
 
 Saving intermediate dictionaries to file
 ========================================
@@ -203,21 +199,21 @@ Saving intermediate dictionaries to file
     ])
     vgram.fit(data)
 
-StreamVGramBuilder
-==================
+StreamVGram
+===========
 
 .. code-block:: python
 
-    from vgram import StreamVGramBuilder
+    from vgram import StreamVGram
 
-    vgram = StreamVGramBuilder(5000)
+    vgram = StreamVGram(5000)
     for seq in seqs:  # some stream of sequences, maybe infinite
         vgram.accept(seq)
     vgram.update()  # don't forget it!
     parsed_seq = vgram.parse(seq)
 
-StreamVGramBuilder from file
-============================
+Load StreamVGram from file
+==========================
 
 Let's read an existing dictionary from the file, fit it more and save.
 If you have little data, you can train a dictionary on a large dataset (e.g., all wikipedia articles) and save it.
@@ -226,9 +222,9 @@ Then fit more on domain-specific data for your task and get a better result than
 .. code-block:: python
 
     import random
-    from vgram import StreamVGramBuilder
+    from vgram import loadStreamVGram
 
-    vgram = StreamVGramBuilder("common_dict.json", 1)  # verbose=1
+    vgram = loadStreamVGram("common_dict.json")
     n_times = 10
     for iters in range(n_times):  # feed data to the model few times until convergence
         for i in range(len(little_data)):
@@ -236,6 +232,29 @@ Then fit more on domain-specific data for your task and get a better result than
     vgram.update()
     parsed_seq = vgram.parse(seq)
     vgram.save("task_specific_dict.json")
+
+Fine-tune StreamVGram
+=====================
+
+You can pre-train VGram, save it, load as StreamVGram and fine-tune.
+Unfortunately, to do the opposite will not work.
+
+.. code-block:: python
+
+    import random
+    from vgram import VGram, StreamVGram, loadStreamVGram
+
+    vgram = VGram(5000, 10)
+    vgram.fit(data)
+    vgram.save("dict.json")
+    stream_vgram = loadStreamVGram("dict.json")
+    n_times = 10
+    for iters in range(n_times):  # feed data to the model few times until convergence
+        for i in range(len(little_data)):
+            stream_vgram.accept(little_data[random.randint(0, len(little_data) - 1])
+    stream_vgram.update()
+    parsed_seq = vgram.parse(seq)
+    stream_vgram.save("task_specific_dict.json")
 
 
 Our experiments
