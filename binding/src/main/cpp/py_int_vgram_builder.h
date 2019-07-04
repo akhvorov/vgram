@@ -7,21 +7,22 @@
 
 #include <pybind11/pybind11.h>
 #include <src/main/cpp/interfaces/vgram_builders/int_vgram.h>
+#include <src/main/cpp/interfaces/loader.h>
 
 namespace py = pybind11;
 
-class IntVGram : public vgram_core::IntVGram {
+class PyIntVGram : public vgram_core::IntVGram {
 public:
-    static IntVGram *load(const std::string &filename) {
-        return static_cast<IntVGram*>(vgram_core::IntVGram::load(filename));
+    static PyIntVGram *load(const std::string &filename) {
+        return static_cast<PyIntVGram*>(vgram_core::Loader::load_int_vgram(filename));
     }
 
-    IntVGram(int size, int iter_num) : vgram_core::IntVGram(size, iter_num) {}
+    PyIntVGram(int size, int iter_num) : vgram_core::IntVGram(size, iter_num) {}
 
-    IntVGram(int size, int iter_num, int verbose) : vgram_core::IntVGram(size, iter_num, verbose) {}
+    PyIntVGram(int size, int iter_num, int verbose) : vgram_core::IntVGram(size, iter_num, verbose) {}
 
-    IntVGram *fit(const std::vector<std::vector<int>> &seqs, /*const std::string &filename,*/ py::args &args) {
-        return dynamic_cast<IntVGram *>(vgram_core::IntVGram::fit(seqs));
+    PyIntVGram *fit(const std::vector<std::vector<int>> &seqs, /*const std::string &filename,*/ py::args &args) {
+        return static_cast<PyIntVGram *>(vgram_core::IntVGram::fit(seqs));
     }
 
     std::vector<std::string> transform_to_string(const std::vector<std::vector<int>> &seqs, py::args &args) const {

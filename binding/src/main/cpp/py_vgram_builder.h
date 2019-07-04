@@ -7,27 +7,28 @@
 
 #include <pybind11/pybind11.h>
 #include <src/main/cpp/interfaces/vgram_builders/string_vgram.h>
+#include <src/main/cpp/interfaces/loader.h>
 
 namespace py = pybind11;
 
-class StringVGram : public vgram_core::StringVGram {
+class PyStringVGram : public vgram_core::StringVGram {
 public:
-    static StringVGram *load(const std::string &filename) {
-        return static_cast<StringVGram *>(vgram_core::StringVGram::load(filename));
+    static PyStringVGram *load(const std::string &filename) {
+        return static_cast<PyStringVGram *>(vgram_core::Loader::load_string_vgram(filename));
     }
 
-    StringVGram(int size, int iter_num) : vgram_core::StringVGram(size, iter_num) {}
+    PyStringVGram(int size, int iter_num) : vgram_core::StringVGram(size, iter_num) {}
 
-    StringVGram(int size, int iter_num, int verbose) : vgram_core::StringVGram(size, iter_num, verbose) {}
+    PyStringVGram(int size, int iter_num, int verbose) : vgram_core::StringVGram(size, iter_num, verbose) {}
 
-    StringVGram(int size, int iter_num, vgram_core::BaseTokenizer *tokenizer)
+    PyStringVGram(int size, int iter_num, vgram_core::BaseTokenizer *tokenizer)
             : vgram_core::StringVGram(size, iter_num, tokenizer) {}
 
-    StringVGram(int size, int iter_num, vgram_core::BaseTokenizer *tokenizer, int verbose)
+    PyStringVGram(int size, int iter_num, vgram_core::BaseTokenizer *tokenizer, int verbose)
             : vgram_core::StringVGram(size, iter_num, tokenizer, verbose) {}
 
-    StringVGram *fit(const std::vector<std::string> &seqs, /*const std::string &filename,*/ py::args &args) {
-        return dynamic_cast<StringVGram *>(vgram_core::StringVGram::fit(seqs));
+    PyStringVGram *fit(const std::vector<std::string> &seqs, /*const std::string &filename,*/ py::args &args) {
+        return static_cast<PyStringVGram *>(vgram_core::StringVGram::fit(seqs));
     }
 
     std::vector<std::string> transform(const std::vector<std::string> &seqs, py::args &args) const {
