@@ -22,7 +22,12 @@ vector<string> WordTokenizer::tokenize(const string &str) const {
         if (i == ' ' && current != "") {
             tokens.push_back(current);
             current = "";
+        } else {
+            current += i;
         }
+    }
+    if (current != "") {
+        tokens.push_back(current);
     }
     return tokens;
 }

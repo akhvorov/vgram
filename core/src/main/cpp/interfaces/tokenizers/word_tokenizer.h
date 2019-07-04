@@ -10,6 +10,7 @@
 
 namespace vgram_core {
     class WordTokenizer : public BaseTokenizer {
+    public:
         WordTokenizer();
 
         explicit WordTokenizer(const std::unordered_map<std::string, int> &forward_map);

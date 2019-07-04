@@ -9,7 +9,7 @@
 using namespace std;
 using namespace vgram_core;
 
-const std::string BaseTokenizer::kSpace = "\u2581";
+const std::string BaseTokenizer::kSpaceReplacer = "\u2581";
 
 BaseTokenizer::BaseTokenizer(const unordered_map<string, int> &forward_map) {
     forward_coder_ = forward_map;

@@ -12,7 +12,7 @@
 namespace vgram_core {
     class BaseTokenizer {
     public:
-        static const std::string kSpace;
+        static const std::string kSpaceReplacer;
 
         BaseTokenizer() = default;
 

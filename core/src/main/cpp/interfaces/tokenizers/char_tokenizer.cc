@@ -16,12 +16,16 @@ CharTokenizer::CharTokenizer(const unordered_map<string, int> &forward_map) : Ba
 string CharTokenizer::normalize(const string &str) const {
     string res;
     for (auto &c : str) {
-        if (c == ' ') {
-            res += BaseTokenizer::kSpace;
-        } else {
+//        if (c == ' ') {
+//            res += BaseTokenizer::kSpaceReplacer;
+//        } else {
+//            res += c;
+//        }
+        if (isalnum(c)) {
             res += c;
         }
     }
+    std::transform(res.begin(), res.end(), res.begin(), ::tolower);
     return res;
 }
 
