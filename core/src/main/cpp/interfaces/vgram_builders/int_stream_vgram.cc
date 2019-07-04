@@ -3,14 +3,12 @@
 //
 
 #include <algorithm>
-#include <fstream>
 #include <iomanip>
 #include <utility>
 #include "../../algorithm/int_dict_p.h"
 #include "../../algorithm/int_vgram_builder_p.h"
-//#include <src/main/cpp/algorithm/int_dict_p.h>
-//#include <src/main/cpp/algorithm/int_vgram_builder_p.h>
 #include "int_stream_vgram.h"
+#include "../saver.h"
 
 using namespace vgram_core;
 
@@ -71,58 +69,15 @@ IntSeq IntStreamVGram::freqs() const {
 }
 
 void IntStreamVGram::save(const std::string &filename, std::shared_ptr<BaseTokenizer> tokenizer) const {
-    std::ofstream file;
-    file = std::ofstream(filename);
-//    std::cout << "in save" << std::endl;
-    file << std::setw(2) << dict_to_json(std::move(tokenizer)) << std::endl;
-    file.close();
+    Saver::save(this, filename);
 }
 
-std::shared_ptr<SeqCoder> IntStreamVGram::get_coder() {
+const std::shared_ptr<SeqCoder> IntStreamVGram::get_coder() const {
     return coder_;
 }
 
 std::shared_ptr<IntDict> IntStreamVGram::get_dict() {
     return dict_;
-}
-
-json IntStreamVGram::dict_to_json(std::shared_ptr<BaseTokenizer> tokenizer) const {
-    json dict;
-    dict["size"] = size_;
-    dict["min_prob"] = min_probability_;
-    dict["coder"] = coder_to_json();
-    dict["alphabet"] = alphabet_to_json(std::move(tokenizer));
-    return dict;
-}
-
-json IntStreamVGram::coder_to_json() const {
-    std::vector<std::pair<int, int>> pairs;
-    for (const auto &p : coder_->code_map()) {
-        pairs.emplace_back(p);
-    }
-    std::sort(pairs.begin(), pairs.end(),
-              [](const std::pair<int, int> &a, const std::pair<int, int> &b) { return a.second < b.second; });
-    std::string res;
-    json coder;
-    for (const auto &p : pairs) {
-        coder.push_back(p.first);
-    }
-    return coder;
-}
-
-json IntStreamVGram::alphabet_to_json(std::shared_ptr<BaseTokenizer> tokenizer) const {
-    json alpha;
-    std::vector<IntSeq> alphabet = dict_->alphabet();
-    for (int i = 0; i < alphabet.size(); i++) {
-        IntSeq word = alphabet[i];
-        json word_obj;
-        word_obj["vec"] = json(word);
-        word_obj["freq"] = freqs_[i];
-        if (tokenizer != nullptr)
-            word_obj["text"] = tokenizer->decode(coder_->decode(dict_->get(i)));
-        alpha.push_back(word_obj);
-    }
-    return alpha;
 }
 
 IntStreamVGram::IntStreamVGram(const std::shared_ptr<SeqCoder> coder, const IntSeq &freqs,

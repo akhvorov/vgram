@@ -3,6 +3,7 @@
 //
 
 #include <utility>
+#include <saver.h>
 #include "string_vgram.h"
 
 using namespace vgram_core;
@@ -44,7 +45,7 @@ std::vector<std::string> StringVGram::transform(const std::vector<std::string> &
 }
 
 void StringVGram::save(const std::string &filename) const {
-    int_builder_->save(filename, tokenizer_);
+    Saver::save(this, filename);
 }
 
 IntSeq StringVGram::freqs() const {

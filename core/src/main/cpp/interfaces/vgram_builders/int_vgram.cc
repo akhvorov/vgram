@@ -85,6 +85,7 @@ std::vector<std::string> IntVGram::transform_to_string(const std::vector<IntSeq>
     for (const IntSeq &seq : transform(seqs)) {
         std::string str;
         for (const auto &i : seq) {
+            //TODO fix
             str += " " + std::to_string(i);
         }
         if (str.length() == 0) {
@@ -109,13 +110,6 @@ std::vector<IntSeq> IntVGram::transform(const std::vector<IntSeq> &seqs) const {
         }
     }
     return res;
-}
-
-json IntVGram::dict_to_json(std::shared_ptr<BaseTokenizer> tokenizer) const {
-    json dict = IntStreamVGram::dict_to_json(tokenizer);
-    dict["fitted"] = fitted_;
-    dict["freqs_computed"] = freqs_computed_;
-    return dict;
 }
 
 bool IntVGram::isTerminated() const {

@@ -10,16 +10,11 @@
 #include "string_stream_vgram.h"
 
 namespace vgram_core {
-    class StringVGram {
-    public:
-        static StringVGram *load(const std::string &filename) {
-            std::shared_ptr<IntVGram> int_builder = std::shared_ptr<IntVGram>(IntVGram::load(filename));
-            std::shared_ptr<BaseTokenizer> tokenizer =
-                    StringStreamVGram::loadTokenizer(filename, int_builder->get_coder());
-//            return std::make_shared<StringVGram>(int_builder, tokenizer);
-            return new StringVGram(int_builder, tokenizer);
-        }
+    class Saver;
 
+    class StringVGram {
+        friend class Saver;
+    public:
         StringVGram(int size, int iter_num);
 
         StringVGram(int size, int iter_num, int verbose);

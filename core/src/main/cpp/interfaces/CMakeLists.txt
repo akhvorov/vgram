@@ -22,6 +22,8 @@ set(SOURCE_LIB
         tokenizers/word_tokenizer.cc
         seq_coder.h
         seq_coder.cc
+        saver.h
+        loader.h
         )
 
 include_directories(../algorithm)

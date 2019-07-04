@@ -5,26 +5,35 @@
 #include <iostream>
 #include <iomanip>
 #include <utility>
+#include <saver.h>
 #include "string_stream_vgram.h"
 
 using namespace std;
 using namespace vgram_core;
 
-StringStreamVGram::StringStreamVGram(int size, int verbose = 1
-//                                     bool inner_words_split = false, bool words_are_tokens = false
-)
+StringStreamVGram::StringStreamVGram(int size, int verbose, bool inner_words_split, bool words_are_tokens)
         : stream_builder_(make_shared<IntStreamVGram>(size, verbose)),
-          tokenizer_(make_shared<CharTokenizer>())
-//          inner_words_split(inner_words_split), words_are_tokens(words_are_tokens)
-{}
+          inner_words_split(inner_words_split), words_are_tokens(words_are_tokens) {
+    check_args();
+    if (words_are_tokens) {
+        tokenizer_ = make_shared<WordTokenizer>();
+    } else {
+        tokenizer_ = make_shared<CharTokenizer>();
+    }
+//    if (inner_words_split) {
+//        splitter_ = std::make_shared<WordSplitter>();
+//    } else {
+//        splitter_ = std::make_shared<NoSplitter>();
+//    }
+}
 
 StringStreamVGram::StringStreamVGram(shared_ptr<IntStreamVGram> stream_builder,
-                                     shared_ptr<BaseTokenizer> tokenizer
-//                                     bool inner_words_split = false, bool words_are_tokens = false
-)
-        : stream_builder_(std::move(stream_builder)), tokenizer_(std::move(tokenizer))
-//          inner_words_split(inner_words_split), words_are_tokens(words_are_tokens)
-{}
+                                     shared_ptr<BaseTokenizer> tokenizer,
+                                     bool inner_words_split, bool words_are_tokens)
+        : stream_builder_(std::move(stream_builder)), tokenizer_(std::move(tokenizer)),
+          inner_words_split(inner_words_split), words_are_tokens(words_are_tokens) {
+    check_args();
+}
 
 void StringStreamVGram::accept(const string &seq) {
     stream_builder_->accept(tokenizer_->transform(seq));
@@ -55,5 +64,11 @@ IntSeq StringStreamVGram::freqs() const {
 }
 
 void StringStreamVGram::save(const string &filename) const {
-    stream_builder_->save(filename, tokenizer_);
+    Saver::save(this, filename);
+}
+
+void StringStreamVGram::check_args() {
+    if (words_are_tokens && inner_words_split) {
+        throw invalid_argument("Inner_words_split and words_are_tokens can't be true both");
+    }
 }
